@@ -8,24 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
-    <style>
-        .login-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .protected-header {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-        }
-        
-        .urgent-notice {
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-    </style>
+    <link rel="stylesheet" href="assets/css/empleados.css">
 </head>
 <body class="bg-gray-50">
     
@@ -144,15 +127,14 @@
                 </div>
             </div>
 
-            <!-- Important Notice -->
-            <div class="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-8 rounded-r-lg">
+            <!-- Important Notice (Solo para administradores) -->
+            <div id="adminNotice" class="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-8 rounded-r-lg hidden">
                 <div class="flex items-start space-x-3">
                     <i class="fas fa-info-circle text-yellow-600 text-xl mt-1"></i>
                     <div>
-                        <h3 class="font-semibold text-yellow-800">Información Importante</h3>
+                        <h3 class="font-semibold text-yellow-800">Panel de Administración</h3>
                         <p class="text-yellow-700 mt-1">
-                            Esta página es de uso exclusivo para empleados. Los horarios se actualizan semanalmente.
-                            Si necesitas hacer cambios, contacta con el encargado.
+                            Gestiona horarios, empleados y configuraciones. Los cambios se reflejan inmediatamente en el sistema.
                         </p>
                     </div>
                 </div>
@@ -176,379 +158,14 @@
                 </div>
             </div>
 
-            <!-- Employee Schedule Grid -->
+            <!-- Employee Schedule Grid (Se genera dinámicamente) -->
             <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-                
-                <!-- LUNES -->
-                <div class="day-container p-6">
-                    <div class="text-center mb-6">
-                        <h3 class="text-2xl font-bold text-gray-800 mb-2">🌅 LUNES</h3>
-                        <div class="w-16 h-1 bg-blue-500 mx-auto rounded-full"></div>
-                        <p class="text-sm text-gray-500 mt-2">13 Enero</p>
-                    </div>
-                    <div class="space-y-3">
-                        <div class="employee-shift bryan-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👨‍💼 BRYAN</span>
-                                <span class="time-badge">7:00 - 14:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift raquel-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 RAQUEL</span>
-                                <span class="time-badge">14:00 - 21:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift free-day">
-                            <div class="flex justify-between items-center">
-                                <span class="font-medium">👩‍💼 MARÍA</span>
-                                <span class="bg-gray-400 text-white px-3 py-1 rounded-full text-sm">🏠 LIBRE</span>
-                            </div>
-                        </div>
-                        <div class="employee-shift xisca-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 XISCA</span>
-                                <span class="time-badge">10:00 - 16:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">6 horas</div>
-                        </div>
-                        <div class="employee-shift andrea-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 ANDREA</span>
-                                <span class="time-badge">12:00 - 19:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- MARTES -->
-                <div class="day-container p-6">
-                    <div class="text-center mb-6">
-                        <h3 class="text-2xl font-bold text-gray-800 mb-2">🌄 MARTES</h3>
-                        <div class="w-16 h-1 bg-green-500 mx-auto rounded-full"></div>
-                        <p class="text-sm text-gray-500 mt-2">14 Enero</p>
-                    </div>
-                    <div class="space-y-3">
-                        <div class="employee-shift maria-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 MARÍA</span>
-                                <span class="time-badge">7:00 - 14:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift xisca-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 XISCA</span>
-                                <span class="time-badge">12:00 - 18:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">6 horas</div>
-                        </div>
-                        <div class="employee-shift bryan-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👨‍💼 BRYAN</span>
-                                <span class="time-badge">14:00 - 21:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift andrea-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 ANDREA</span>
-                                <span class="time-badge">10:00 - 17:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift free-day">
-                            <div class="flex justify-between items-center">
-                                <span class="font-medium">👩‍💼 RAQUEL</span>
-                                <span class="bg-gray-400 text-white px-3 py-1 rounded-full text-sm">🏠 LIBRE</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- MIÉRCOLES -->
-                <div class="day-container p-6">
-                    <div class="text-center mb-6">
-                        <h3 class="text-2xl font-bold text-gray-800 mb-2">🌞 MIÉRCOLES</h3>
-                        <div class="w-16 h-1 bg-yellow-500 mx-auto rounded-full"></div>
-                        <p class="text-sm text-gray-500 mt-2">15 Enero</p>
-                    </div>
-                    <div class="space-y-3">
-                        <div class="employee-shift raquel-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 RAQUEL</span>
-                                <span class="time-badge">7:00 - 14:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift bryan-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👨‍💼 BRYAN</span>
-                                <span class="time-badge">10:00 - 16:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">6 horas</div>
-                        </div>
-                        <div class="employee-shift andrea-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 ANDREA</span>
-                                <span class="time-badge">12:00 - 19:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift maria-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 MARÍA</span>
-                                <span class="time-badge">14:00 - 21:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift free-day">
-                            <div class="flex justify-between items-center">
-                                <span class="font-medium">👩‍💼 XISCA</span>
-                                <span class="bg-gray-400 text-white px-3 py-1 rounded-full text-sm">🏠 LIBRE</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- JUEVES -->
-                <div class="day-container p-6">
-                    <div class="text-center mb-6">
-                        <h3 class="text-2xl font-bold text-gray-800 mb-2">🌅 JUEVES</h3>
-                        <div class="w-16 h-1 bg-purple-500 mx-auto rounded-full"></div>
-                        <p class="text-sm text-gray-500 mt-2">16 Enero</p>
-                    </div>
-                    <div class="space-y-3">
-                        <div class="employee-shift maria-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 MARÍA</span>
-                                <span class="time-badge">7:00 - 13:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">6 horas</div>
-                        </div>
-                        <div class="employee-shift raquel-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 RAQUEL</span>
-                                <span class="time-badge">10:00 - 16:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">6 horas</div>
-                        </div>
-                        <div class="employee-shift bryan-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👨‍💼 BRYAN</span>
-                                <span class="time-badge">12:00 - 19:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift xisca-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 XISCA</span>
-                                <span class="time-badge">14:00 - 21:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift free-day">
-                            <div class="flex justify-between items-center">
-                                <span class="font-medium">👩‍💼 ANDREA</span>
-                                <span class="bg-gray-400 text-white px-3 py-1 rounded-full text-sm">🏠 LIBRE</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- VIERNES -->
-                <div class="day-container p-6">
-                    <div class="text-center mb-6">
-                        <h3 class="text-2xl font-bold text-gray-800 mb-2">🎉 VIERNES</h3>
-                        <div class="w-16 h-1 bg-red-500 mx-auto rounded-full"></div>
-                        <p class="text-sm text-gray-500 mt-2">17 Enero</p>
-                    </div>
-                    <div class="space-y-3">
-                        <div class="employee-shift andrea-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 ANDREA</span>
-                                <span class="time-badge">7:00 - 13:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">6 horas</div>
-                        </div>
-                        <div class="employee-shift maria-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 MARÍA</span>
-                                <span class="time-badge">10:00 - 17:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift raquel-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 RAQUEL</span>
-                                <span class="time-badge">12:00 - 19:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift bryan-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👨‍💼 BRYAN</span>
-                                <span class="time-badge">7:00 - 14:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift xisca-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 XISCA</span>
-                                <span class="time-badge">14:00 - 21:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SÁBADO -->
-                <div class="day-container p-6">
-                    <div class="text-center mb-6">
-                        <h3 class="text-2xl font-bold text-gray-800 mb-2">🎊 SÁBADO</h3>
-                        <div class="w-16 h-1 bg-pink-500 mx-auto rounded-full"></div>
-                        <p class="text-sm text-gray-500 mt-2">18 Enero</p>
-                    </div>
-                    <div class="space-y-3">
-                        <div class="employee-shift raquel-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 RAQUEL</span>
-                                <span class="time-badge">7:00 - 14:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift xisca-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 XISCA</span>
-                                <span class="time-badge">10:00 - 17:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift maria-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 MARÍA</span>
-                                <span class="time-badge">12:00 - 19:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift andrea-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 ANDREA</span>
-                                <span class="time-badge">14:00 - 21:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift free-day">
-                            <div class="flex justify-between items-center">
-                                <span class="font-medium">👨‍💼 BRYAN</span>
-                                <span class="bg-gray-400 text-white px-3 py-1 rounded-full text-sm">🏠 LIBRE</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- DOMINGO -->
-                <div class="day-container p-6">
-                    <div class="text-center mb-6">
-                        <h3 class="text-2xl font-bold text-gray-800 mb-2">🌅 DOMINGO</h3>
-                        <div class="w-16 h-1 bg-indigo-500 mx-auto rounded-full"></div>
-                        <p class="text-sm text-gray-500 mt-2">19 Enero</p>
-                    </div>
-                    <div class="space-y-3">
-                        <div class="employee-shift andrea-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 ANDREA</span>
-                                <span class="time-badge">9:00 - 15:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">6 horas</div>
-                        </div>
-                        <div class="employee-shift bryan-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👨‍💼 BRYAN</span>
-                                <span class="time-badge">10:00 - 17:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift xisca-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 XISCA</span>
-                                <span class="time-badge">12:00 - 19:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift maria-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 MARÍA</span>
-                                <span class="time-badge">7:00 - 14:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                        <div class="employee-shift raquel-shift">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-800">👩‍💼 RAQUEL</span>
-                                <span class="time-badge">14:00 - 21:00</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">7 horas</div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Los horarios se cargan dinámicamente por JavaScript -->
             </div>
 
-            <!-- Weekly Summary -->
+            <!-- Weekly Summary (Se genera dinámicamente) -->
             <div class="bg-white rounded-2xl p-6 shadow-lg mb-8">
-                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">
-                    📊 Resumen Semanal
-                </h3>
-                
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
-                    <div class="text-center">
-                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <span class="text-2xl">👨‍💼</span>
-                        </div>
-                        <h4 class="font-bold text-gray-800">BRYAN</h4>
-                        <p class="text-blue-600 font-semibold">41 horas</p>
-                        <p class="text-gray-500 text-sm">1 día libre</p>
-                    </div>
-                    
-                    <div class="text-center">
-                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <span class="text-2xl">👩‍💼</span>
-                        </div>
-                        <h4 class="font-bold text-gray-800">RAQUEL</h4>
-                        <p class="text-red-600 font-semibold">41 horas</p>
-                        <p class="text-gray-500 text-sm">1 día libre</p>
-                    </div>
-                    
-                    <div class="text-center">
-                        <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <span class="text-2xl">👩‍💼</span>
-                        </div>
-                        <h4 class="font-bold text-gray-800">MARÍA</h4>
-                        <p class="text-orange-600 font-semibold">41 horas</p>
-                        <p class="text-gray-500 text-sm">1 día libre</p>
-                    </div>
-                    
-                    <div class="text-center">
-                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <span class="text-2xl">👩‍💼</span>
-                        </div>
-                        <h4 class="font-bold text-gray-800">XISCA</h4>
-                        <p class="text-green-600 font-semibold">40 horas</p>
-                        <p class="text-gray-500 text-sm">1 día libre</p>
-                    </div>
-                    
-                    <div class="text-center">
-                        <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <span class="text-2xl">👩‍💼</span>
-                        </div>
-                        <h4 class="font-bold text-gray-800">ANDREA</h4>
-                        <p class="text-purple-600 font-semibold">40 horas</p>
-                        <p class="text-gray-500 text-sm">1 día libre</p>
-                    </div>
-                </div>
+                <!-- El resumen se carga dinámicamente por JavaScript -->
             </div>
 
             <!-- Instructions -->
@@ -594,67 +211,12 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
-    <script>
-        // Sistema de autenticación simple
-        const VALID_CODES = ['2025', 'forn123', 'empleados']; // Códigos de acceso
-        
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const accessCode = document.getElementById('accessCode').value;
-            
-            if (VALID_CODES.includes(accessCode)) {
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('employeeDashboard').classList.remove('hidden');
-                
-                // Guardar acceso en localStorage
-                localStorage.setItem('employeeAccess', 'true');
-                localStorage.setItem('lastAccess', new Date().toLocaleString('es-ES'));
-                
-                updateDateTime();
-                showNotification('Acceso concedido. Bienvenido/a!', 'success');
-            } else {
-                document.getElementById('loginError').classList.remove('hidden');
-                setTimeout(() => {
-                    document.getElementById('loginError').classList.add('hidden');
-                }, 3000);
-            }
-        });
-
-        // Botón de logout
-        document.getElementById('logoutBtn').addEventListener('click', function() {
-            localStorage.removeItem('employeeAccess');
-            location.reload();
-        });
-
-        // Función para actualizar fecha y hora
-        function updateDateTime() {
-            const now = new Date();
-            document.getElementById('currentTime').textContent = now.toLocaleTimeString('es-ES', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            document.getElementById('currentDate').textContent = now.toLocaleDateString('es-ES', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long'
-            });
-            
-            const lastAccess = localStorage.getItem('lastAccess');
-            if (lastAccess) {
-                document.getElementById('lastAccess').textContent = lastAccess;
-            }
-        }
-
-        // Actualizar cada minuto
-        setInterval(updateDateTime, 60000);
-
-        // Verificar si ya hay una sesión activa
-        if (localStorage.getItem('employeeAccess') === 'true') {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('employeeDashboard').classList.remove('hidden');
-            updateDateTime();
-        }
-    </script>
+    <!-- Scripts -->
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Configuración Supabase legacy (para fallback) -->
+    <script src="supabase-config.js"></script>
+    <!-- Sistema modular principal -->
+    <script type="module" src="assets/js/main.js"></script>
 </body>
-</html>
+</html> 

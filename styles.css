@@ -1,0 +1,122 @@
+/* Estilos principales para Forn Verge de Lluc */
+
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+.gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.hero-pattern {
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+.card-hover {
+    transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.nav-link {
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #fbbf24;
+    transform: translateY(-2px);
+}
+
+.section-title {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Estilos específicos para horarios de empleados */
+.employee-shift {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 8px 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    border-left: 4px solid;
+    transition: all 0.3s ease;
+}
+
+.employee-shift:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+.bryan-shift { border-left-color: #3b82f6; }
+.raquel-shift { border-left-color: #ef4444; }
+.maria-shift { border-left-color: #f97316; }
+.xisca-shift { border-left-color: #10b981; }
+.andrea-shift { border-left-color: #8b5cf6; }
+
+.free-day {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    color: #64748b;
+    font-style: italic;
+    border-left-color: #94a3b8 !important;
+}
+
+.time-badge {
+    background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.day-container {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.day-container:hover {
+    transform: translateY(-2px);
+}
+
+/* Responsive design improvements */
+@media (max-width: 768px) {
+    .nav-link {
+        display: none;
+    }
+    
+    .mobile-menu-btn {
+        display: block;
+    }
+    
+    .hero h1 {
+        font-size: 3rem;
+    }
+    
+    .section-title {
+        font-size: 2.5rem;
+    }
+}
+
+/* Print styles for employee schedules */
+@media print {
+    .no-print {
+        display: none;
+    }
+    
+    .employee-shift {
+        break-inside: avoid;
+    }
+    
+    .day-container {
+        break-inside: avoid;
+        margin-bottom: 1rem;
+    }
+} 

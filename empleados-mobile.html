@@ -89,10 +89,10 @@
     </div>
 
     <!-- Employee Dashboard -->
-    <div id="employeeDashboard" class="hidden min-h-screen pb-6">
+    <div id="employeeDashboard" class="hidden min-h-screen pb-6" style="padding-top: env(safe-area-inset-top, 0);">
         
         <!-- Header -->
-        <header class="text-white p-4 pb-2">
+        <header class="text-white p-4 pb-2" style="padding-top: max(1rem, env(safe-area-inset-top, 0));">
             <div class="flex justify-between items-start">
                 <div class="flex-1 min-w-0">
                     <h1 class="text-lg font-bold truncate" id="employeeName">Cargando...</h1>
@@ -189,6 +189,11 @@
                 }
 
                 currentEmployee = data;
+                
+                // ✅ GUARDAR CÓDIGO para no tener que meterlo siempre
+                localStorage.setItem('fornverge_access_code', accessCode);
+                localStorage.setItem('fornverge_employee_data', JSON.stringify(data));
+                
                 await loadEmployeeSchedule();
                 showDashboard();
 
@@ -209,6 +214,13 @@
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('employeeDashboard').classList.remove('hidden');
             document.getElementById('employeeName').textContent = `Hola ${currentEmployee.name}`;
+            
+            // ✅ FORZAR SCROLL AL TOP para iOS
+            setTimeout(() => {
+                window.scrollTo(0, 0);
+                document.body.scrollTop = 0;
+                document.documentElement.scrollTop = 0;
+            }, 100);
         }
 
         // ================================
@@ -366,19 +378,58 @@
         // ================================
 
         document.getElementById('logoutBtn').addEventListener('click', () => {
+            // ✅ LIMPIAR localStorage al salir
+            localStorage.removeItem('fornverge_access_code');
+            localStorage.removeItem('fornverge_employee_data');
+            
             currentEmployee = null;
             currentSchedule = null;
             document.getElementById('employeeDashboard').classList.add('hidden');
             document.getElementById('loginScreen').classList.remove('hidden');
             document.getElementById('accessCode').value = '';
+            
+            // ✅ SCROLL AL TOP también al salir
+            window.scrollTo(0, 0);
         });
 
         // ================================
         // INICIALIZACIÓN
         // ================================
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             console.log('🚀 Panel de empleados móvil cargado');
+            
+            // ✅ AUTO-LOGIN si tiene código guardado
+            const savedCode = localStorage.getItem('fornverge_access_code');
+            const savedEmployee = localStorage.getItem('fornverge_employee_data');
+            
+            if (savedCode && savedEmployee) {
+                try {
+                    currentEmployee = JSON.parse(savedEmployee);
+                    
+                    // Verificar que el empleado sigue existiendo
+                    const { data, error } = await supabase
+                        .from('employees')
+                        .select('*')
+                        .eq('access_code', btoa(savedCode))
+                        .single();
+                    
+                    if (data && !error) {
+                        currentEmployee = data;
+                        await loadEmployeeSchedule();
+                        showDashboard();
+                        console.log('✅ Auto-login exitoso');
+                    } else {
+                        // Código inválido, limpiar
+                        localStorage.removeItem('fornverge_access_code');
+                        localStorage.removeItem('fornverge_employee_data');
+                    }
+                } catch (error) {
+                    console.error('Error en auto-login:', error);
+                    localStorage.removeItem('fornverge_access_code');
+                    localStorage.removeItem('fornverge_employee_data');
+                }
+            }
         });
     </script>
 </body>

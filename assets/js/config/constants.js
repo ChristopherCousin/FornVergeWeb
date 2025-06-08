@@ -6,7 +6,7 @@
 // Configuración de días de la semana
 export const DAYS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
 export const DAY_NAMES = ['🌅 LUNES', '🌄 MARTES', '🌞 MIÉRCOLES', '🌅 JUEVES', '🎉 VIERNES', '🎊 SÁBADO', '🌅 DOMINGO'];
-export const DATES = ['13 Enero', '14 Enero', '15 Enero', '16 Enero', '17 Enero', '18 Enero', '19 Enero'];
+export const DATES = ['9 Febrero', '10 Febrero', '11 Febrero', '12 Febrero', '13 Febrero', '14 Febrero', '15 Febrero'];
 export const COLORS = ['blue', 'green', 'yellow', 'purple', 'red', 'pink', 'indigo'];
 
 // Configuración agrupada (para compatibilidad)
@@ -18,7 +18,7 @@ export const DAYS_CONFIG = {
 };
 
 // Configuración de semana demo (temporal para mostrar datos)
-export const DEMO_WEEK = '2025-01-13';
+export const DEMO_WEEK = '2025-02-09';
 
 // Selectores DOM comunes
 export const DOM_SELECTORS = {

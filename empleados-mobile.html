@@ -89,42 +89,42 @@
     </div>
 
     <!-- Employee Dashboard -->
-    <div id="employeeDashboard" class="hidden min-h-screen">
+    <div id="employeeDashboard" class="hidden min-h-screen pb-6">
         
         <!-- Header -->
-        <header class="text-white p-4">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="text-xl font-bold" id="employeeName">Cargando...</h1>
-                    <p class="text-blue-200 text-sm">Semana 9-15 Febrero</p>
+        <header class="text-white p-4 pb-2">
+            <div class="flex justify-between items-start">
+                <div class="flex-1 min-w-0">
+                    <h1 class="text-lg font-bold truncate" id="employeeName">Cargando...</h1>
+                    <p class="text-blue-200 text-xs">Semana 9-15 Febrero</p>
                 </div>
-                <button id="logoutBtn" class="bg-white/20 hover:bg-white/30 p-3 rounded-lg transition-colors">
-                    <i class="fas fa-sign-out-alt"></i>
+                <button id="logoutBtn" class="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-colors ml-2 flex-shrink-0">
+                    <i class="fas fa-sign-out-alt text-sm"></i>
                 </button>
             </div>
         </header>
 
         <!-- Quick Stats -->
-        <div class="px-4 pb-4">
-            <div class="grid grid-cols-2 gap-3">
-                <div class="total-hours rounded-xl p-4 text-center">
-                    <div class="text-2xl font-bold" id="totalHours">--</div>
-                    <div class="text-sm opacity-90">Horas esta semana</div>
+        <div class="px-4 pb-3">
+            <div class="grid grid-cols-2 gap-2">
+                <div class="total-hours rounded-xl p-3 text-center">
+                    <div class="text-xl font-bold" id="totalHours">--</div>
+                    <div class="text-xs opacity-90">Horas semana</div>
                 </div>
-                <div class="next-shift rounded-xl p-4 text-center">
-                    <div class="text-sm font-medium" id="nextShiftDay">--</div>
-                    <div class="text-lg font-bold" id="nextShiftTime">--</div>
+                <div class="next-shift rounded-xl p-3 text-center">
+                    <div class="text-xs font-medium" id="nextShiftDay">--</div>
+                    <div class="text-sm font-bold" id="nextShiftTime">--</div>
                 </div>
             </div>
         </div>
 
         <!-- Weekly Schedule -->
         <div class="px-4 pb-6">
-            <h2 class="text-white text-lg font-bold mb-4 text-center">
+            <h2 class="text-white text-base font-bold mb-3 text-center">
                 📅 Esta semana
             </h2>
             
-            <div class="space-y-3" id="scheduleContainer">
+            <div class="space-y-2" id="scheduleContainer">
                 <!-- Se genera dinámicamente -->
             </div>
         </div>
@@ -251,15 +251,16 @@
                 };
             });
 
-            // Procesar datos reales
-            scheduleData.forEach(schedule => {
-                currentSchedule[schedule.day_of_week] = {
-                    is_free_day: schedule.is_free_day,
-                    start_time: schedule.start_time,
-                    end_time: schedule.end_time,
-                    hours: schedule.hours || 0
-                };
-            });
+                     // Procesar datos reales
+         scheduleData.forEach(schedule => {
+             currentSchedule[schedule.day_of_week] = {
+                 is_free_day: schedule.is_free_day,
+                 start_time: schedule.start_time,
+                 end_time: schedule.end_time,
+                 hours: schedule.hours || 0,
+                 colleagues: schedule.colleagues || []
+             };
+         });
         }
 
         // ================================
@@ -275,17 +276,17 @@
                 const card = document.createElement('div');
                 
                 if (schedule.is_free_day) {
-                    card.className = 'schedule-card day-free p-4';
+                    card.className = 'schedule-card day-free p-3';
                     card.innerHTML = `
                         <div class="flex justify-between items-center">
-                            <div>
-                                <div class="text-lg font-bold">${day.name}</div>
-                                <div class="text-sm opacity-75">${day.date}</div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-lg">😴</span>
+                                <div>
+                                    <div class="text-sm font-bold">${day.name}</div>
+                                    <div class="text-xs opacity-75">${day.date}</div>
+                                </div>
                             </div>
-                            <div class="text-right">
-                                <div class="text-2xl">😴</div>
-                                <div class="text-sm font-medium">LIBRE</div>
-                            </div>
+                            <div class="text-xs font-bold">LIBRE</div>
                         </div>
                     `;
                 } else {
@@ -295,17 +296,28 @@
                     const cardClass = isSpecialTime ? 'day-special' : 
                                      startTime === '07:00' ? 'day-morning' : 'day-afternoon';
                     
-                    card.className = `schedule-card ${cardClass} p-4`;
+                    // Mostrar compañeros
+                    const colleaguesText = schedule.colleagues && schedule.colleagues.length > 0 
+                        ? `👥 Con: ${schedule.colleagues.join(', ')}`
+                        : '👤 Solo/a';
+                    
+                    card.className = `schedule-card ${cardClass} p-3`;
                     card.innerHTML = `
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <div class="text-lg font-bold">${day.name}</div>
-                                <div class="text-sm opacity-75">${day.date}</div>
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-lg">${isSpecialTime ? '⚡' : startTime === '07:00' ? '🌅' : '🌆'}</span>
+                                <div>
+                                    <div class="text-sm font-bold">${day.name}</div>
+                                    <div class="text-xs opacity-75">${day.date}</div>
+                                </div>
                             </div>
                             <div class="text-right">
-                                <div class="text-lg font-bold">${startTime} - ${endTime}</div>
-                                <div class="text-sm opacity-90">${schedule.hours}h trabajadas</div>
+                                <div class="text-sm font-bold">${startTime} - ${endTime}</div>
+                                <div class="text-xs opacity-80">${schedule.hours}h</div>
                             </div>
+                        </div>
+                        <div class="text-xs opacity-70 pt-2 border-t border-white/20">
+                            ${colleaguesText}
                         </div>
                     `;
                 }

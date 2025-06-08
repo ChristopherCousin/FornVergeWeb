@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Horarios - Forn Verge</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .schedule-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            min-height: 120px;
+        }
+        .schedule-card:active {
+            transform: scale(0.98);
+        }
+        .day-free {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            color: white;
+        }
+        .day-morning {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+        }
+        .day-afternoon {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+        }
+        .day-special {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+        }
+        .total-hours {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        .next-shift {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-clock text-white text-2xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800">Mis Horarios</h1>
+                <p class="text-gray-600 mt-2">Forn Verge de Lluc</p>
+            </div>
+            
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">Tu código</label>
+                    <input 
+                        type="password" 
+                        id="accessCode" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                        placeholder="Introduce tu código"
+                        required
+                    >
+                </div>
+                
+                <button 
+                    type="submit" 
+                    class="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-lg"
+                >
+                    Ver mis horarios
+                </button>
+            </form>
+            
+            <div id="loginError" class="hidden mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                Código incorrecto.
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Dashboard -->
+    <div id="employeeDashboard" class="hidden min-h-screen">
+        
+        <!-- Header -->
+        <header class="text-white p-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-xl font-bold" id="employeeName">Cargando...</h1>
+                    <p class="text-blue-200 text-sm">Semana 9-15 Febrero</p>
+                </div>
+                <button id="logoutBtn" class="bg-white/20 hover:bg-white/30 p-3 rounded-lg transition-colors">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Quick Stats -->
+        <div class="px-4 pb-4">
+            <div class="grid grid-cols-2 gap-3">
+                <div class="total-hours rounded-xl p-4 text-center">
+                    <div class="text-2xl font-bold" id="totalHours">--</div>
+                    <div class="text-sm opacity-90">Horas esta semana</div>
+                </div>
+                <div class="next-shift rounded-xl p-4 text-center">
+                    <div class="text-sm font-medium" id="nextShiftDay">--</div>
+                    <div class="text-lg font-bold" id="nextShiftTime">--</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Schedule -->
+        <div class="px-4 pb-6">
+            <h2 class="text-white text-lg font-bold mb-4 text-center">
+                📅 Esta semana
+            </h2>
+            
+            <div class="space-y-3" id="scheduleContainer">
+                <!-- Se genera dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Bottom Actions -->
+        <div class="px-4 pb-6">
+            <div class="bg-white/10 rounded-xl p-4 text-center">
+                <p class="text-white text-sm opacity-75">
+                    💡 Guarda esta página en favoritos
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Configuración
+        const SUPABASE_URL = 'https://csxgkxjeifakwslamglc.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzeGdreGplaWZha3dzbGFtZ2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjM4NjIsImV4cCI6MjA2NDg5OTg2Mn0.iGDmQJGRjsldPGmXLO5PFiaLOk7P3Rpr0omF3b8SJkg';
+        const WEEK_START = '2025-02-09';
+
+        // Inicializar Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Configuración de días
+        const DAYS = [
+            { key: 'lunes', name: 'Lunes', emoji: '📅', date: '9 Feb' },
+            { key: 'martes', name: 'Martes', emoji: '📅', date: '10 Feb' },
+            { key: 'miercoles', name: 'Miércoles', emoji: '📅', date: '11 Feb' },
+            { key: 'jueves', name: 'Jueves', emoji: '📅', date: '12 Feb' },
+            { key: 'viernes', name: 'Viernes', emoji: '🎉', date: '13 Feb' },
+            { key: 'sabado', name: 'Sábado', emoji: '🎊', date: '14 Feb' },
+            { key: 'domingo', name: 'Domingo', emoji: '🌅', date: '15 Feb' }
+        ];
+
+        // Variables globales
+        let currentEmployee = null;
+        let currentSchedule = null;
+
+        // ================================
+        // AUTENTICACIÓN
+        // ================================
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const accessCode = document.getElementById('accessCode').value;
+            
+            if (!accessCode) return;
+
+            try {
+                // Buscar empleado por código de acceso
+                const { data, error } = await supabase
+                    .from('employees')
+                    .select('*')
+                    .eq('access_code', btoa(accessCode))
+                    .single();
+
+                if (error || !data) {
+                    showLoginError();
+                    return;
+                }
+
+                currentEmployee = data;
+                await loadEmployeeSchedule();
+                showDashboard();
+
+            } catch (error) {
+                console.error('Error de autenticación:', error);
+                showLoginError();
+            }
+        });
+
+        function showLoginError() {
+            document.getElementById('loginError').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('loginError').classList.add('hidden');
+            }, 3000);
+        }
+
+        function showDashboard() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('employeeDashboard').classList.remove('hidden');
+            document.getElementById('employeeName').textContent = `Hola ${currentEmployee.name}`;
+        }
+
+        // ================================
+        // CARGA DE HORARIOS
+        // ================================
+
+        async function loadEmployeeSchedule() {
+            try {
+                const { data, error } = await supabase
+                    .from('schedules')
+                    .select('*')
+                    .eq('employee_id', currentEmployee.id)
+                    .eq('week_start', WEEK_START)
+                    .order('day_of_week');
+
+                if (error) {
+                    console.error('Error cargando horarios:', error);
+                    return;
+                }
+
+                processScheduleData(data);
+                renderSchedule();
+                updateStats();
+
+            } catch (error) {
+                console.error('Error general:', error);
+            }
+        }
+
+        function processScheduleData(scheduleData) {
+            currentSchedule = {};
+            
+            // Inicializar días como libres
+            DAYS.forEach(day => {
+                currentSchedule[day.key] = {
+                    is_free_day: true,
+                    start_time: null,
+                    end_time: null,
+                    hours: 0
+                };
+            });
+
+            // Procesar datos reales
+            scheduleData.forEach(schedule => {
+                currentSchedule[schedule.day_of_week] = {
+                    is_free_day: schedule.is_free_day,
+                    start_time: schedule.start_time,
+                    end_time: schedule.end_time,
+                    hours: schedule.hours || 0
+                };
+            });
+        }
+
+        // ================================
+        // RENDERIZADO
+        // ================================
+
+        function renderSchedule() {
+            const container = document.getElementById('scheduleContainer');
+            container.innerHTML = '';
+
+            DAYS.forEach(day => {
+                const schedule = currentSchedule[day.key];
+                const card = document.createElement('div');
+                
+                if (schedule.is_free_day) {
+                    card.className = 'schedule-card day-free p-4';
+                    card.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <div class="text-lg font-bold">${day.name}</div>
+                                <div class="text-sm opacity-75">${day.date}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl">😴</div>
+                                <div class="text-sm font-medium">LIBRE</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    const startTime = schedule.start_time ? schedule.start_time.slice(0, 5) : '';
+                    const endTime = schedule.end_time ? schedule.end_time.slice(0, 5) : '';
+                    const isSpecialTime = startTime !== '07:00' && startTime !== '14:00';
+                    const cardClass = isSpecialTime ? 'day-special' : 
+                                     startTime === '07:00' ? 'day-morning' : 'day-afternoon';
+                    
+                    card.className = `schedule-card ${cardClass} p-4`;
+                    card.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <div class="text-lg font-bold">${day.name}</div>
+                                <div class="text-sm opacity-75">${day.date}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-lg font-bold">${startTime} - ${endTime}</div>
+                                <div class="text-sm opacity-90">${schedule.hours}h trabajadas</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                container.appendChild(card);
+            });
+        }
+
+        function updateStats() {
+            // Calcular horas totales
+            const totalHours = Object.values(currentSchedule)
+                .reduce((total, schedule) => total + (schedule.hours || 0), 0);
+            
+            document.getElementById('totalHours').textContent = `${totalHours}h`;
+
+            // Calcular próximo turno
+            const today = new Date();
+            const currentDayIndex = (today.getDay() + 6) % 7; // Lunes = 0
+            
+            let nextShift = null;
+            for (let i = 0; i < 7; i++) {
+                const dayIndex = (currentDayIndex + i) % 7;
+                const day = DAYS[dayIndex];
+                const schedule = currentSchedule[day.key];
+                
+                if (!schedule.is_free_day && schedule.start_time) {
+                    nextShift = {
+                        day: day.name,
+                        time: schedule.start_time.slice(0, 5)
+                    };
+                    break;
+                }
+            }
+
+            if (nextShift) {
+                document.getElementById('nextShiftDay').textContent = `Próximo: ${nextShift.day}`;
+                document.getElementById('nextShiftTime').textContent = nextShift.time;
+            } else {
+                document.getElementById('nextShiftDay').textContent = 'Sin turnos';
+                document.getElementById('nextShiftTime').textContent = 'esta semana';
+            }
+        }
+
+        // ================================
+        // LOGOUT
+        // ================================
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            currentEmployee = null;
+            currentSchedule = null;
+            document.getElementById('employeeDashboard').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('accessCode').value = '';
+        });
+
+        // ================================
+        // INICIALIZACIÓN
+        // ================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Panel de empleados móvil cargado');
+        });
+    </script>
+</body>
+</html> 

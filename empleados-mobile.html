@@ -96,7 +96,7 @@
             <div class="flex justify-between items-start">
                 <div class="flex-1 min-w-0">
                     <h1 class="text-lg font-bold truncate" id="employeeName">Cargando...</h1>
-                    <p class="text-blue-200 text-xs">Semana 9-15 Febrero</p>
+                    <p class="text-blue-200 text-xs" id="weekRange">Cargando semana...</p>
                 </div>
                 <button id="logoutBtn" class="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-colors ml-2 flex-shrink-0">
                     <i class="fas fa-sign-out-alt text-sm"></i>
@@ -145,25 +145,84 @@
         // Configuración
         const SUPABASE_URL = 'https://csxgkxjeifakwslamglc.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzeGdreGplaWZha3dzbGFtZ2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjM4NjIsImV4cCI6MjA2NDg5OTg2Mn0.iGDmQJGRjsldPGmXLO5PFiaLOk7P3Rpr0omF3b8SJkg';
-        const WEEK_START = '2025-02-09';
+        
+        // Variables dinámicas
+        let currentWeekStart = null;
 
         // Inicializar Supabase
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Configuración de días
-        const DAYS = [
-            { key: 'lunes', name: 'Lunes', emoji: '📅', date: '9 Feb' },
-            { key: 'martes', name: 'Martes', emoji: '📅', date: '10 Feb' },
-            { key: 'miercoles', name: 'Miércoles', emoji: '📅', date: '11 Feb' },
-            { key: 'jueves', name: 'Jueves', emoji: '📅', date: '12 Feb' },
-            { key: 'viernes', name: 'Viernes', emoji: '🎉', date: '13 Feb' },
-            { key: 'sabado', name: 'Sábado', emoji: '🎊', date: '14 Feb' },
-            { key: 'domingo', name: 'Domingo', emoji: '🌅', date: '15 Feb' }
-        ];
+        // Función para generar días dinámicamente
+        function generateDaysForWeek(weekStart) {
+            const startDate = new Date(weekStart);
+            const days = [];
+            const dayNames = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+            const dayLabels = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+            const dayEmojis = ['📅', '📅', '📅', '📅', '🎉', '🎊', '🌅'];
+            
+            for (let i = 0; i < 7; i++) {
+                const currentDate = new Date(startDate);
+                currentDate.setDate(startDate.getDate() + i);
+                
+                days.push({
+                    key: dayNames[i],
+                    name: dayLabels[i],
+                    emoji: dayEmojis[i],
+                    date: `${currentDate.getDate()} ${currentDate.toLocaleDateString('es-ES', { month: 'short' })}`
+                });
+            }
+            
+            return days;
+        }
+        
+        // Función para obtener semana más reciente
+        async function getCurrentWeek() {
+            try {
+                const { data, error } = await supabase
+                    .from('schedules')
+                    .select('week_start')
+                    .order('week_start', { ascending: false })
+                    .limit(1);
+
+                if (error || !data || data.length === 0) {
+                    console.warn('No hay semanas disponibles, usando fallback');
+                    return '2025-02-09';
+                }
+
+                return data[0].week_start;
+            } catch (error) {
+                console.error('Error obteniendo semana actual:', error);
+                return '2025-02-09';
+            }
+        }
 
         // Variables globales
         let currentEmployee = null;
         let currentSchedule = null;
+        let allEmployeesSchedules = {}; // Para calcular compañeros
+
+        // Función para encontrar compañeros que trabajen el mismo día
+        function findColleaguesForDay(dayKey) {
+            const colleagues = [];
+            
+            // Lista de todas las empleadas
+            const allEmployees = ['Andrea', 'Bryan', 'Gaby', 'María', 'Raquel', 'Xisca'];
+            
+            for (const empName of allEmployees) {
+                // Saltar a sí misma
+                if (empName.toLowerCase() === currentEmployee.name.toLowerCase()) continue;
+                
+                // Verificar si tiene horarios para este día
+                if (allEmployeesSchedules[empName] && allEmployeesSchedules[empName][dayKey]) {
+                    const empSchedule = allEmployeesSchedules[empName][dayKey];
+                    if (!empSchedule.is_free_day) {
+                        colleagues.push(empName);
+                    }
+                }
+            }
+            
+            return colleagues;
+        }
 
         // ================================
         // AUTENTICACIÓN
@@ -229,19 +288,45 @@
 
         async function loadEmployeeSchedule() {
             try {
-                const { data, error } = await supabase
+                // 1. Obtener semana más reciente
+                currentWeekStart = await getCurrentWeek();
+                console.log('📅 Cargando horarios para semana:', currentWeekStart);
+                
+                // 2. Actualizar header con semana
+                updateWeekDisplay();
+                
+                // 3. Cargar horarios del empleado actual
+                const { data: mySchedules, error: myError } = await supabase
                     .from('schedules')
                     .select('*')
                     .eq('employee_id', currentEmployee.id)
-                    .eq('week_start', WEEK_START)
+                    .eq('week_start', currentWeekStart)
                     .order('day_of_week');
 
-                if (error) {
-                    console.error('Error cargando horarios:', error);
+                if (myError) {
+                    console.error('Error cargando mis horarios:', myError);
                     return;
                 }
 
-                processScheduleData(data);
+                // 4. Cargar horarios de TODOS los empleados para calcular compañeros
+                const { data: allSchedules, error: allError } = await supabase
+                    .from('schedules')
+                    .select(`
+                        *,
+                        employees!inner(name)
+                    `)
+                    .eq('week_start', currentWeekStart);
+
+                if (allError) {
+                    console.error('Error cargando todos los horarios:', allError);
+                }
+
+                // Procesar horarios de todos los empleados
+                if (allSchedules) {
+                    processAllEmployeesSchedules(allSchedules);
+                }
+
+                processScheduleData(mySchedules);
                 renderSchedule();
                 updateStats();
 
@@ -249,12 +334,57 @@
                 console.error('Error general:', error);
             }
         }
+        
+        function updateWeekDisplay() {
+            const startDate = new Date(currentWeekStart);
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + 6);
+            
+            const startStr = `${startDate.getDate()} ${startDate.toLocaleDateString('es-ES', { month: 'short' })}`;
+            const endStr = `${endDate.getDate()} ${endDate.toLocaleDateString('es-ES', { month: 'short' })}`;
+            
+            document.getElementById('weekRange').textContent = `Semana ${startStr} - ${endStr}`;
+        }
+
+        function processAllEmployeesSchedules(allSchedules) {
+            allEmployeesSchedules = {};
+            
+            // Generar días para la semana actual
+            const currentDays = generateDaysForWeek(currentWeekStart);
+            
+            // Inicializar estructura para todos los empleados
+            const employees = ['Andrea', 'Bryan', 'Gaby', 'María', 'Raquel', 'Xisca'];
+            employees.forEach(empName => {
+                allEmployeesSchedules[empName] = {};
+                currentDays.forEach(day => {
+                    allEmployeesSchedules[empName][day.key] = { is_free_day: true };
+                });
+            });
+            
+            // Procesar horarios reales
+            allSchedules.forEach(schedule => {
+                const empName = schedule.employees.name.toUpperCase();
+                if (allEmployeesSchedules[empName]) {
+                    allEmployeesSchedules[empName][schedule.day_of_week] = {
+                        is_free_day: schedule.is_free_day,
+                        start_time: schedule.start_time,
+                        end_time: schedule.end_time,
+                        hours: schedule.hours
+                    };
+                }
+            });
+            
+            console.log('📊 Horarios de todos los empleados cargados:', allEmployeesSchedules);
+        }
 
         function processScheduleData(scheduleData) {
             currentSchedule = {};
             
+            // Generar días para la semana actual
+            const currentDays = generateDaysForWeek(currentWeekStart);
+            
             // Inicializar días como libres
-            DAYS.forEach(day => {
+            currentDays.forEach(day => {
                 currentSchedule[day.key] = {
                     is_free_day: true,
                     start_time: null,
@@ -283,7 +413,10 @@
             const container = document.getElementById('scheduleContainer');
             container.innerHTML = '';
 
-            DAYS.forEach(day => {
+            // Generar días para la semana actual
+            const currentDays = generateDaysForWeek(currentWeekStart);
+
+            currentDays.forEach(day => {
                 const schedule = currentSchedule[day.key];
                 const card = document.createElement('div');
                 
@@ -304,28 +437,43 @@
                 } else {
                     const startTime = schedule.start_time ? schedule.start_time.slice(0, 5) : '';
                     const endTime = schedule.end_time ? schedule.end_time.slice(0, 5) : '';
+                    
+                    // Detectar turno partido (ejemplo: 08:30-21:00 = partido)
+                    const isSplitShift = startTime === '08:30' && endTime === '21:00';
                     const isSpecialTime = startTime !== '07:00' && startTime !== '14:00';
+                    
                     const cardClass = isSpecialTime ? 'day-special' : 
                                      startTime === '07:00' ? 'day-morning' : 'day-afternoon';
                     
-                    // Mostrar compañeros
-                    const colleaguesText = schedule.colleagues && schedule.colleagues.length > 0 
-                        ? `👥 Con: ${schedule.colleagues.join(', ')}`
+                    // Buscar compañeros que trabajen este día (incluso con horarios diferentes)
+                    const colleaguesWorking = findColleaguesForDay(day.key);
+                    const colleaguesText = colleaguesWorking.length > 0 
+                        ? `👥 Con: ${colleaguesWorking.join(', ')}`
                         : '👤 Solo/a';
+                    
+                    // Formato especial para turno partido
+                    let timeDisplay, hoursDisplay;
+                    if (isSplitShift) {
+                        timeDisplay = '08:30-12:30 + 17:30-21:00';
+                        hoursDisplay = '7.5h (partido)';
+                    } else {
+                        timeDisplay = `${startTime} - ${endTime}`;
+                        hoursDisplay = `${schedule.hours}h`;
+                    }
                     
                     card.className = `schedule-card ${cardClass} p-3`;
                     card.innerHTML = `
                         <div class="flex justify-between items-center mb-2">
                             <div class="flex items-center space-x-2">
-                                <span class="text-lg">${isSpecialTime ? '⚡' : startTime === '07:00' ? '🌅' : '🌆'}</span>
+                                <span class="text-lg">${isSplitShift ? '🔄' : isSpecialTime ? '⚡' : startTime === '07:00' ? '🌅' : '🌆'}</span>
                                 <div>
                                     <div class="text-sm font-bold">${day.name}</div>
                                     <div class="text-xs opacity-75">${day.date}</div>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <div class="text-sm font-bold">${startTime} - ${endTime}</div>
-                                <div class="text-xs opacity-80">${schedule.hours}h</div>
+                                <div class="text-sm font-bold">${timeDisplay}</div>
+                                <div class="text-xs opacity-80">${hoursDisplay}</div>
                             </div>
                         </div>
                         <div class="text-xs opacity-70 pt-2 border-t border-white/20">
@@ -348,11 +496,12 @@
             // Calcular próximo turno
             const today = new Date();
             const currentDayIndex = (today.getDay() + 6) % 7; // Lunes = 0
+            const currentDays = generateDaysForWeek(currentWeekStart);
             
             let nextShift = null;
             for (let i = 0; i < 7; i++) {
                 const dayIndex = (currentDayIndex + i) % 7;
-                const day = DAYS[dayIndex];
+                const day = currentDays[dayIndex];
                 const schedule = currentSchedule[day.key];
                 
                 if (!schedule.is_free_day && schedule.start_time) {

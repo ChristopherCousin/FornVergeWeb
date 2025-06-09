@@ -6,30 +6,30 @@
 -- Nuevos códigos seguros (base64 encoded)
 UPDATE employees 
 SET access_code = encode('bryan7489'::bytea, 'base64')
-WHERE name = 'Bryan';
+WHERE employee_id = 'bryan';
 
 UPDATE employees 
 SET access_code = encode('raquel3156'::bytea, 'base64')
-WHERE name = 'Raquel';
+WHERE employee_id = 'raquel';
 
 UPDATE employees 
 SET access_code = encode('maria8924'::bytea, 'base64')
-WHERE name = 'María';
+WHERE employee_id = 'maria';
 
 UPDATE employees 
 SET access_code = encode('xisca2637'::bytea, 'base64')
-WHERE name = 'Xisca';
+WHERE employee_id = 'xisca';
 
 UPDATE employees 
 SET access_code = encode('andrea5812'::bytea, 'base64')
-WHERE name = 'Andrea';
+WHERE employee_id = 'andrea';
 
 UPDATE employees 
 SET access_code = encode('gaby4173'::bytea, 'base64')
-WHERE name = 'Gaby';
+WHERE employee_id = 'gaby';
 
 -- Verificar los nuevos códigos
-SELECT name, access_code FROM employees ORDER BY name;
+SELECT employee_id, access_code FROM employees ORDER BY employee_id;
 
 -- ========================================
 -- CÓDIGOS PARA DAR A LAS EMPLEADAS:

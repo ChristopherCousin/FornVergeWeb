@@ -201,26 +201,69 @@
         let currentSchedule = null;
         let allEmployeesSchedules = {}; // Para calcular compañeros
 
-        // Función para encontrar compañeros que trabajen el mismo día
+        // Función para verificar si dos horarios se solapan
+        function schedulesOverlap(schedule1, schedule2) {
+            if (!schedule1.start_time || !schedule1.end_time || !schedule2.start_time || !schedule2.end_time) {
+                return false;
+            }
+            
+            const start1 = schedule1.start_time;
+            const end1 = schedule1.end_time;
+            const start2 = schedule2.start_time;
+            const end2 = schedule2.end_time;
+            
+            // Verificar solapamiento: start1 < end2 && start2 < end1
+            return start1 < end2 && start2 < end1;
+        }
+
+        // Función para encontrar compañeros que trabajen el mismo día CON HORARIOS QUE SE SOLAPEN
         function findColleaguesForDay(dayKey) {
             const colleagues = [];
             
-            // Lista de todas las empleadas
+            // Lista de todas las empleadas (formato título)
             const allEmployees = ['Andrea', 'Bryan', 'Gaby', 'María', 'Raquel', 'Xisca'];
+            
+            // Normalizar nombre del empleado actual
+            const currentEmpName = currentEmployee.name.charAt(0).toUpperCase() + currentEmployee.name.slice(1).toLowerCase();
+            
+            // Obtener el horario del empleado actual
+            const mySchedule = currentSchedule[dayKey];
+            
+            console.log(`🔍 Buscando compañeros para ${currentEmpName} el ${dayKey}`);
+            console.log(`⏰ Mi horario: ${mySchedule.start_time} - ${mySchedule.end_time}`);
+            
+            // Si el empleado actual está libre, no tiene compañeros
+            if (mySchedule.is_free_day) {
+                console.log(`😴 ${currentEmpName} está libre el ${dayKey}`);
+                return [];
+            }
             
             for (const empName of allEmployees) {
                 // Saltar a sí misma
-                if (empName.toLowerCase() === currentEmployee.name.toLowerCase()) continue;
+                if (empName === currentEmpName) {
+                    continue;
+                }
                 
                 // Verificar si tiene horarios para este día
                 if (allEmployeesSchedules[empName] && allEmployeesSchedules[empName][dayKey]) {
                     const empSchedule = allEmployeesSchedules[empName][dayKey];
+                    
+                    // Solo considerar si no está libre
                     if (!empSchedule.is_free_day) {
-                        colleagues.push(empName);
+                        console.log(`👤 ${empName}: ${empSchedule.start_time} - ${empSchedule.end_time}`);
+                        
+                        // Verificar si los horarios se solapan
+                        if (schedulesOverlap(mySchedule, empSchedule)) {
+                            colleagues.push(empName);
+                            console.log(`✅ ${empName} coincide en horario`);
+                        } else {
+                            console.log(`❌ ${empName} NO coincide en horario`);
+                        }
                     }
                 }
             }
             
+            console.log(`👥 Compañeros con horarios coincidentes para ${dayKey}:`, colleagues);
             return colleagues;
         }
 
@@ -352,7 +395,7 @@
             // Generar días para la semana actual
             const currentDays = generateDaysForWeek(currentWeekStart);
             
-            // Inicializar estructura para todos los empleados
+            // Inicializar estructura para todos los empleados (formato título)
             const employees = ['Andrea', 'Bryan', 'Gaby', 'María', 'Raquel', 'Xisca'];
             employees.forEach(empName => {
                 allEmployeesSchedules[empName] = {};
@@ -361,9 +404,14 @@
                 });
             });
             
-            // Procesar horarios reales
+            // Procesar horarios reales - CONVERTIR A FORMATO TÍTULO
             allSchedules.forEach(schedule => {
-                const empName = schedule.employees.name.toUpperCase();
+                const empNameRaw = schedule.employees.name; // "ANDREA", "BRYAN", etc.
+                // Convertir a formato título: "ANDREA" -> "Andrea"
+                const empName = empNameRaw.charAt(0).toUpperCase() + empNameRaw.slice(1).toLowerCase();
+                
+                console.log(`🔄 Procesando empleado: "${empNameRaw}" -> "${empName}"`);
+                
                 if (allEmployeesSchedules[empName]) {
                     allEmployeesSchedules[empName][schedule.day_of_week] = {
                         is_free_day: schedule.is_free_day,
@@ -371,6 +419,8 @@
                         end_time: schedule.end_time,
                         hours: schedule.hours
                     };
+                } else {
+                    console.warn(`❌ Empleado no encontrado en estructura: "${empName}"`);
                 }
             });
             

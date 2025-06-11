@@ -226,17 +226,18 @@
             // Normalizar nombre del empleado actual
             const currentEmpName = currentEmployee.name.charAt(0).toUpperCase() + currentEmployee.name.slice(1).toLowerCase();
             
-            // Obtener el horario del empleado actual
-            const mySchedule = currentSchedule[dayKey];
+            // Obtener los turnos del empleado actual
+            const myDayData = currentSchedule[dayKey];
             
             console.log(`🔍 Buscando compañeros para ${currentEmpName} el ${dayKey}`);
-            console.log(`⏰ Mi horario: ${mySchedule.start_time} - ${mySchedule.end_time}`);
             
             // Si el empleado actual está libre, no tiene compañeros
-            if (mySchedule.is_free_day) {
+            if (myDayData.is_free_day) {
                 console.log(`😴 ${currentEmpName} está libre el ${dayKey}`);
                 return [];
             }
+            
+            console.log(`⏰ Mis turnos (${myDayData.shifts.length}):`, myDayData.shifts.map(s => `${s.start_time}-${s.end_time}`));
             
             for (const empName of allEmployees) {
                 // Saltar a sí misma
@@ -246,18 +247,30 @@
                 
                 // Verificar si tiene horarios para este día
                 if (allEmployeesSchedules[empName] && allEmployeesSchedules[empName][dayKey]) {
-                    const empSchedule = allEmployeesSchedules[empName][dayKey];
+                    const empDayData = allEmployeesSchedules[empName][dayKey];
                     
                     // Solo considerar si no está libre
-                    if (!empSchedule.is_free_day) {
-                        console.log(`👤 ${empName}: ${empSchedule.start_time} - ${empSchedule.end_time}`);
+                    if (!empDayData.is_free_day && empDayData.shifts.length > 0) {
+                        console.log(`👤 ${empName} turnos (${empDayData.shifts.length}):`, empDayData.shifts.map(s => `${s.start_time}-${s.end_time}`));
                         
-                        // Verificar si los horarios se solapan
-                        if (schedulesOverlap(mySchedule, empSchedule)) {
+                        // Verificar si ALGUNO de mis turnos se solapa con ALGUNO de sus turnos
+                        let hasOverlap = false;
+                        
+                        for (const myShift of myDayData.shifts) {
+                            for (const empShift of empDayData.shifts) {
+                                if (schedulesOverlap(myShift, empShift)) {
+                                    hasOverlap = true;
+                                    console.log(`✅ ${empName} coincide: ${myShift.start_time}-${myShift.end_time} ⟷ ${empShift.start_time}-${empShift.end_time}`);
+                                    break;
+                                }
+                            }
+                            if (hasOverlap) break;
+                        }
+                        
+                        if (hasOverlap) {
                             colleagues.push(empName);
-                            console.log(`✅ ${empName} coincide en horario`);
                         } else {
-                            console.log(`❌ ${empName} NO coincide en horario`);
+                            console.log(`❌ ${empName} NO coincide en ningún turno`);
                         }
                     }
                 }
@@ -400,7 +413,10 @@
             employees.forEach(empName => {
                 allEmployeesSchedules[empName] = {};
                 currentDays.forEach(day => {
-                    allEmployeesSchedules[empName][day.key] = { is_free_day: true };
+                    allEmployeesSchedules[empName][day.key] = { 
+                        is_free_day: true,
+                        shifts: []  // ✅ ARRAY para múltiples turnos
+                    };
                 });
             });
             
@@ -413,12 +429,25 @@
                 console.log(`🔄 Procesando empleado: "${empNameRaw}" -> "${empName}"`);
                 
                 if (allEmployeesSchedules[empName]) {
-                    allEmployeesSchedules[empName][schedule.day_of_week] = {
-                        is_free_day: schedule.is_free_day,
-                        start_time: schedule.start_time,
-                        end_time: schedule.end_time,
-                        hours: schedule.hours
-                    };
+                    const dayData = allEmployeesSchedules[empName][schedule.day_of_week];
+                    
+                    if (schedule.is_free_day) {
+                        // Día libre: resetear
+                        dayData.is_free_day = true;
+                        dayData.shifts = [];
+                    } else {
+                        // Turno de trabajo: añadir al array
+                        dayData.is_free_day = false;
+                        dayData.shifts.push({
+                            start_time: schedule.start_time,
+                            end_time: schedule.end_time,
+                            hours: schedule.hours,
+                            shift_sequence: schedule.shift_sequence || 1
+                        });
+                        
+                        // Ordenar por shift_sequence
+                        dayData.shifts.sort((a, b) => a.shift_sequence - b.shift_sequence);
+                    }
                 } else {
                     console.warn(`❌ Empleado no encontrado en estructura: "${empName}"`);
                 }
@@ -437,22 +466,52 @@
             currentDays.forEach(day => {
                 currentSchedule[day.key] = {
                     is_free_day: true,
+                    shifts: [],  // ✅ ARRAY para múltiples turnos
                     start_time: null,
                     end_time: null,
                     hours: 0
                 };
             });
 
-                     // Procesar datos reales
-         scheduleData.forEach(schedule => {
-             currentSchedule[schedule.day_of_week] = {
-                 is_free_day: schedule.is_free_day,
-                 start_time: schedule.start_time,
-                 end_time: schedule.end_time,
-                 hours: schedule.hours || 0,
-                 colleagues: schedule.colleagues || []
-             };
-         });
+            // Procesar datos reales - AGRUPAR POR DÍA
+            scheduleData.forEach(schedule => {
+                const dayData = currentSchedule[schedule.day_of_week];
+                
+                if (schedule.is_free_day) {
+                    // Día libre: resetear
+                    dayData.is_free_day = true;
+                    dayData.shifts = [];
+                    dayData.start_time = null;
+                    dayData.end_time = null;
+                    dayData.hours = 0;
+                } else {
+                    // Turno de trabajo: añadir al array
+                    dayData.is_free_day = false;
+                    dayData.shifts.push({
+                        start_time: schedule.start_time,
+                        end_time: schedule.end_time,
+                        hours: schedule.hours || 0,
+                        shift_sequence: schedule.shift_sequence || 1,
+                        colleagues: schedule.colleagues || []
+                    });
+                }
+            });
+            
+            // Post-procesamiento: consolidar datos para compatibilidad
+            Object.keys(currentSchedule).forEach(dayKey => {
+                const dayData = currentSchedule[dayKey];
+                
+                if (!dayData.is_free_day && dayData.shifts.length > 0) {
+                    // Ordenar turnos por secuencia
+                    dayData.shifts.sort((a, b) => a.shift_sequence - b.shift_sequence);
+                    
+                    // Para compatibilidad: usar primer/último turno para start_time/end_time
+                    dayData.start_time = dayData.shifts[0].start_time;
+                    dayData.end_time = dayData.shifts[dayData.shifts.length - 1].end_time;
+                    dayData.hours = dayData.shifts.reduce((total, shift) => total + (shift.hours || 0), 0);
+                    dayData.colleagues = dayData.shifts[0].colleagues; // Usar del primer turno
+                }
+            });
         }
 
         // ================================
@@ -488,34 +547,42 @@
                     const startTime = schedule.start_time ? schedule.start_time.slice(0, 5) : '';
                     const endTime = schedule.end_time ? schedule.end_time.slice(0, 5) : '';
                     
-                    // Detectar turno partido (ejemplo: 08:30-21:00 = partido)
-                    const isSplitShift = startTime === '08:30' && endTime === '21:00';
-                    const isSpecialTime = startTime !== '07:00' && startTime !== '14:00';
+                    // Determinar si es horario partido
+                    const isSplitShift = schedule.shifts.length > 1;
+                    const isSpecialTime = !isSplitShift && (startTime !== '07:00' && startTime !== '14:00');
                     
-                    const cardClass = isSpecialTime ? 'day-special' : 
+                    const cardClass = isSplitShift ? 'day-special' :
+                                     isSpecialTime ? 'day-special' : 
                                      startTime === '07:00' ? 'day-morning' : 'day-afternoon';
                     
-                    // Buscar compañeros que trabajen este día (incluso con horarios diferentes)
+                    // Buscar compañeros que trabajen este día
                     const colleaguesWorking = findColleaguesForDay(day.key);
                     const colleaguesText = colleaguesWorking.length > 0 
                         ? `👥 Con: ${colleaguesWorking.join(', ')}`
                         : '👤 Solo/a';
                     
-                    // Formato especial para turno partido
-                    let timeDisplay, hoursDisplay;
+                    // Formato dinámico basado en número de turnos
+                    let timeDisplay, hoursDisplay, icon;
+                    
                     if (isSplitShift) {
-                        timeDisplay = '08:30-12:30 + 17:30-21:00';
-                        hoursDisplay = '7.5h (partido)';
+                        // Múltiples turnos: mostrar todos
+                        timeDisplay = schedule.shifts
+                            .map(shift => `${shift.start_time.slice(0,5)}-${shift.end_time.slice(0,5)}`)
+                            .join(' + ');
+                        hoursDisplay = `${schedule.hours}h (${schedule.shifts.length} turnos)`;
+                        icon = '🔄';
                     } else {
+                        // Un solo turno: formato normal
                         timeDisplay = `${startTime} - ${endTime}`;
                         hoursDisplay = `${schedule.hours}h`;
+                        icon = isSpecialTime ? '⚡' : startTime === '07:00' ? '🌅' : '🌆';
                     }
                     
                     card.className = `schedule-card ${cardClass} p-3`;
                     card.innerHTML = `
                         <div class="flex justify-between items-center mb-2">
                             <div class="flex items-center space-x-2">
-                                <span class="text-lg">${isSplitShift ? '🔄' : isSpecialTime ? '⚡' : startTime === '07:00' ? '🌅' : '🌆'}</span>
+                                <span class="text-lg">${icon}</span>
                                 <div>
                                     <div class="text-sm font-bold">${day.name}</div>
                                     <div class="text-xs opacity-75">${day.date}</div>

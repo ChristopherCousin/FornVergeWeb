@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Horarios - Forn Verge</title>
+    
+    <!-- CSS Externo -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/admin-horarios.css">
+</head>
+<body class="bg-gray-50">
+    
+    <!-- Header -->
+    <header class="header-gradient text-white p-6 shadow-lg">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-calendar-alt text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold">Gestión de Horarios</h1>
+                        <p class="text-blue-200">Forn Verge - Semana 9-15 Febrero 2025</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p class="text-sm text-blue-200">Estado</p>
+                        <p class="text-sm font-semibold" id="status">Listo</p>
+                    </div>
+                    <button id="saveAll" class="save-btn">
+                        <i class="fas fa-cloud-upload-alt mr-2"></i>Guardado Automático
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Stats Bar -->
+    <div class="max-w-7xl mx-auto p-6">
+        <div class="grid grid-cols-4 gap-4 mb-6">
+            <div class="stats-card">
+                <div class="text-2xl font-bold" id="totalEmployees">0</div>
+                <div class="text-sm opacity-90">Empleados</div>
+            </div>
+            <div class="stats-card">
+                <div class="text-2xl font-bold" id="totalShifts">0</div>
+                <div class="text-sm opacity-90">Turnos Total</div>
+            </div>
+            <div class="stats-card">
+                <div class="text-2xl font-bold" id="totalHours">0</div>
+                <div class="text-sm opacity-90">Horas Semana</div>
+            </div>
+            <div class="stats-card">
+                <div class="text-2xl font-bold" id="freeDays">0</div>
+                <div class="text-sm opacity-90">Días Libres</div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-r-lg">
+            <div class="flex items-start space-x-3">
+                <i class="fas fa-info-circle text-blue-600 text-xl mt-1"></i>
+                <div>
+                    <h3 class="font-semibold text-blue-800">🚀 Panel Completo de Horarios</h3>
+                    <p class="text-blue-700 mt-1">
+                        ✨ <strong>Múltiples turnos por día</strong> • 
+                        ⚡ <strong>Templates rápidos</strong> • 
+                        🎯 <strong>Horarios flexibles</strong> • 
+                        📊 <strong>Estadísticas en tiempo real</strong>
+                    </p>
+                    <p class="text-blue-700 mt-1 text-sm">
+                        <strong>¡Ejemplo:</strong> Bryan domingo 9-13 + 16-21 ¡Ya es posible! Haz click en "Agregar Turno" las veces que necesites.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12 hidden">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
+                <p class="text-gray-600">Cargando empleados...</p>
+            </div>
+        </div>
+
+        <!-- Employees Grid -->
+        <div id="employeesGrid" class="space-y-8">
+            <!-- Se genera dinámicamente -->
+        </div>
+
+        <!-- Save Status -->
+        <div id="saveStatus" class="fixed bottom-6 right-6 hidden">
+            <div class="bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg">
+                <i class="fas fa-check mr-2"></i>
+                <span>Horarios guardados correctamente</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para agregar turnos -->
+    <div id="shiftModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">
+                    <i class="fas fa-plus-circle mr-2 text-blue-600"></i>Agregar Turno
+                </h3>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-700 transition">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-6">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <label class="block text-sm font-medium text-blue-700 mb-1">Empleado y Día</label>
+                    <p id="modalEmployeeDay" class="text-xl font-semibold text-blue-800"></p>
+                </div>
+                
+                <!-- Templates Rápidos -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">⚡ Templates Rápidos</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button class="template-btn" onclick="setTemplate('07:00', '14:00', 'morning')">
+                            <span class="text-lg">🌅</span>
+                            <span class="font-medium">Mañana</span>
+                            <small>7:00-14:00</small>
+                        </button>
+                        <button class="template-btn" onclick="setTemplate('14:00', '21:00', 'afternoon')">
+                            <span class="text-lg">🌆</span>
+                            <span class="font-medium">Tarde</span>
+                            <small>14:00-21:00</small>
+                        </button>
+                        <button class="template-btn" onclick="setTemplate('09:00', '13:00', 'refuerzo')">
+                            <span class="text-lg">🔧</span>
+                            <span class="font-medium">Refuerzo AM</span>
+                            <small>9:00-13:00</small>
+                        </button>
+                        <button class="template-btn" onclick="setTemplate('16:00', '21:00', 'refuerzo')">
+                            <span class="text-lg">🔧</span>
+                            <span class="font-medium">Refuerzo PM</span>
+                            <small>16:00-21:00</small>
+                        </button>
+                        <button class="template-btn" onclick="toggleSplitShiftFields()">
+                            <span class="text-lg">📦</span>
+                            <span class="font-medium">Partido</span>
+                            <small>2 turnos</small>
+                        </button>
+                        <button class="template-btn" onclick="addFreeDay()">
+                            <span class="text-lg">🆓</span>
+                            <span class="font-medium">Día Libre</span>
+                            <small>Descanso</small>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Campos normales (un solo turno) -->
+                <div id="singleShiftFields" class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">🕐 Hora Inicio</label>
+                        <input type="time" id="startTime" class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-blue-500 focus:outline-none transition" value="07:00">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">🕕 Hora Fin</label>
+                        <input type="time" id="endTime" class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-blue-500 focus:outline-none transition" value="14:00">
+                    </div>
+                </div>
+
+                <!-- Campos para horario partido (dos turnos) -->
+                <div id="splitShiftFields" class="space-y-4 hidden">
+                    <div class="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-400">
+                        <h4 class="font-semibold text-orange-800 mb-3">🌅 Primer Turno</h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Inicio</label>
+                                <input type="time" id="startTime1" class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-orange-500 focus:outline-none transition" value="07:00">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Fin</label>
+                                <input type="time" id="endTime1" class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-orange-500 focus:outline-none transition" value="13:00">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
+                        <h4 class="font-semibold text-blue-800 mb-3">🌆 Segundo Turno</h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Inicio</label>
+                                <input type="time" id="startTime2" class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:outline-none transition" value="16:00">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Fin</label>
+                                <input type="time" id="endTime2" class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:outline-none transition" value="21:00">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="shiftTypeSelector">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">🎯 Tipo de Turno</label>
+                    <select id="shiftType" class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-blue-500 focus:outline-none transition">
+                        <option value="morning">🌅 Mañana</option>
+                        <option value="afternoon">🌆 Tarde</option>
+                        <option value="custom">🎯 Personalizado</option>
+                        <option value="refuerzo">🔧 Refuerzo</option>
+                    </select>
+                </div>
+                
+                <div class="flex space-x-3 pt-4">
+                    <button id="addShift" class="add-shift-btn flex-1 py-3">
+                        <i class="fas fa-plus mr-2"></i>Agregar Turno
+                    </button>
+                    <button id="cancelModal" class="bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 transition font-medium">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/admin-horarios.js"></script>
+</body>
+</html> 

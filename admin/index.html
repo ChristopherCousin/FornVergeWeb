@@ -13,8 +13,57 @@
 </head>
 <body class="bg-gray-50">
     
+    <!-- Modal de Login -->
+    <div id="loginModal" class="login-modal">
+        <div class="login-content">
+            <div class="text-center mb-6">
+                <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-lock text-3xl text-white"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Panel de Administración</h2>
+                <p class="text-gray-600">Introduce la contraseña para acceder</p>
+            </div>
+            
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">🔑 Contraseña</label>
+                    <input 
+                        type="password" 
+                        id="passwordInput" 
+                        class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-blue-500 focus:outline-none transition"
+                        placeholder="Introduce la contraseña"
+                        autocomplete="current-password"
+                    >
+                    <div id="loginError" class="mt-2 text-red-600 text-sm hidden">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        Contraseña incorrecta
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="rememberMe" class="mr-2" checked>
+                        <span class="text-sm text-gray-600">Recordar en este navegador</span>
+                    </label>
+                </div>
+                
+                <button 
+                    type="submit" 
+                    id="loginButton" 
+                    class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
+                >
+                    <i class="fas fa-sign-in-alt mr-2"></i>Acceder
+                </button>
+            </form>
+            
+            <div class="mt-6 text-center">
+                <p class="text-xs text-gray-500">🔒 Acceso restringido - Solo personal autorizado</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Header -->
-    <header class="header-gradient text-white p-6 shadow-lg">
+    <header class="header-gradient text-white p-6 shadow-lg" id="mainHeader" style="display: none;">
         <div class="max-w-7xl mx-auto">
             <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-4">
@@ -23,10 +72,39 @@
                     </div>
                     <div>
                         <h1 class="text-3xl font-bold">Gestión de Horarios</h1>
-                        <p class="text-blue-200">Forn Verge - Semana 9-15 Febrero 2025</p>
+                        <p class="text-blue-200" id="weekDisplay">Forn Verge - Cargando semana...</p>
                     </div>
                 </div>
+                
+                <!-- Navegación de Semanas Mejorada -->
                 <div class="flex items-center space-x-4">
+                    <!-- Indicador de Semana Actual -->
+                    <div class="week-display-card">
+                        <div class="flex items-center space-x-4">
+                            <div class="week-info">
+                                <div class="week-label">📅 Semana Actual</div>
+                                <div id="currentWeekText" class="week-dates">9-15 Febrero 2025</div>
+                            </div>
+                            
+                            <div class="week-navigation">
+                                <button id="prevWeek" class="week-nav-btn">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                
+                                <div class="week-selector-container">
+                                    <select id="weekSelector" class="week-selector">
+                                        <!-- Se carga dinámicamente -->
+                                    </select>
+                                    <i class="fas fa-calendar-week week-selector-icon"></i>
+                                </div>
+                                
+                                <button id="nextWeek" class="week-nav-btn">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="text-right">
                         <p class="text-sm text-blue-200">Estado</p>
                         <p class="text-sm font-semibold" id="status">Listo</p>
@@ -34,13 +112,16 @@
                     <button id="saveAll" class="save-btn">
                         <i class="fas fa-cloud-upload-alt mr-2"></i>Guardado Automático
                     </button>
+                    <button id="logoutButton" class="logout-btn ml-3">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Salir
+                    </button>
                 </div>
             </div>
         </div>
     </header>
 
     <!-- Stats Bar -->
-    <div class="max-w-7xl mx-auto p-6">
+    <div id="mainContent" class="max-w-7xl mx-auto p-6" style="display: none;">
         <div class="grid grid-cols-4 gap-4 mb-6">
             <div class="stats-card">
                 <div class="text-2xl font-bold" id="totalEmployees">0</div>
@@ -60,24 +141,7 @@
             </div>
         </div>
 
-        <!-- Instructions -->
-        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-r-lg">
-            <div class="flex items-start space-x-3">
-                <i class="fas fa-info-circle text-blue-600 text-xl mt-1"></i>
-                <div>
-                    <h3 class="font-semibold text-blue-800">🚀 Panel Completo de Horarios</h3>
-                    <p class="text-blue-700 mt-1">
-                        ✨ <strong>Múltiples turnos por día</strong> • 
-                        ⚡ <strong>Templates rápidos</strong> • 
-                        🎯 <strong>Horarios flexibles</strong> • 
-                        📊 <strong>Estadísticas en tiempo real</strong>
-                    </p>
-                    <p class="text-blue-700 mt-1 text-sm">
-                        <strong>¡Ejemplo:</strong> Bryan domingo 9-13 + 16-21 ¡Ya es posible! Haz click en "Agregar Turno" las veces que necesites.
-                    </p>
-                </div>
-            </div>
-        </div>
+
 
         <!-- Loading State -->
         <div id="loadingState" class="text-center py-12 hidden">
@@ -87,9 +151,11 @@
             </div>
         </div>
 
-        <!-- Employees Grid -->
-        <div id="employeesGrid" class="space-y-8">
-            <!-- Se genera dinámicamente -->
+        <!-- Vista Principal: Por Días con Gestión -->
+        <div id="mainView">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="dailyScheduleContainer">
+                <!-- Se genera dinámicamente por días -->
+            </div>
         </div>
 
         <!-- Save Status -->

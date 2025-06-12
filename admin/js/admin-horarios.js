@@ -3,29 +3,73 @@
 // Configuración
 const SUPABASE_URL = 'https://csxgkxjeifakwslamglc.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzeGdreGplaWZha3dzbGFtZ2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjM4NjIsImV4cCI6MjA2NDg5OTg2Mn0.iGDmQJGRjsldPGmXLO5PFiaLOk7P3Rpr0omF3b8SJkg';
-const WEEK_START = '2025-02-09';
+
+// Variables dinámicas para semanas
+let currentWeekStart = '2025-02-09'; // Semana inicial
+const availableWeeks = [
+    '2025-02-09', // Semana 1: 9-15 Feb
+    '2025-02-16', // Semana 2: 16-22 Feb  
+    '2025-02-23', // Semana 3: 23-01 Mar
+    '2025-03-02', // Semana 4: 2-8 Mar
+    '2025-03-09', // Semana 5: 9-15 Mar
+    '2025-03-16', // Semana 6: 16-22 Mar
+    '2025-03-23', // Semana 7: 23-29 Mar
+    '2025-03-30'  // Semana 8: 30 Mar-5 Abr
+];
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const DAYS = [
-    { key: 'lunes', name: 'Lun 9', fullName: 'Lunes 9 Febrero' },
-    { key: 'martes', name: 'Mar 10', fullName: 'Martes 10 Febrero' },
-    { key: 'miercoles', name: 'Mié 11', fullName: 'Miércoles 11 Febrero' },
-    { key: 'jueves', name: 'Jue 12', fullName: 'Jueves 12 Febrero' },
-    { key: 'viernes', name: 'Vie 13', fullName: 'Viernes 13 Febrero' },
-    { key: 'sabado', name: 'Sáb 14', fullName: 'Sábado 14 Febrero' },
-    { key: 'domingo', name: 'Dom 15', fullName: 'Domingo 15 Febrero' }
-];
+// Función para generar días dinámicamente
+function generateDaysForWeek(weekStart) {
+    const days = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+    const dayNames = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    const fullDayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    
+    const startDate = new Date(weekStart);
+    return days.map((day, index) => {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + index);
+        
+        const dayNum = currentDate.getDate();
+        const monthName = monthNames[currentDate.getMonth()];
+        
+        return {
+            key: day,
+            name: `${dayNames[index]} ${dayNum}`,
+            fullName: `${fullDayNames[index]} ${dayNum} ${monthName}`
+        };
+    });
+}
+
+let DAYS = generateDaysForWeek(currentWeekStart);
 
 let employees = [];
 let scheduleData = {}; 
 let currentModalEmployee = null;
 let currentModalDay = null;
 
+// Configuración de autenticación
+const ADMIN_PASSWORD = 'fornverge2025'; // Contraseña del panel
+let isAuthenticated = false;
+
 async function initApp() {
     console.log('🚀 Iniciando Gestión de Horarios...');
+    
+    // Verificar autenticación al inicio
+    checkAuthentication();
+    
+    if (!isAuthenticated) {
+        setupLoginListeners();
+        return;
+    }
+    
+    // Solo cargar datos si está autenticado
     updateStatus('Cargando...');
     showLoading();
+    
+    setupWeekSelector();
+    updateWeekDisplay();
     
     await loadEmployees();
     await loadCurrentSchedules();
@@ -45,12 +89,12 @@ function updateStatus(status) {
 
 function showLoading() {
     document.getElementById('loadingState').classList.remove('hidden');
-    document.getElementById('employeesGrid').classList.add('hidden');
+    document.getElementById('mainView').classList.add('hidden');
 }
 
 function hideLoading() {
     document.getElementById('loadingState').classList.add('hidden');
-    document.getElementById('employeesGrid').classList.remove('hidden');
+    document.getElementById('mainView').classList.remove('hidden');
 }
 
 function setupEventListeners() {
@@ -58,6 +102,14 @@ function setupEventListeners() {
     document.getElementById('closeModal').addEventListener('click', closeModal);
     document.getElementById('cancelModal').addEventListener('click', closeModal);
     document.getElementById('addShift').addEventListener('click', addShiftFromModal);
+    
+    // Navegación de semanas
+    document.getElementById('prevWeek').addEventListener('click', goToPreviousWeek);
+    document.getElementById('nextWeek').addEventListener('click', goToNextWeek);
+    document.getElementById('weekSelector').addEventListener('change', onWeekSelectChange);
+    
+    // Logout
+    document.getElementById('logoutButton').addEventListener('click', logout);
     
     document.getElementById('shiftModal').addEventListener('click', (e) => {
         if (e.target.id === 'shiftModal') closeModal();
@@ -98,7 +150,7 @@ async function loadCurrentSchedules() {
         let { data, error } = await supabase
             .from('schedules')
             .select('*')
-            .eq('week_start', WEEK_START)
+            .eq('week_start', currentWeekStart)
             .order('start_time', { nullsFirst: true });
 
         // Si hay error, intentar sin ordenar
@@ -107,7 +159,7 @@ async function loadCurrentSchedules() {
             const result = await supabase
                 .from('schedules')
                 .select('*')
-                .eq('week_start', WEEK_START);
+                .eq('week_start', currentWeekStart);
             
             data = result.data;
             error = result.error;
@@ -214,30 +266,7 @@ function updateStats() {
 }
 
 function renderEmployees() {
-    const grid = document.getElementById('employeesGrid');
-    grid.innerHTML = '';
-
-    employees.forEach(employee => {
-        const card = document.createElement('div');
-        card.className = 'employee-card p-6';
-        card.innerHTML = `
-            <div class="flex items-center mb-6">
-                <div class="text-5xl mr-4">${employee.emoji}</div>
-                <div>
-                    <h3 class="text-3xl font-bold text-gray-800">${employee.name}</h3>
-                    <p class="text-gray-600 text-lg">@${employee.employee_id}</p>
-                    <p class="text-sm text-blue-600 font-medium">Turnos: ${getTotalShifts(employee.id)} • Horas: ${getTotalHours(employee.id)}h</p>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-7 gap-4">
-                ${DAYS.map(day => renderDayColumn(employee, day)).join('')}
-            </div>
-        `;
-        
-        grid.appendChild(card);
-    });
-    
+    renderDaysView();
     updateStats();
 }
 
@@ -354,7 +383,8 @@ function addFreeDay() {
         description: 'Día libre'
     }];
     
-    renderEmployees();
+    renderDaysView();
+    updateStats();
     
     // CAPTURAR las variables ANTES de cerrar el modal
     const empId = currentModalEmployee;
@@ -470,7 +500,8 @@ function addShiftFromModal() {
         scheduleData[currentModalEmployee][currentModalDay].push(newShift);
     }
     
-    renderEmployees();
+    renderDaysView();
+    updateStats();
     
     // CAPTURAR las variables ANTES de cerrar el modal
     const empId = currentModalEmployee;
@@ -500,7 +531,10 @@ function removeShift(empId, day, index) {
     
     // Remover del estado local
     scheduleData[empId][day].splice(index, 1);
-    renderEmployees();
+    
+    // Re-renderizar la vista
+    renderDaysView();
+    updateStats();
     
     // Eliminar específicamente de Supabase (más seguro)
     console.log('💾 Eliminando turno específico de Supabase...');
@@ -547,7 +581,7 @@ async function rebuildDaySchedule(empId, day) {
             .from('schedules')
             .delete()
             .eq('employee_id', empId)
-            .eq('week_start', WEEK_START)
+            .eq('week_start', currentWeekStart)
             .eq('day_of_week', day);
             
         if (deleteError) {
@@ -563,7 +597,7 @@ async function rebuildDaySchedule(empId, day) {
             // Día libre por defecto
             newSchedules.push({
                 employee_id: empId,
-                week_start: WEEK_START,
+                week_start: currentWeekStart,
                 day_of_week: day,
                 start_time: null,
                 end_time: null,
@@ -577,7 +611,7 @@ async function rebuildDaySchedule(empId, day) {
             shifts.forEach((shift, index) => {
                 newSchedules.push({
                     employee_id: empId,
-                    week_start: WEEK_START,
+                    week_start: currentWeekStart,
                     day_of_week: day,
                     start_time: shift.start,
                     end_time: shift.end,
@@ -619,20 +653,20 @@ async function saveAllSchedules(isAutoSave = false) {
     updateStatus('Guardando...');
 
     try {
-        console.log('🗑️ Eliminando horarios existentes para semana:', WEEK_START);
+        console.log('🗑️ Eliminando horarios existentes para semana:', currentWeekStart);
         
         // CORRECCIÓN CRÍTICA: Aplicar filtro ANTES del delete
         const { error: deleteError } = await supabase
             .from('schedules')
             .delete()
-            .eq('week_start', WEEK_START);
+            .eq('week_start', currentWeekStart);
 
         if (deleteError) {
             console.error('❌ Error eliminando:', deleteError);
             throw deleteError;
         }
 
-        console.log('✅ Horarios antiguos eliminados SOLO para semana', WEEK_START);
+        console.log('✅ Horarios antiguos eliminados SOLO para semana', currentWeekStart);
 
         const newSchedules = [];
         let sequenceCounter = {};
@@ -653,7 +687,7 @@ async function saveAllSchedules(isAutoSave = false) {
                     // Registro para día sin turnos (solo campos básicos)
                     const scheduleRecord = {
                         employee_id: employee.id,
-                        week_start: WEEK_START,
+                        week_start: currentWeekStart,
                         day_of_week: day.key,
                         start_time: null,
                         end_time: null,
@@ -669,7 +703,7 @@ async function saveAllSchedules(isAutoSave = false) {
                     shifts.forEach((shift, shiftIndex) => {
                         const scheduleRecord = {
                             employee_id: employee.id,
-                            week_start: WEEK_START,
+                            week_start: currentWeekStart,
                             day_of_week: day.key,
                             start_time: shift.start,
                             end_time: shift.end,
@@ -730,6 +764,535 @@ function showSaveSuccess() {
         saveStatus.classList.add('hidden');
     }, 4000);
 }
+
+// ================================
+// VISTA POR DÍAS
+// ================================
+
+function renderDaysView() {
+    const container = document.getElementById('dailyScheduleContainer');
+    container.innerHTML = '';
+    
+    DAYS.forEach(day => {
+        const dayCard = createDayScheduleCard(day);
+        container.appendChild(dayCard);
+    });
+}
+
+function createDayScheduleCard(day) {
+    const card = document.createElement('div');
+    card.className = 'day-schedule-card p-6';
+    
+    // Obtener empleados que trabajan este día y los que están libres
+    const workingEmployees = [];
+    const freeEmployees = [];
+    
+    employees.forEach(employee => {
+        const shifts = scheduleData[employee.id][day.key] || [];
+        
+        if (shifts.length === 0 || shifts.some(shift => shift.isFree)) {
+            freeEmployees.push(employee);
+        } else {
+            workingEmployees.push({
+                ...employee,
+                shifts: shifts
+            });
+        }
+    });
+    
+    // Ordenar por hora de inicio del primer turno
+    workingEmployees.sort((a, b) => {
+        const aFirstShift = a.shifts[0];
+        const bFirstShift = b.shifts[0];
+        if (!aFirstShift.start || !bFirstShift.start) return 0;
+        return aFirstShift.start.localeCompare(bFirstShift.start);
+    });
+    
+    const totalHoursDay = workingEmployees.reduce((total, emp) => {
+        return total + emp.shifts.reduce((empTotal, shift) => empTotal + (shift.hours || 0), 0);
+    }, 0);
+    
+    card.innerHTML = `
+        <!-- Header del día -->
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-3">
+                <div class="text-4xl">${getDayEmoji(day.key)}</div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800">${day.name}</h3>
+                    <div class="text-sm text-gray-500">${getDayDate(day.key)}</div>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-2xl font-bold text-green-600">${workingEmployees.length}</div>
+                <div class="text-sm text-gray-500">trabajando</div>
+                <div class="text-lg font-bold text-blue-600">${totalHoursDay}h total</div>
+            </div>
+        </div>
+        
+        <!-- Empleados trabajando -->
+        ${workingEmployees.length > 0 ? `
+            <div class="mb-6">
+                <h4 class="font-semibold text-gray-700 mb-3">👩‍💼 Trabajando (${workingEmployees.length})</h4>
+                <div class="space-y-3">
+                    ${workingEmployees.map(emp => {
+                        return createEmployeeShiftDisplayWithActions(emp, day);
+                    }).join('')}
+                </div>
+            </div>
+        ` : ''}
+        
+        <!-- Empleados libres con botón para agregar turno -->
+        ${freeEmployees.length > 0 ? `
+            <div class="mb-6">
+                <h4 class="font-semibold text-gray-500 mb-3">😴 Libres (${freeEmployees.length})</h4>
+                <div class="grid grid-cols-1 gap-2">
+                    ${freeEmployees.map(emp => `
+                        <div class="day-card day-free flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm">👤</span>
+                                <span class="text-sm font-medium">${emp.name}</span>
+                            </div>
+                            <button 
+                                onclick="openShiftModal('${emp.id}', '${day.key}', '${emp.name}', '${day.fullName}')"
+                                class="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full transition-all hover:scale-105"
+                            >
+                                <i class="fas fa-plus mr-1"></i>Agregar
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        ` : ''}
+        
+        <!-- Botón para agregar empleado a cualquier turno -->
+        <div class="border-t pt-4">
+            <div class="flex flex-wrap gap-2">
+                ${employees.map(emp => `
+                    <button 
+                        onclick="openShiftModal('${emp.id}', '${day.key}', '${emp.name}', '${day.fullName}')"
+                        class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded-lg transition-all border border-blue-200 hover:border-blue-300"
+                    >
+                        <i class="fas fa-plus mr-1"></i>${emp.name}
+                    </button>
+                `).join('')}
+            </div>
+            <p class="text-xs text-gray-500 mt-2">💡 Haz clic en cualquier empleado para gestionar sus horarios de ${day.name}</p>
+        </div>
+    `;
+    
+    return card;
+}
+
+function createEmployeeShiftDisplayWithActions(emp, day) {
+    const shifts = emp.shifts;
+    const isMultipleShifts = shifts.length > 1;
+    
+    if (isMultipleShifts) {
+        // Horario partido: mostrar todos los turnos con acciones
+        const totalHours = shifts.reduce((total, shift) => total + (shift.hours || 0), 0);
+        const timeDisplay = shifts
+            .map(shift => `${shift.start?.slice(0,5)}-${shift.end?.slice(0,5)}`)
+            .join(' + ');
+            
+        return `
+            <div class="day-card day-special">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-xl">🔄</span>
+                        <div>
+                            <div class="font-semibold">${emp.name}</div>
+                            <div class="text-xs text-red-600 font-medium">⚡ ${shifts.length} turnos</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-sm">${timeDisplay}</div>
+                        <div class="text-xs opacity-80">${totalHours}h total</div>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-1 mt-3">
+                    <button 
+                        onclick="openShiftModal('${emp.id}', '${day.key}', '${emp.name}', '${day.fullName}')"
+                        class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-2 py-1 rounded transition-all"
+                    >
+                        <i class="fas fa-plus"></i> Agregar
+                    </button>
+                    ${shifts.map((shift, index) => `
+                        <button 
+                            onclick="removeShift('${emp.id}', '${day.key}', ${index})"
+                            class="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded transition-all"
+                        >
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    } else {
+        // Un solo turno con acciones
+        const shift = shifts[0];
+        const startTime = shift.start?.slice(0,5) || '';
+        const endTime = shift.end?.slice(0,5) || '';
+        
+        const isSpecialTime = startTime !== '07:00' && startTime !== '14:00';
+        const cardClass = isSpecialTime ? 'day-special' : 
+                         startTime === '07:00' ? 'day-morning' : 'day-afternoon';
+        
+        const icon = isSpecialTime ? '⚡' : 
+                    startTime === '07:00' ? '🌅' : '🌆';
+        
+        return `
+            <div class="day-card ${cardClass}">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-xl">${icon}</span>
+                        <div>
+                            <div class="font-semibold">${emp.name}</div>
+                            <div class="text-xs opacity-75">${shift.description || shift.type}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold">${startTime} - ${endTime}</div>
+                        <div class="text-xs opacity-80">${shift.hours}h</div>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-1 mt-3">
+                    <button 
+                        onclick="openShiftModal('${emp.id}', '${day.key}', '${emp.name}', '${day.fullName}')"
+                        class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-2 py-1 rounded transition-all"
+                    >
+                        <i class="fas fa-plus"></i> Agregar
+                    </button>
+                    <button 
+                        onclick="removeShift('${emp.id}', '${day.key}', 0)"
+                        class="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded transition-all"
+                    >
+                        <i class="fas fa-times"></i> Quitar
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function getDayEmoji(dayKey) {
+    const emojis = {
+        'lunes': '📋',
+        'martes': '📋', 
+        'miercoles': '📋',
+        'jueves': '📋',
+        'viernes': '📋',
+        'sabado': '🛍️',
+        'domingo': '😴'
+    };
+    return emojis[dayKey] || '📅';
+}
+
+function getDayDate(dayKey) {
+    const weekStart = new Date(currentWeekStart);
+    const dayIndex = DAYS.findIndex(d => d.key === dayKey);
+    const dayDate = new Date(weekStart);
+    dayDate.setDate(weekStart.getDate() + dayIndex);
+    
+    return `${dayDate.getDate()} ${dayDate.toLocaleDateString('es-ES', { month: 'short' })}`;
+}
+
+// ================================
+// NAVEGACIÓN POR SEMANAS
+// ================================
+
+function setupWeekSelector() {
+    const weekSelector = document.getElementById('weekSelector');
+    weekSelector.innerHTML = '';
+    
+    availableWeeks.forEach(weekStart => {
+        const option = document.createElement('option');
+        option.value = weekStart;
+        option.textContent = getWeekLabelShort(weekStart); // Usar versión corta para el selector
+        if (weekStart === currentWeekStart) {
+            option.selected = true;
+        }
+        weekSelector.appendChild(option);
+    });
+    
+    updateNavigationButtons();
+}
+
+function getWeekLabel(weekStart) {
+    const startDate = new Date(weekStart);
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6);
+    
+    const startDay = startDate.getDate();
+    const endDay = endDate.getDate();
+    const startMonth = startDate.toLocaleDateString('es-ES', { month: 'long' });
+    const endMonth = endDate.toLocaleDateString('es-ES', { month: 'long' });
+    const year = startDate.getFullYear();
+    
+    // Capitalizar primera letra del mes
+    const capitalizeMonth = (month) => month.charAt(0).toUpperCase() + month.slice(1);
+    
+    if (startMonth === endMonth) {
+        return `${startDay}-${endDay} ${capitalizeMonth(startMonth)} ${year}`;
+    } else {
+        return `${startDay} ${capitalizeMonth(startMonth)} - ${endDay} ${capitalizeMonth(endMonth)} ${year}`;
+    }
+}
+
+function getWeekLabelShort(weekStart) {
+    const startDate = new Date(weekStart);
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6);
+    
+    const startDay = startDate.getDate();
+    const endDay = endDate.getDate();
+    const startMonth = startDate.toLocaleDateString('es-ES', { month: 'short' });
+    const endMonth = endDate.toLocaleDateString('es-ES', { month: 'short' });
+    
+    if (startMonth === endMonth) {
+        return `${startDay}-${endDay} ${startMonth}`;
+    } else {
+        return `${startDay} ${startMonth} - ${endDay} ${endMonth}`;
+    }
+}
+
+function updateWeekDisplay() {
+    const weekDisplay = document.getElementById('weekDisplay');
+    const currentWeekText = document.getElementById('currentWeekText');
+    const weekLabel = getWeekLabel(currentWeekStart);
+    
+    weekDisplay.textContent = `Forn Verge - Semana ${weekLabel}`;
+    
+    // Actualizar también el indicador principal
+    if (currentWeekText) {
+        currentWeekText.textContent = weekLabel;
+    }
+}
+
+function updateNavigationButtons() {
+    const currentIndex = availableWeeks.indexOf(currentWeekStart);
+    const prevButton = document.getElementById('prevWeek');
+    const nextButton = document.getElementById('nextWeek');
+    
+    prevButton.disabled = currentIndex <= 0;
+    nextButton.disabled = currentIndex >= availableWeeks.length - 1;
+}
+
+async function goToPreviousWeek() {
+    const currentIndex = availableWeeks.indexOf(currentWeekStart);
+    if (currentIndex > 0) {
+        await changeToWeek(availableWeeks[currentIndex - 1]);
+    }
+}
+
+async function goToNextWeek() {
+    const currentIndex = availableWeeks.indexOf(currentWeekStart);
+    if (currentIndex < availableWeeks.length - 1) {
+        await changeToWeek(availableWeeks[currentIndex + 1]);
+    }
+}
+
+async function onWeekSelectChange(event) {
+    await changeToWeek(event.target.value);
+}
+
+async function changeToWeek(newWeekStart) {
+    if (newWeekStart === currentWeekStart) return;
+    
+    console.log(`🔄 Cambiando a semana: ${newWeekStart}`);
+    updateStatus('Cambiando semana...');
+    showLoading();
+    
+    // Actualizar variables globales
+    currentWeekStart = newWeekStart;
+    DAYS = generateDaysForWeek(currentWeekStart);
+    
+    // Limpiar datos anteriores
+    employees.forEach(emp => {
+        scheduleData[emp.id] = {};
+        DAYS.forEach(day => {
+            scheduleData[emp.id][day.key] = [];
+        });
+    });
+    
+    // Cargar datos de la nueva semana
+    await loadCurrentSchedules();
+    
+    // Actualizar interfaz
+    updateWeekDisplay();
+    setupWeekSelector(); // Actualiza el selector
+    renderEmployees();
+    
+    hideLoading();
+    updateStatus(`Semana ${getWeekLabel(currentWeekStart)} ✨`);
+    
+    console.log(`✅ Cambio completado a semana: ${getWeekLabel(currentWeekStart)}`);
+}
+
+// ================================
+// SISTEMA DE AUTENTICACIÓN
+// ================================
+
+function checkAuthentication() {
+    const savedAuth = localStorage.getItem('fornverge_admin_auth');
+    const sessionAuth = sessionStorage.getItem('fornverge_admin_session');
+    
+    if (savedAuth === 'authenticated' || sessionAuth === 'authenticated') {
+        isAuthenticated = true;
+        showMainInterface();
+        console.log('✅ Usuario autenticado desde storage');
+    } else {
+        isAuthenticated = false;
+        showLoginInterface();
+        console.log('🔐 Mostrando pantalla de login');
+    }
+}
+
+function showMainInterface() {
+    document.body.classList.add('authenticated');
+    document.getElementById('loginModal').style.display = 'none';
+    document.getElementById('mainHeader').style.display = 'block';
+    document.getElementById('mainContent').style.display = 'block';
+}
+
+function showLoginInterface() {
+    document.body.classList.remove('authenticated');
+    document.getElementById('loginModal').style.display = 'flex';
+    document.getElementById('mainHeader').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'none';
+    
+    // Focus en el input de contraseña
+    setTimeout(() => {
+        document.getElementById('passwordInput').focus();
+    }, 100);
+}
+
+function setupLoginListeners() {
+    const loginForm = document.getElementById('loginForm');
+    const passwordInput = document.getElementById('passwordInput');
+    const loginButton = document.getElementById('loginButton');
+    const loginError = document.getElementById('loginError');
+    
+    loginForm.addEventListener('submit', handleLogin);
+    
+    // Enter en el input de contraseña
+    passwordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleLogin(e);
+        }
+    });
+    
+    // Limpiar error al escribir
+    passwordInput.addEventListener('input', () => {
+        loginError.classList.add('hidden');
+        passwordInput.classList.remove('border-red-500');
+    });
+}
+
+async function handleLogin(e) {
+    e.preventDefault();
+    
+    const passwordInput = document.getElementById('passwordInput');
+    const loginButton = document.getElementById('loginButton');
+    const loginError = document.getElementById('loginError');
+    const rememberMe = document.getElementById('rememberMe');
+    
+    const password = passwordInput.value;
+    
+    // Mostrar loading
+    loginButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Verificando...';
+    loginButton.disabled = true;
+    
+    // Simular pequeño delay para UX
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    if (password === ADMIN_PASSWORD) {
+        // Login exitoso
+        isAuthenticated = true;
+        
+        // Guardar sesión
+        if (rememberMe.checked) {
+            localStorage.setItem('fornverge_admin_auth', 'authenticated');
+        } else {
+            sessionStorage.setItem('fornverge_admin_session', 'authenticated');
+        }
+        
+        console.log('✅ Login exitoso');
+        
+        // Mostrar interfaz principal
+        showMainInterface();
+        
+        // Inicializar la aplicación
+        setTimeout(async () => {
+            updateStatus('Cargando...');
+            showLoading();
+            
+            setupWeekSelector();
+            updateWeekDisplay();
+            
+            await loadEmployees();
+            await loadCurrentSchedules();
+            
+            renderEmployees();
+            setupEventListeners();
+            
+            hideLoading();
+            updateStatus('Listo ✨');
+        }, 300);
+        
+    } else {
+        // Login fallido
+        loginError.classList.remove('hidden');
+        passwordInput.classList.add('border-red-500');
+        passwordInput.value = '';
+        passwordInput.focus();
+        
+        // Shake animation
+        passwordInput.style.animation = 'shake 0.5s';
+        setTimeout(() => {
+            passwordInput.style.animation = '';
+        }, 500);
+        
+        console.log('❌ Login fallido');
+    }
+    
+    // Restaurar botón
+    loginButton.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>Acceder';
+    loginButton.disabled = false;
+}
+
+function logout() {
+    // Confirmar logout
+    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+        // Limpiar autenticación
+        localStorage.removeItem('fornverge_admin_auth');
+        sessionStorage.removeItem('fornverge_admin_session');
+        
+        isAuthenticated = false;
+        
+        // Mostrar login
+        showLoginInterface();
+        
+        // Limpiar datos sensibles
+        employees = [];
+        scheduleData = {};
+        
+        console.log('🚪 Sesión cerrada');
+    }
+}
+
+// Añadir animación shake al CSS dinámicamente
+const shakeCSS = `
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+    20%, 40%, 60%, 80% { transform: translateX(10px); }
+}
+`;
+
+const style = document.createElement('style');
+style.textContent = shakeCSS;
+document.head.appendChild(style);
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', initApp); 

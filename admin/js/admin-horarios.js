@@ -5,7 +5,7 @@ const SUPABASE_URL = 'https://csxgkxjeifakwslamglc.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzeGdreGplaWZha3dzbGFtZ2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjM4NjIsImV4cCI6MjA2NDg5OTg2Mn0.iGDmQJGRjsldPGmXLO5PFiaLOk7P3Rpr0omF3b8SJkg';
 
 // Variables dinámicas para semanas
-let currentWeekStart = '2025-02-09'; // Semana inicial
+let currentWeekStart = localStorage.getItem('fornverge_last_week') || '2025-02-09'; // Semana inicial
 const availableWeeks = [
     '2025-02-09', // Semana 1: 9-15 Feb
     '2025-02-16', // Semana 2: 16-22 Feb  
@@ -367,8 +367,60 @@ function closeModal() {
 }
 
 function setTemplate(start, end, type) {
-    document.getElementById('startTime').value = start;
-    document.getElementById('endTime').value = end;
+    if (type === 'morning') {
+        // Selector rápido de hora
+        const quickTimes = ['06:00', '06:30', '07:00'];
+        let currentShifts = scheduleData[currentModalEmployee]?.[currentModalDay] || [];
+        let defaultStart = '06:00';
+        if (currentShifts.filter(s => s.type === 'morning').length > 0) {
+            defaultStart = '06:30';
+        }
+        // Mostrar selector rápido
+        showQuickTimeSelector(defaultStart, end, type, quickTimes);
+    } else {
+        document.getElementById('startTime').value = start;
+        document.getElementById('endTime').value = end;
+        document.getElementById('shiftType').value = type;
+    }
+}
+
+function showQuickTimeSelector(defaultStart, end, type, quickTimes) {
+    // Crear modal flotante o popover
+    let container = document.getElementById('quickTimeSelector');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'quickTimeSelector';
+        container.className = 'quick-time-selector-modal';
+        document.body.appendChild(container);
+    }
+    container.innerHTML = `<div class='quick-time-title'>¿Hora de entrada para turno de mañana?</div>
+        <div class='quick-time-btns'>
+            ${quickTimes.map(t => `<button class='quick-time-btn' data-time='${t}'>${t}</button>`).join('')}
+        </div>
+        <button class='quick-time-cancel'>Cancelar</button>`;
+    // Posicionar sobre el modal
+    const modal = document.getElementById('shiftModal');
+    container.style.position = 'fixed';
+    container.style.left = '50%';
+    container.style.top = '50%';
+    container.style.transform = 'translate(-50%, -50%)';
+    container.style.zIndex = 3000;
+    container.style.display = 'block';
+    // Listeners
+    container.querySelectorAll('.quick-time-btn').forEach(btn => {
+        btn.onclick = () => {
+            document.getElementById('startTime').value = btn.dataset.time;
+            document.getElementById('endTime').value = '14:00';
+            document.getElementById('shiftType').value = type;
+            container.style.display = 'none';
+        };
+    });
+    container.querySelector('.quick-time-cancel').onclick = () => {
+        container.style.display = 'none';
+    };
+    // Por defecto
+    document.getElementById('startTime').value = defaultStart;
+    document.getElementById('endTime').value = '14:00';
     document.getElementById('shiftType').value = type;
 }
 
@@ -1126,6 +1178,9 @@ async function changeToWeek(newWeekStart) {
     updateStatus(`Semana ${getWeekLabel(currentWeekStart)} ✨`);
     
     console.log(`✅ Cambio completado a semana: ${getWeekLabel(currentWeekStart)}`);
+    
+    // Guardar la semana seleccionada
+    localStorage.setItem('fornverge_last_week', newWeekStart);
 }
 
 // ================================

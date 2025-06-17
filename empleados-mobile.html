@@ -5,135 +5,459 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mis Horarios - Forn Verge</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { 
-            font-family: 'Poppins', sans-serif; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+        * {
+            -webkit-tap-highlight-color: transparent;
         }
+        
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Paleta de colores profesional y cálida */
+        :root {
+            --primary-blue: #3b82f6;
+            --secondary-blue: #1d4ed8;
+            --morning-orange: #f59e0b;
+            --afternoon-purple: #8b5cf6;
+            --evening-indigo: #6366f1;
+            --success-green: #10b981;
+            --free-gray: #64748b;
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --card-shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+        
+        /* Cards mejoradas con mejor UX */
         .schedule-card {
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            min-height: 120px;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
         }
+        
         .schedule-card:active {
             transform: scale(0.98);
+            box-shadow: var(--card-shadow-hover);
         }
+        
+        .schedule-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-color, #e5e7eb);
+            border-radius: 20px 20px 0 0;
+        }
+        
+        /* Tipos de turnos con colores más suaves y profesionales */
         .day-free {
-            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-            color: white;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: var(--free-gray);
+            --accent-color: var(--free-gray);
         }
+        
         .day-morning {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: white;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            --accent-color: var(--morning-orange);
         }
+        
         .day-afternoon {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            color: white;
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+            color: #3730a3;
+            --accent-color: var(--afternoon-purple);
         }
+        
+        .day-evening {
+            background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+            color: #5b21b6;
+            --accent-color: var(--evening-indigo);
+        }
+        
         .day-special {
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+            color: #be185d;
+            --accent-color: #ec4899;
+        }
+        
+        /* Stats cards mejoradas */
+        .stat-card {
+            background: linear-gradient(135deg, var(--success-green) 0%, #059669 100%);
+            color: white;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(20px, -20px);
+        }
+        
+        .next-shift-card {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
             color: white;
         }
-        .total-hours {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
+        
+        /* Login mejorado */
+        .login-container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .next-shift {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        
+        .login-logo {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+        
+        /* Header mejorado */
+        .header-gradient {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-gradient::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.1;
+        }
+        
+        /* Botones mejorados */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
             color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 16px 24px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        /* Input mejorado */
+        .input-field {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+        
+        .input-field:focus {
+            border-color: var(--primary-blue);
+            background: white;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Animaciones suaves */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-up {
+            animation: slideUp 0.4s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Mejoras para iOS */
+        .ios-safe-area {
+            padding-top: env(safe-area-inset-top, 0);
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+        
+        /* Loading mejorado */
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Tooltip para compañeros */
+        .colleagues-tooltip {
+            position: relative;
+        }
+        
+        .colleagues-tooltip:hover::after {
+            content: attr(data-colleagues);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        
+        /* Efectos de vidrio */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Mejoras adicionales para la experiencia móvil */
+        .schedule-card:nth-child(odd) {
+            animation-delay: 0.1s;
+        }
+        
+        .schedule-card:nth-child(even) {
+            animation-delay: 0.2s;
+        }
+        
+        /* Estados especiales */
+        .today-highlight {
+            border: 2px solid var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Feedback táctil mejorado */
+        .schedule-card:active,
+        .btn-primary:active,
+        .stat-card:active {
+            transform: scale(0.96);
+            transition: transform 0.1s ease;
+        }
+        
+        /* Accesibilidad mejorada */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* Modo oscuro básico (respeta la preferencia del sistema) */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(145deg, #1f2937 0%, #111827 100%);
+            }
+            
+            .login-container {
+                background: rgba(31, 41, 55, 0.9);
+                color: white;
+            }
+            
+            .glass-effect {
+                background: rgba(31, 41, 55, 0.9);
+                color: white;
+            }
+        }
+        
+        /* Indicadores de estado mejorados */
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-working {
+            background: #10b981;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+        }
+        
+        .status-free {
+            background: #6b7280;
+        }
+        
+        .status-upcoming {
+            background: #f59e0b;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
     </style>
 </head>
-<body>
+<body class="ios-safe-area">
     
     <!-- Login Screen -->
-    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-6">
+        <div class="login-container p-8 w-full max-w-sm fade-in">
             <div class="text-center mb-8">
-                <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-clock text-white text-2xl"></i>
+                <div class="login-logo w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-calendar-check text-white text-3xl"></i>
                 </div>
-                <h1 class="text-2xl font-bold text-gray-800">Mis Horarios</h1>
-                <p class="text-gray-600 mt-2">Forn Verge de Lluc</p>
+                <h1 class="text-2xl font-bold text-gray-800 mb-2">Mis Horarios</h1>
+                <p class="text-gray-600">Forn Verge de Lluc</p>
+                <div class="w-16 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto mt-4"></div>
             </div>
             
             <form id="loginForm" class="space-y-6">
                 <div>
-                    <label class="block text-gray-700 font-semibold mb-2">Tu código</label>
+                    <label class="block text-gray-700 font-semibold mb-3 text-sm">
+                        <i class="fas fa-key mr-2 text-blue-500"></i>Tu código de acceso
+                    </label>
                     <input 
                         type="password" 
                         id="accessCode" 
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                        class="input-field w-full"
                         placeholder="Introduce tu código"
                         required
+                        autocomplete="current-password"
                     >
                 </div>
                 
                 <button 
                     type="submit" 
-                    class="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-lg"
+                    class="btn-primary w-full"
                 >
+                    <i class="fas fa-sign-in-alt mr-2"></i>
                     Ver mis horarios
                 </button>
             </form>
             
-            <div id="loginError" class="hidden mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
-                Código incorrecto.
+            <div id="loginError" class="hidden mt-4 p-4 bg-red-50 text-red-700 rounded-lg text-sm border border-red-200">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                Código incorrecto. Inténtalo de nuevo.
+            </div>
+            
+            <div class="mt-6 text-center">
+                <p class="text-xs text-gray-500">
+                    <i class="fas fa-shield-alt mr-1"></i>
+                    Acceso seguro y personalizado
+                </p>
             </div>
         </div>
     </div>
 
     <!-- Employee Dashboard -->
-    <div id="employeeDashboard" class="hidden min-h-screen pb-6" style="padding-top: env(safe-area-inset-top, 0);">
+    <div id="employeeDashboard" class="hidden min-h-screen fade-in">
         
         <!-- Header -->
-        <header class="text-white p-4 pb-2" style="padding-top: max(1rem, env(safe-area-inset-top, 0));">
-            <div class="flex justify-between items-start">
-                <div class="flex-1 min-w-0">
-                    <h1 class="text-lg font-bold truncate" id="employeeName">Cargando...</h1>
-                    <p class="text-blue-200 text-xs" id="weekRange">Cargando semana...</p>
+        <header class="header-gradient text-white relative">
+            <div class="relative z-10 p-6 pb-4">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1 min-w-0">
+                        <h1 class="text-xl font-bold mb-1" id="employeeName">
+                            <i class="fas fa-user-circle mr-2"></i>Cargando...
+                        </h1>
+                        <p class="text-blue-200 text-sm" id="weekRange">
+                            <i class="fas fa-calendar-week mr-1"></i>Cargando semana...
+                        </p>
+                    </div>
+                    <button id="logoutBtn" class="glass-effect p-3 rounded-full transition-all hover:bg-white/20 ml-3">
+                        <i class="fas fa-sign-out-alt text-lg"></i>
+                    </button>
                 </div>
-                <button id="logoutBtn" class="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-colors ml-2 flex-shrink-0">
-                    <i class="fas fa-sign-out-alt text-sm"></i>
-                </button>
             </div>
         </header>
 
         <!-- Quick Stats -->
-        <div class="px-4 pb-3">
-            <div class="grid grid-cols-2 gap-2">
-                <div class="total-hours rounded-xl p-3 text-center">
-                    <div class="text-xl font-bold" id="totalHours">--</div>
-                    <div class="text-xs opacity-90">Horas semana</div>
+        <div class="px-6 -mt-2 relative z-10">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="stat-card p-4 text-center relative overflow-hidden">
+                    <div class="relative z-10">
+                        <div class="text-2xl font-bold mb-1" id="workDays">--</div>
+                        <div class="text-sm opacity-90">
+                            <i class="fas fa-calendar-check mr-1"></i>Días trabajando
+                        </div>
+                    </div>
                 </div>
-                <div class="next-shift rounded-xl p-3 text-center">
-                    <div class="text-xs font-medium" id="nextShiftDay">--</div>
-                    <div class="text-sm font-bold" id="nextShiftTime">--</div>
+                <div class="next-shift-card stat-card p-4 text-center relative overflow-hidden">
+                    <div class="relative z-10">
+                        <div class="text-sm font-medium mb-1" id="nextShiftDay">
+                            <i class="fas fa-arrow-right mr-1"></i>--
+                        </div>
+                        <div class="text-lg font-bold" id="nextShiftTime">--</div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Weekly Schedule -->
-        <div class="px-4 pb-6">
-            <h2 class="text-white text-base font-bold mb-3 text-center">
-                📅 Esta semana
-            </h2>
+        <div class="px-6 py-6">
+            <div class="flex items-center justify-center mb-6">
+                <div class="text-center">
+                    <h2 class="text-xl font-bold text-gray-800 mb-1">
+                        📅 Esta semana
+                    </h2>
+                    <div class="w-20 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto"></div>
+                </div>
+            </div>
             
-            <div class="space-y-2" id="scheduleContainer">
+            <div class="space-y-3" id="scheduleContainer">
                 <!-- Se genera dinámicamente -->
             </div>
         </div>
 
-        <!-- Bottom Actions -->
-        <div class="px-4 pb-6">
-            <div class="bg-white/10 rounded-xl p-4 text-center">
-                <p class="text-white text-sm opacity-75">
-                    💡 Guarda esta página en favoritos
+        <!-- Bottom Info -->
+        <div class="px-6 pb-8">
+            <div class="glass-effect rounded-2xl p-5 text-center">
+                <div class="flex items-center justify-center mb-2">
+                    <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                    <span class="text-gray-700 font-medium">Consejo</span>
+                </div>
+                <p class="text-gray-600 text-sm">
+                    Guarda esta página en favoritos para acceso rápido
                 </p>
             </div>
         </div>
@@ -326,16 +650,26 @@
         }
 
         function showDashboard() {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('employeeDashboard').classList.remove('hidden');
-            document.getElementById('employeeName').textContent = `Hola ${currentEmployee.name}`;
+            // Transición suave entre pantallas
+            const loginScreen = document.getElementById('loginScreen');
+            const dashboard = document.getElementById('employeeDashboard');
             
-            // ✅ FORZAR SCROLL AL TOP para iOS
+            loginScreen.style.opacity = '0';
+            loginScreen.style.transform = 'scale(0.95)';
+            
             setTimeout(() => {
+                loginScreen.classList.add('hidden');
+                dashboard.classList.remove('hidden');
+                
+                // Personalizar saludo con emoji
+                const employeeName = currentEmployee.name.charAt(0).toUpperCase() + currentEmployee.name.slice(1).toLowerCase();
+                document.getElementById('employeeName').innerHTML = `<i class="fas fa-user-circle mr-2"></i>Hola ${employeeName} 👋`;
+                
+                // ✅ FORZAR SCROLL AL TOP para iOS
                 window.scrollTo(0, 0);
                 document.body.scrollTop = 0;
                 document.documentElement.scrollTop = 0;
-            }, 100);
+            }, 300);
         }
 
         // ================================
@@ -525,76 +859,127 @@
             // Generar días para la semana actual
             const currentDays = generateDaysForWeek(currentWeekStart);
 
-            currentDays.forEach(day => {
+            currentDays.forEach((day, index) => {
                 const schedule = currentSchedule[day.key];
                 const card = document.createElement('div');
                 
+                // Agregar animación escalonada
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.classList.add('slide-up');
+                
+                // Resaltar día actual
+                const today = new Date();
+                const currentDayIndex = (today.getDay() + 6) % 7; // Lunes = 0
+                if (index === currentDayIndex) {
+                    card.classList.add('today-highlight');
+                }
+                
                 if (schedule.is_free_day) {
-                    card.className = 'schedule-card day-free p-3';
+                    card.className = 'schedule-card day-free p-5 slide-up';
                     card.innerHTML = `
                         <div class="flex justify-between items-center">
-                            <div class="flex items-center space-x-2">
-                                <span class="text-lg">😴</span>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
+                                    <span class="text-xl">😴</span>
+                                </div>
                                 <div>
-                                    <div class="text-sm font-bold">${day.name}</div>
-                                    <div class="text-xs opacity-75">${day.date}</div>
+                                    <div class="font-bold text-lg">${day.name}</div>
+                                    <div class="text-sm opacity-75">${day.date}</div>
                                 </div>
                             </div>
-                            <div class="text-xs font-bold">LIBRE</div>
+                            <div class="text-right">
+                                <div class="bg-white/20 px-3 py-1 rounded-full">
+                                    <span class="text-sm font-semibold">LIBRE</span>
+                                </div>
+                                <div class="text-xs mt-1 opacity-60">Descanso</div>
+                            </div>
                         </div>
                     `;
                 } else {
                     const startTime = schedule.start_time ? schedule.start_time.slice(0, 5) : '';
                     const endTime = schedule.end_time ? schedule.end_time.slice(0, 5) : '';
                     
-                    // Determinar si es horario partido
+                    // Determinar tipo de turno y clase CSS
                     const isSplitShift = schedule.shifts.length > 1;
-                    const isSpecialTime = !isSplitShift && (startTime !== '07:00' && startTime !== '14:00');
+                    let cardClass, icon, timeLabel;
                     
-                    const cardClass = isSplitShift ? 'day-special' :
-                                     isSpecialTime ? 'day-special' : 
-                                     startTime === '07:00' ? 'day-morning' : 'day-afternoon';
+                    if (isSplitShift) {
+                        cardClass = 'day-special';
+                        icon = '🔄';
+                        timeLabel = 'Partido';
+                    } else if (startTime >= '07:00' && startTime < '12:00') {
+                        cardClass = 'day-morning';
+                        icon = '🌅';
+                        timeLabel = 'Mañana';
+                    } else if (startTime >= '14:00' && startTime < '18:00') {
+                        cardClass = 'day-afternoon';
+                        icon = '🌆';
+                        timeLabel = 'Tarde';
+                    } else if (startTime >= '18:00') {
+                        cardClass = 'day-evening';
+                        icon = '🌃';
+                        timeLabel = 'Noche';
+                    } else {
+                        cardClass = 'day-special';
+                        icon = '⚡';
+                        timeLabel = 'Especial';
+                    }
                     
                     // Buscar compañeros que trabajen este día
                     const colleaguesWorking = findColleaguesForDay(day.key);
-                    const colleaguesText = colleaguesWorking.length > 0 
-                        ? `👥 Con: ${colleaguesWorking.join(', ')}`
-                        : '👤 Solo/a';
                     
                     // Formato dinámico basado en número de turnos
-                    let timeDisplay, hoursDisplay, icon;
+                    let timeDisplay, hoursDisplay;
                     
                     if (isSplitShift) {
-                        // Múltiples turnos: mostrar todos
                         timeDisplay = schedule.shifts
                             .map(shift => `${shift.start_time.slice(0,5)}-${shift.end_time.slice(0,5)}`)
                             .join(' + ');
-                        hoursDisplay = `${schedule.hours}h (${schedule.shifts.length} turnos)`;
-                        icon = '🔄';
+                        hoursDisplay = `${schedule.shifts.length} turnos`;
                     } else {
-                        // Un solo turno: formato normal
                         timeDisplay = `${startTime} - ${endTime}`;
-                        hoursDisplay = `${schedule.hours}h`;
-                        icon = isSpecialTime ? '⚡' : startTime === '07:00' ? '🌅' : '🌆';
+                        hoursDisplay = `Turno completo`;
                     }
                     
-                    card.className = `schedule-card ${cardClass} p-3`;
+                    card.className = `schedule-card ${cardClass} p-5 slide-up`;
                     card.innerHTML = `
-                        <div class="flex justify-between items-center mb-2">
-                            <div class="flex items-center space-x-2">
-                                <span class="text-lg">${icon}</span>
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-white/15 rounded-xl flex items-center justify-center">
+                                    <span class="text-xl">${icon}</span>
+                                </div>
                                 <div>
-                                    <div class="text-sm font-bold">${day.name}</div>
-                                    <div class="text-xs opacity-75">${day.date}</div>
+                                    <div class="font-bold text-lg">${day.name}</div>
+                                    <div class="text-sm opacity-80">${day.date}</div>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <div class="text-sm font-bold">${timeDisplay}</div>
-                                <div class="text-xs opacity-80">${hoursDisplay}</div>
+                                <div class="bg-white/20 px-3 py-1 rounded-full mb-1">
+                                    <span class="text-xs font-semibold">${timeLabel.toUpperCase()}</span>
+                                </div>
+                                <div class="text-xs opacity-60">${hoursDisplay}</div>
                             </div>
                         </div>
-                        <div class="text-xs opacity-70 pt-2 border-t border-white/20">
-                            ${colleaguesText}
+                        
+                        <div class="bg-white/10 rounded-xl p-3 mb-3">
+                            <div class="flex items-center justify-center">
+                                <div class="text-center">
+                                    <div class="text-lg font-bold mb-1">${timeDisplay}</div>
+                                    <div class="text-xs opacity-75">
+                                        <i class="fas fa-clock mr-1"></i>Horario de trabajo
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between text-xs">
+                            <div class="flex items-center opacity-75">
+                                <i class="fas fa-users mr-1"></i>
+                                <span>${colleaguesWorking.length > 0 
+                                    ? `Con: ${colleaguesWorking.slice(0, 2).join(', ')}${colleaguesWorking.length > 2 ? ' +' + (colleaguesWorking.length - 2) : ''}` 
+                                    : 'Trabajando solo/a'}</span>
+                            </div>
+                            ${isSplitShift ? '<div class="bg-white/20 px-2 py-1 rounded-full text-xs"><i class="fas fa-arrows-split-up-and-left mr-1"></i>' + schedule.shifts.length + ' turnos</div>' : ''}
                         </div>
                     `;
                 }
@@ -604,37 +989,62 @@
         }
 
         function updateStats() {
-            // Calcular horas totales
-            const totalHours = Object.values(currentSchedule)
-                .reduce((total, schedule) => total + (schedule.hours || 0), 0);
+            // Calcular días trabajando (no libres)
+            const workDays = Object.values(currentSchedule)
+                .filter(schedule => !schedule.is_free_day).length;
             
-            document.getElementById('totalHours').textContent = `${totalHours}h`;
+            document.getElementById('workDays').textContent = workDays;
 
-            // Calcular próximo turno
+            // Calcular próximo turno de manera más inteligente
             const today = new Date();
+            const currentHour = today.getHours();
+            const currentMinutes = today.getMinutes();
+            const currentTime = `${currentHour.toString().padStart(2, '0')}:${currentMinutes.toString().padStart(2, '0')}`;
             const currentDayIndex = (today.getDay() + 6) % 7; // Lunes = 0
             const currentDays = generateDaysForWeek(currentWeekStart);
             
             let nextShift = null;
-            for (let i = 0; i < 7; i++) {
-                const dayIndex = (currentDayIndex + i) % 7;
-                const day = currentDays[dayIndex];
-                const schedule = currentSchedule[day.key];
-                
-                if (!schedule.is_free_day && schedule.start_time) {
-                    nextShift = {
-                        day: day.name,
-                        time: schedule.start_time.slice(0, 5)
-                    };
-                    break;
+            
+            // Primero verificar si hay turnos hoy que aún no han comenzado
+            const todayDay = currentDays[currentDayIndex];
+            const todaySchedule = currentSchedule[todayDay.key];
+            
+            if (!todaySchedule.is_free_day && todaySchedule.shifts) {
+                for (const shift of todaySchedule.shifts) {
+                    if (shift.start_time > currentTime) {
+                        nextShift = {
+                            day: 'Hoy',
+                            time: shift.start_time.slice(0, 5),
+                            isToday: true
+                        };
+                        break;
+                    }
+                }
+            }
+            
+            // Si no hay turnos hoy, buscar en los próximos días
+            if (!nextShift) {
+                for (let i = 1; i < 7; i++) {
+                    const dayIndex = (currentDayIndex + i) % 7;
+                    const day = currentDays[dayIndex];
+                    const schedule = currentSchedule[day.key];
+                    
+                    if (!schedule.is_free_day && schedule.shifts && schedule.shifts.length > 0) {
+                        nextShift = {
+                            day: day.name,
+                            time: schedule.shifts[0].start_time.slice(0, 5),
+                            isToday: false
+                        };
+                        break;
+                    }
                 }
             }
 
             if (nextShift) {
-                document.getElementById('nextShiftDay').textContent = `Próximo: ${nextShift.day}`;
+                document.getElementById('nextShiftDay').innerHTML = `<i class="fas fa-arrow-right mr-1"></i>${nextShift.isToday ? 'Hoy' : nextShift.day}`;
                 document.getElementById('nextShiftTime').textContent = nextShift.time;
             } else {
-                document.getElementById('nextShiftDay').textContent = 'Sin turnos';
+                document.getElementById('nextShiftDay').innerHTML = '<i class="fas fa-calendar-times mr-1"></i>Sin turnos';
                 document.getElementById('nextShiftTime').textContent = 'esta semana';
             }
         }
@@ -699,4 +1109,5 @@
         });
     </script>
 </body>
+</html> 
 </html> 

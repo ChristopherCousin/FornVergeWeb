@@ -478,4 +478,159 @@ body {
 .authenticated #mainHeader,
 .authenticated #mainContent {
     display: block !important;
+}
+
+/* --- Responsive Mejorado --- */
+@media (max-width: 900px) {
+    .week-display-card {
+        flex-direction: column;
+        padding: 12px 8px;
+        gap: 10px;
+    }
+    .week-info {
+        margin-bottom: 8px;
+        text-align: center;
+    }
+    .week-navigation {
+        gap: 6px;
+    }
+    .week-selector {
+        min-width: 120px;
+        font-size: 12px;
+        padding: 7px 30px 7px 10px;
+    }
+}
+@media (max-width: 600px) {
+    .max-w-7xl, .max-w-7xl.mx-auto.p-6 {
+        max-width: 100vw !important;
+        padding: 0 2vw !important;
+    }
+    .week-display-card {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 10px 2vw;
+        gap: 8px;
+    }
+    .week-info {
+        margin-bottom: 6px;
+        text-align: center;
+    }
+    .week-dates {
+        font-size: 14px;
+    }
+    .week-label {
+        font-size: 10px;
+    }
+    .week-navigation {
+        gap: 4px;
+    }
+    .week-nav-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 13px;
+    }
+    .week-selector {
+        min-width: 90px;
+        font-size: 11px;
+        padding: 6px 26px 6px 8px;
+    }
+    .stats-card {
+        padding: 10px;
+        font-size: 13px;
+    }
+    .grid-cols-4 {
+        grid-template-columns: 1fr 1fr;
+    }
+    .grid-cols-2, .lg\:grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+    .day-column {
+        padding: 10px;
+        min-height: 180px;
+    }
+    .shift-entry {
+        padding: 8px;
+        font-size: 12px;
+    }
+    .add-shift-btn {
+        font-size: 12px;
+        padding: 8px 10px;
+    }
+    .modal-content, .login-content {
+        padding: 16px;
+        max-width: 98vw;
+    }
+}
+
+/* Selector rápido de hora para turno de mañana */
+.quick-time-selector-modal {
+    background: white;
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
+    padding: 28px 18px 18px 18px;
+    min-width: 220px;
+    max-width: 90vw;
+    text-align: center;
+    z-index: 3000;
+    animation: fadeInUp 0.3s;
+}
+.quick-time-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 16px;
+}
+.quick-time-btns {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.quick-time-btn {
+    background: #f3f4f6;
+    color: #1d4ed8;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.quick-time-btn:hover {
+    background: #dbeafe;
+    border-color: #60a5fa;
+    color: #2563eb;
+}
+.quick-time-cancel {
+    background: #f87171;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: all 0.2s;
+}
+.quick-time-cancel:hover {
+    background: #dc2626;
+}
+@media (max-width: 600px) {
+    .quick-time-selector-modal {
+        min-width: 90vw;
+        padding: 18px 4vw 12px 4vw;
+    }
+    .quick-time-title {
+        font-size: 14px;
+    }
+    .quick-time-btn {
+        font-size: 13px;
+        padding: 7px 10px;
+    }
+    .quick-time-cancel {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
 } 

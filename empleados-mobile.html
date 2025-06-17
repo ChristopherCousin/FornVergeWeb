@@ -14,7 +14,7 @@
         
         body { 
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-            background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+            background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             overflow-x: hidden;
         }
@@ -135,7 +135,7 @@
         
         /* Header mejorado */
         .header-gradient {
-            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             position: relative;
             overflow: hidden;
         }
@@ -291,8 +291,8 @@
             }
         }
         
-        /* Modo oscuro básico (respeta la preferencia del sistema) */
-        @media (prefers-color-scheme: dark) {
+        /* Modo oscuro deshabilitado temporalmente */
+        /* @media (prefers-color-scheme: dark) {
             body {
                 background: linear-gradient(145deg, #1f2937 0%, #111827 100%);
             }
@@ -306,7 +306,7 @@
                 background: rgba(31, 41, 55, 0.9);
                 color: white;
             }
-        }
+        } */
         
         /* Indicadores de estado mejorados */
         .status-indicator {
@@ -334,6 +334,72 @@
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
+        }
+        
+        /* Navegación de semanas */
+        .week-nav-btn {
+            min-width: 48px !important;
+            min-height: 48px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: rgba(255, 255, 255, 0.25) !important;
+            border: 2px solid rgba(255, 255, 255, 0.4) !important;
+            border-radius: 12px !important;
+            color: white !important;
+            transition: all 0.3s ease !important;
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
+        }
+        
+        .week-nav-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.35) !important;
+            border-color: rgba(255, 255, 255, 0.6) !important;
+            transform: scale(1.05) !important;
+        }
+        
+        .week-nav-btn:disabled {
+            opacity: 0.4 !important;
+            cursor: not-allowed !important;
+            pointer-events: none !important;
+            transform: scale(0.95) !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.2) !important;
+        }
+        
+        /* Indicador de actualización */
+        .updating {
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Notificación de semana no disponible */
+        .week-unavailable {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            border: 2px solid #f59e0b;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            margin: 16px 0;
+        }
+        
+        /* Auto-refresh indicator */
+        .auto-refresh-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 1000;
+            transform: translateY(-100px);
+            transition: transform 0.3s ease;
+        }
+        
+        .auto-refresh-indicator.show {
+            transform: translateY(0);
         }
     </style>
 </head>
@@ -435,13 +501,26 @@
 
         <!-- Weekly Schedule -->
         <div class="px-6 py-6">
-            <div class="flex items-center justify-center mb-6">
-                <div class="text-center">
-                    <h2 class="text-xl font-bold text-gray-800 mb-1">
+            <div class="flex items-center justify-between mb-6">
+                <button id="prevWeekBtn" class="week-nav-btn">
+                    <i class="fas fa-chevron-left text-white"></i>
+                </button>
+                
+                <div class="text-center flex-1">
+                    <h2 class="text-xl font-bold text-gray-800 mb-1" id="weekTitle">
                         📅 Esta semana
                     </h2>
                     <div class="w-20 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto"></div>
+                    <div class="mt-2">
+                        <span id="lastUpdated" class="text-xs text-gray-500">
+                            <i class="fas fa-sync-alt mr-1"></i>Actualizado ahora
+                        </span>
+                    </div>
                 </div>
+                
+                <button id="nextWeekBtn" class="week-nav-btn">
+                    <i class="fas fa-chevron-right text-white"></i>
+                </button>
             </div>
             
             <div class="space-y-3" id="scheduleContainer">
@@ -461,6 +540,12 @@
                 </p>
             </div>
         </div>
+    </div>
+
+    <!-- Auto-refresh indicator -->
+    <div id="autoRefreshIndicator" class="auto-refresh-indicator">
+        <i class="fas fa-sync-alt mr-1"></i>
+        <span>Actualizando...</span>
     </div>
 
     <!-- Scripts -->
@@ -499,24 +584,202 @@
             return days;
         }
         
-        // Función para obtener semana más reciente
-        async function getCurrentWeek() {
+        // Función para detectar la semana actual basada en la fecha de hoy
+        function getCurrentWeekStart() {
+            const today = new Date();
+            const currentDay = today.getDay(); // 0 = domingo, 1 = lunes, ...
+            const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay; // Calcular días hasta el lunes
+            
+            const monday = new Date(today);
+            monday.setDate(today.getDate() + mondayOffset);
+            
+            // Formatear como YYYY-MM-DD
+            const year = monday.getFullYear();
+            const month = String(monday.getMonth() + 1).padStart(2, '0');
+            const day = String(monday.getDate()).padStart(2, '0');
+            
+            return `${year}-${month}-${day}`;
+        }
+
+        // Función para generar semanas futuras (actual + 3 siguientes)
+        function generateAvailableWeeks() {
+            const currentWeekStart = getCurrentWeekStart();
+            const weeks = [currentWeekStart];
+            
+            // Generar las 3 semanas siguientes
+            for (let i = 1; i <= 3; i++) {
+                const nextWeek = new Date(currentWeekStart);
+                nextWeek.setDate(nextWeek.getDate() + (i * 7));
+                
+                const year = nextWeek.getFullYear();
+                const month = String(nextWeek.getMonth() + 1).padStart(2, '0');
+                const day = String(nextWeek.getDate()).padStart(2, '0');
+                
+                weeks.push(`${year}-${month}-${day}`);
+            }
+            
+            console.log('📅 Semanas disponibles:', weeks);
+            return weeks;
+        }
+
+        // Función para obtener todas las semanas disponibles
+        async function getAvailableWeeks() {
             try {
+                // Generar semanas basadas en la fecha actual
+                availableWeeks = generateAvailableWeeks();
+                
+                // Verificar qué semanas tienen datos en la base de datos
                 const { data, error } = await supabase
                     .from('schedules')
                     .select('week_start')
-                    .order('week_start', { ascending: false })
-                    .limit(1);
+                    .in('week_start', availableWeeks)
+                    .order('week_start', { ascending: true });
 
-                if (error || !data || data.length === 0) {
-                    console.warn('No hay semanas disponibles, usando fallback');
-                    return '2025-02-09';
+                if (error) {
+                    console.warn('Error consultando semanas, usando generadas:', error);
+                    return availableWeeks;
                 }
 
-                return data[0].week_start;
+                if (data && data.length > 0) {
+                    const weeksWithData = [...new Set(data.map(item => item.week_start))];
+                    console.log('📊 Semanas con datos en BD:', weeksWithData);
+                    
+                    // Mantener todas las semanas generadas, pero marcar cuáles tienen datos
+                    return availableWeeks;
+                }
+
+                return availableWeeks;
             } catch (error) {
-                console.error('Error obteniendo semana actual:', error);
-                return '2025-02-09';
+                console.error('Error obteniendo semanas disponibles:', error);
+                availableWeeks = generateAvailableWeeks();
+                return availableWeeks;
+            }
+        }
+
+        // Función para obtener semana inicial (siempre la actual)
+        async function getCurrentWeek() {
+            await getAvailableWeeks();
+            return availableWeeks[0]; // Primera semana (la actual)
+        }
+
+        // Función para navegar a semana anterior
+        function goToPreviousWeek() {
+            const currentIndex = availableWeeks.indexOf(currentWeekStart);
+            if (currentIndex > 0) {
+                currentWeekStart = availableWeeks[currentIndex - 1];
+                loadEmployeeSchedule();
+            }
+        }
+
+        // Función para navegar a semana siguiente
+        function goToNextWeek() {
+            const currentIndex = availableWeeks.indexOf(currentWeekStart);
+            if (currentIndex < availableWeeks.length - 1) {
+                currentWeekStart = availableWeeks[currentIndex + 1];
+                loadEmployeeSchedule();
+            }
+        }
+
+        // Función para actualizar botones de navegación
+        function updateNavigationButtons() {
+            const currentIndex = availableWeeks.indexOf(currentWeekStart);
+            const prevBtn = document.getElementById('prevWeekBtn');
+            const nextBtn = document.getElementById('nextWeekBtn');
+            
+            // El botón anterior se deshabilita siempre que estemos en la primera semana (semana actual)
+            prevBtn.disabled = currentIndex <= 0;
+            nextBtn.disabled = currentIndex >= availableWeeks.length - 1;
+            
+            // Actualizar título de la semana
+            const weekTitle = document.getElementById('weekTitle');
+            const actualCurrentWeek = getCurrentWeekStart(); // Semana real de hoy
+            
+            if (currentWeekStart === actualCurrentWeek) {
+                weekTitle.innerHTML = '📅 Esta semana';
+            } else {
+                const currentWeekDate = new Date(currentWeekStart);
+                const weekNumber = currentIndex + 1;
+                const weekLabel = weekNumber === 2 ? 'Próxima semana' : 
+                                 weekNumber === 3 ? 'En 2 semanas' : 
+                                 weekNumber === 4 ? 'En 3 semanas' : 'Semana futura';
+                weekTitle.innerHTML = `📅 ${weekLabel}`;
+            }
+        }
+
+        // ================================
+        // AUTO-ACTUALIZACIÓN
+        // ================================
+
+        // Función para mostrar indicador de actualización
+        function showRefreshIndicator() {
+            const indicator = document.getElementById('autoRefreshIndicator');
+            const icon = indicator.querySelector('i');
+            indicator.classList.add('show');
+            icon.classList.add('updating');
+        }
+
+        // Función para ocultar indicador de actualización
+        function hideRefreshIndicator() {
+            const indicator = document.getElementById('autoRefreshIndicator');
+            const icon = indicator.querySelector('i');
+            setTimeout(() => {
+                indicator.classList.remove('show');
+                icon.classList.remove('updating');
+            }, 1000);
+        }
+
+        // Función para actualizar timestamp
+        function updateLastRefreshTime() {
+            lastRefreshTime = new Date();
+            const timeString = lastRefreshTime.toLocaleTimeString('es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            document.getElementById('lastUpdated').innerHTML = 
+                `<i class="fas fa-sync-alt mr-1"></i>Actualizado a las ${timeString}`;
+        }
+
+        // Función para auto-actualizar datos
+        async function autoRefreshData() {
+            if (!currentEmployee) return;
+            
+            try {
+                console.log('🔄 Auto-actualizando datos...');
+                showRefreshIndicator();
+                
+                // Recargar semanas disponibles
+                await getAvailableWeeks();
+                
+                // Recargar horarios
+                await loadEmployeeSchedule();
+                
+                updateLastRefreshTime();
+                console.log('✅ Auto-actualización completada');
+                
+            } catch (error) {
+                console.error('❌ Error en auto-actualización:', error);
+            } finally {
+                hideRefreshIndicator();
+            }
+        }
+
+        // Función para iniciar auto-actualización
+        function startAutoRefresh() {
+            // Actualizar cada 5 minutos
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            
+            autoRefreshInterval = setInterval(autoRefreshData, 5 * 60 * 1000); // 5 minutos
+            console.log('🔄 Auto-actualización iniciada (cada 5 minutos)');
+        }
+
+        // Función para detener auto-actualización
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                console.log('⏹️ Auto-actualización detenida');
             }
         }
 
@@ -524,6 +787,9 @@
         let currentEmployee = null;
         let currentSchedule = null;
         let allEmployeesSchedules = {}; // Para calcular compañeros
+        let availableWeeks = []; // Semanas disponibles en la base de datos
+        let autoRefreshInterval = null; // Intervalo de auto-actualización
+        let lastRefreshTime = new Date();
 
         // Función para verificar si dos horarios se solapan
         function schedulesOverlap(schedule1, schedule2) {
@@ -665,6 +931,10 @@
                 const employeeName = currentEmployee.name.charAt(0).toUpperCase() + currentEmployee.name.slice(1).toLowerCase();
                 document.getElementById('employeeName').innerHTML = `<i class="fas fa-user-circle mr-2"></i>Hola ${employeeName} 👋`;
                 
+                // Iniciar auto-actualización
+                startAutoRefresh();
+                updateLastRefreshTime();
+                
                 // ✅ FORZAR SCROLL AL TOP para iOS
                 window.scrollTo(0, 0);
                 document.body.scrollTop = 0;
@@ -678,14 +948,36 @@
 
         async function loadEmployeeSchedule() {
             try {
-                // 1. Obtener semana más reciente
-                currentWeekStart = await getCurrentWeek();
+                // 1. Si no hay currentWeekStart, obtener semana más reciente
+                if (!currentWeekStart) {
+                    currentWeekStart = await getCurrentWeek();
+                }
                 console.log('📅 Cargando horarios para semana:', currentWeekStart);
                 
                 // 2. Actualizar header con semana
                 updateWeekDisplay();
                 
-                // 3. Cargar horarios del empleado actual
+                // 3. Verificar si la semana tiene horarios
+                const { data: weekCheck, error: weekError } = await supabase
+                    .from('schedules')
+                    .select('employee_id')
+                    .eq('week_start', currentWeekStart)
+                    .eq('employee_id', currentEmployee.id)
+                    .limit(1);
+
+                if (weekError) {
+                    console.error('Error verificando semana:', weekError);
+                    showWeekUnavailableMessage();
+                    return;
+                }
+
+                if (!weekCheck || weekCheck.length === 0) {
+                    console.log('📭 No hay horarios para esta semana');
+                    showWeekUnavailableMessage();
+                    return;
+                }
+
+                // 4. Cargar horarios del empleado actual
                 const { data: mySchedules, error: myError } = await supabase
                     .from('schedules')
                     .select('*')
@@ -698,7 +990,7 @@
                     return;
                 }
 
-                // 4. Cargar horarios de TODOS los empleados para calcular compañeros
+                // 5. Cargar horarios de TODOS los empleados para calcular compañeros
                 const { data: allSchedules, error: allError } = await supabase
                     .from('schedules')
                     .select(`
@@ -719,10 +1011,37 @@
                 processScheduleData(mySchedules);
                 renderSchedule();
                 updateStats();
+                updateNavigationButtons();
 
             } catch (error) {
                 console.error('Error general:', error);
+                showWeekUnavailableMessage();
             }
+        }
+
+        // Función para mostrar mensaje de semana no disponible
+        function showWeekUnavailableMessage() {
+            const container = document.getElementById('scheduleContainer');
+            container.innerHTML = `
+                <div class="week-unavailable">
+                    <div class="text-center">
+                        <div class="text-2xl mb-2">📅</div>
+                        <h3 class="font-bold text-lg mb-2">Semana no disponible</h3>
+                        <p class="text-sm mb-4">Los horarios para esta semana aún no están publicados.</p>
+                        <button onclick="autoRefreshData()" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition">
+                            <i class="fas fa-sync-alt mr-2"></i>Actualizar ahora
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Inicializar currentSchedule como objeto vacío para evitar errores
+            if (!currentSchedule) {
+                currentSchedule = {};
+            }
+            
+            updateStats();
+            updateNavigationButtons();
         }
         
         function updateWeekDisplay() {
@@ -907,7 +1226,7 @@
                         cardClass = 'day-special';
                         icon = '🔄';
                         timeLabel = 'Partido';
-                    } else if (startTime >= '07:00' && startTime < '12:00') {
+                    } else if (startTime >= '06:00' && startTime < '12:00') {
                         cardClass = 'day-morning';
                         icon = '🌅';
                         timeLabel = 'Mañana';
@@ -919,6 +1238,10 @@
                         cardClass = 'day-evening';
                         icon = '🌃';
                         timeLabel = 'Noche';
+                    } else if (startTime >= '12:00' && startTime < '14:00') {
+                        cardClass = 'day-afternoon';
+                        icon = '🌆';
+                        timeLabel = 'Tarde';
                     } else {
                         cardClass = 'day-special';
                         icon = '⚡';
@@ -990,8 +1313,15 @@
 
         function updateStats() {
             // Calcular días trabajando (no libres)
+            if (!currentSchedule || typeof currentSchedule !== 'object') {
+                document.getElementById('workDays').textContent = '0';
+                document.getElementById('nextShiftDay').innerHTML = '<i class="fas fa-calendar-times mr-1"></i>Sin datos';
+                document.getElementById('nextShiftTime').textContent = 'disponibles';
+                return;
+            }
+            
             const workDays = Object.values(currentSchedule)
-                .filter(schedule => !schedule.is_free_day).length;
+                .filter(schedule => schedule && !schedule.is_free_day).length;
             
             document.getElementById('workDays').textContent = workDays;
 
@@ -1009,7 +1339,7 @@
             const todayDay = currentDays[currentDayIndex];
             const todaySchedule = currentSchedule[todayDay.key];
             
-            if (!todaySchedule.is_free_day && todaySchedule.shifts) {
+            if (todaySchedule && !todaySchedule.is_free_day && todaySchedule.shifts) {
                 for (const shift of todaySchedule.shifts) {
                     if (shift.start_time > currentTime) {
                         nextShift = {
@@ -1029,7 +1359,7 @@
                     const day = currentDays[dayIndex];
                     const schedule = currentSchedule[day.key];
                     
-                    if (!schedule.is_free_day && schedule.shifts && schedule.shifts.length > 0) {
+                    if (schedule && !schedule.is_free_day && schedule.shifts && schedule.shifts.length > 0) {
                         nextShift = {
                             day: day.name,
                             time: schedule.shifts[0].start_time.slice(0, 5),
@@ -1054,12 +1384,18 @@
         // ================================
 
         document.getElementById('logoutBtn').addEventListener('click', () => {
+            // ✅ DETENER auto-actualización
+            stopAutoRefresh();
+            
             // ✅ LIMPIAR localStorage al salir
             localStorage.removeItem('fornverge_access_code');
             localStorage.removeItem('fornverge_employee_data');
             
             currentEmployee = null;
             currentSchedule = null;
+            currentWeekStart = null;
+            availableWeeks = [];
+            
             document.getElementById('employeeDashboard').classList.add('hidden');
             document.getElementById('loginScreen').classList.remove('hidden');
             document.getElementById('accessCode').value = '';
@@ -1068,12 +1404,50 @@
             window.scrollTo(0, 0);
         });
 
+        // Event listeners para navegación de semanas
+        document.getElementById('prevWeekBtn').addEventListener('click', goToPreviousWeek);
+        document.getElementById('nextWeekBtn').addEventListener('click', goToNextWeek);
+
+        // ================================
+        // MANEJO DE VISIBILIDAD DE PÁGINA
+        // ================================
+
+        // Pausar/reanudar auto-actualización según visibilidad
+        document.addEventListener('visibilitychange', () => {
+            if (currentEmployee) {
+                if (document.hidden) {
+                    console.log('📱 Página oculta - pausando auto-actualización');
+                    stopAutoRefresh();
+                } else {
+                    console.log('📱 Página visible - reanudando auto-actualización');
+                    startAutoRefresh();
+                    // Actualizar inmediatamente al volver
+                    setTimeout(autoRefreshData, 1000);
+                }
+            }
+        });
+
+        // Actualizar al enfocar la ventana (para escritorio)
+        window.addEventListener('focus', () => {
+            if (currentEmployee && !document.hidden) {
+                console.log('🖱️ Ventana enfocada - actualizando datos');
+                setTimeout(autoRefreshData, 500);
+            }
+        });
+
         // ================================
         // INICIALIZACIÓN
         // ================================
 
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('🚀 Panel de empleados móvil cargado');
+            
+            // Mostrar información de semanas disponibles
+            const actualWeek = getCurrentWeekStart();
+            console.log(`🗓️ Sistema configurado para mostrar:`);
+            console.log(`   📌 Semana actual: ${actualWeek}`);
+            console.log(`   ⏭️  + Las siguientes 3 semanas`);
+            console.log(`   🚫 Sin navegación hacia atrás desde la semana actual`);
             
             // ✅ AUTO-LOGIN si tiene código guardado
             const savedCode = localStorage.getItem('fornverge_access_code');

@@ -5,16 +5,16 @@ const SUPABASE_URL = 'https://csxgkxjeifakwslamglc.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzeGdreGplaWZha3dzbGFtZ2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjM4NjIsImV4cCI6MjA2NDg5OTg2Mn0.iGDmQJGRjsldPGmXLO5PFiaLOk7P3Rpr0omF3b8SJkg';
 
 // Variables dinámicas para semanas
-let currentWeekStart = localStorage.getItem('fornverge_last_week') || '2025-02-09'; // Semana inicial
+let currentWeekStart = localStorage.getItem('fornverge_last_week') || '2025-06-16'; // Semana inicial (actualizada a junio)
 const availableWeeks = [
-    '2025-02-09', // Semana 1: 9-15 Feb
-    '2025-02-16', // Semana 2: 16-22 Feb  
-    '2025-02-23', // Semana 3: 23-01 Mar
-    '2025-03-02', // Semana 4: 2-8 Mar
-    '2025-03-09', // Semana 5: 9-15 Mar
-    '2025-03-16', // Semana 6: 16-22 Mar
-    '2025-03-23', // Semana 7: 23-29 Mar
-    '2025-03-30'  // Semana 8: 30 Mar-5 Abr
+    '2025-06-09', // Semana 1: 9-15 Jun
+    '2025-06-16', // Semana 2: 16-22 Jun ← ACTUAL
+    '2025-06-23', // Semana 3: 23-29 Jun
+    '2025-06-30', // Semana 4: 30 Jun-6 Jul
+    '2025-07-07', // Semana 5: 7-13 Jul
+    '2025-07-14', // Semana 6: 14-20 Jul
+    '2025-07-21', // Semana 7: 21-27 Jul
+    '2025-07-28'  // Semana 8: 28 Jul-3 Ago
 ];
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1169,6 +1169,9 @@ async function changeToWeek(newWeekStart) {
     // Cargar datos de la nueva semana
     await loadCurrentSchedules();
     
+    // ✨ PREDEFINIR HORARIOS DE RAQUEL si es una semana nueva
+    await checkAndPredefineRaquelSchedule();
+    
     // Actualizar interfaz
     updateWeekDisplay();
     setupWeekSelector(); // Actualiza el selector
@@ -1181,6 +1184,150 @@ async function changeToWeek(newWeekStart) {
     
     // Guardar la semana seleccionada
     localStorage.setItem('fornverge_last_week', newWeekStart);
+}
+
+// ================================
+// PREDEFINIR HORARIOS DE RAQUEL
+// ================================
+
+async function checkAndPredefineRaquelSchedule() {
+    try {
+        // Encontrar a Raquel
+        const raquel = employees.find(emp => emp.name.toUpperCase() === 'RAQUEL');
+        if (!raquel) {
+            console.log('ℹ️ Raquel no encontrada en la lista de empleados');
+            return;
+        }
+
+        // Verificar si ya tiene horarios para esta semana
+        const { data: existingSchedules, error } = await supabase
+            .from('schedules')
+            .select('id')
+            .eq('employee_id', raquel.id)
+            .eq('week_start', currentWeekStart)
+            .limit(1);
+
+        if (error) {
+            console.error('❌ Error verificando horarios de Raquel:', error);
+            return;
+        }
+
+        // Si ya tiene horarios, no hacer nada
+        if (existingSchedules && existingSchedules.length > 0) {
+            console.log('ℹ️ Raquel ya tiene horarios para esta semana');
+            return;
+        }
+
+        console.log('✨ Predefiniendo horarios de Raquel para la semana ' + currentWeekStart);
+        updateStatus('Creando horarios de Raquel...');
+
+        // Horarios predefinidos de Raquel: 6:00-14:00 L-V, libre sábado
+        const raquelSchedule = [
+            { day: 'lunes', start: '06:00:00', end: '14:00:00', hours: 8, free: false },
+            { day: 'martes', start: '06:00:00', end: '14:00:00', hours: 8, free: false },
+            { day: 'miercoles', start: '06:00:00', end: '14:00:00', hours: 8, free: false },
+            { day: 'jueves', start: '06:00:00', end: '14:00:00', hours: 8, free: false },
+            { day: 'viernes', start: '06:00:00', end: '14:00:00', hours: 8, free: false },
+            { day: 'sabado', start: null, end: null, hours: 0, free: true },
+            { day: 'domingo', start: '06:00:00', end: '14:00:00', hours: 8, free: false }
+        ];
+
+        // Crear los registros en la base de datos
+        const schedulePromises = raquelSchedule.map(async (schedule) => {
+            const scheduleData = {
+                employee_id: raquel.id,
+                week_start: currentWeekStart,
+                day_of_week: schedule.day,
+                start_time: schedule.start,
+                end_time: schedule.end,
+                hours: schedule.hours,
+                is_free_day: schedule.free,
+                shift_sequence: 1,
+                shift_description: schedule.free ? 'Día libre' : 'Turno mañana',
+                colleagues: []
+            };
+
+            const { data, error } = await supabase
+                .from('schedules')
+                .insert([scheduleData])
+                .select();
+
+            if (error) {
+                console.error(`❌ Error creando horario para ${schedule.day}:`, error);
+                return null;
+            }
+
+            return data[0];
+        });
+
+        const results = await Promise.all(schedulePromises);
+        const successCount = results.filter(result => result !== null).length;
+
+        if (successCount === raquelSchedule.length) {
+            console.log(`✅ Horarios de Raquel creados exitosamente (${successCount} días)`);
+            
+            // Actualizar scheduleData local
+            raquelSchedule.forEach((schedule, index) => {
+                const result = results[index];
+                if (result) {
+                    const shift = {
+                        id: result.id,
+                        type: schedule.free ? 'free' : 'morning',
+                        start: schedule.start,
+                        end: schedule.end,
+                        hours: schedule.hours,
+                        isFree: schedule.free,
+                        description: schedule.free ? 'Día libre' : 'Turno mañana'
+                    };
+                    
+                    if (!scheduleData[raquel.id][schedule.day]) {
+                        scheduleData[raquel.id][schedule.day] = [];
+                    }
+                    scheduleData[raquel.id][schedule.day].push(shift);
+                }
+            });
+
+            // Mostrar notificación
+            showRaquelNotification();
+            
+        } else {
+            console.warn(`⚠️ Solo se crearon ${successCount} de ${raquelSchedule.length} horarios para Raquel`);
+        }
+
+    } catch (error) {
+        console.error('❌ Error en predefinición de horarios de Raquel:', error);
+    }
+}
+
+function showRaquelNotification() {
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 transform translate-x-full opacity-0 transition-all duration-500';
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-magic mr-3 text-xl"></i>
+            <div>
+                <div class="font-semibold">¡Horarios creados!</div>
+                <div class="text-sm opacity-90">Raquel: L-V 6:00-14:00, Sáb libre</div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animar entrada
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full', 'opacity-0');
+    }, 100);
+    
+    // Animar salida después de 4 segundos
+    setTimeout(() => {
+        notification.classList.add('translate-x-full', 'opacity-0');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 500);
+    }, 4000);
 }
 
 // ================================

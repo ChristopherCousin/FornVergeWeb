@@ -598,6 +598,81 @@
         </div>
     </section>
 
+    <!-- OFERTAS ESPECIALES - SECCIÓN SUTIL -->
+    <section id="ofertas" class="section" style="background: linear-gradient(135deg, var(--charcoal) 0%, var(--dark-brown) 50%, var(--charcoal) 100%); position: relative; padding: 4rem 0;">
+        <!-- Patrón de fondo elegante -->
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9InJnYmEoMjEyLDE2NSwxMTYsMC4wOCkiIGZpbGwtcnVsZT0ibm9uemVybyI+PHBhdGggZD0iTTQwIDQwYzAgMTEuMDQ2LTguOTU0IDIwLTIwIDIwcy0yMC04Ljk1NC0yMC0yMCA4Ljk1NC0yMCAyMC0yMCAyMCA4Ljk1NCAyMCAyMHoiLz48L2c+PC9nPjwvc3ZnPg=='); opacity: 0.4;"></div>
+        
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 2;">
+            <div style="text-align: center;" data-aos="fade-up">
+                
+                <!-- Contenedor principal centrado -->
+                <div class="glass-premium" style="max-width: 600px; margin: 0 auto; padding: 3rem 2rem; background: rgba(250, 247, 242, 0.1); backdrop-filter: blur(20px); border: 1px solid rgba(212, 165, 116, 0.3);">
+                    
+                    <!-- Icono y título -->
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 2rem;">
+                        <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold)); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(212, 165, 116, 0.4);">
+                            <i class="fas fa-percentage" style="color: var(--charcoal); font-size: 1.8rem;"></i>
+                        </div>
+                        <div>
+                            <h3 class="playfair" style="font-size: 2.2rem; font-weight: 700; color: var(--primary-gold); margin: 0; line-height: 1.2;">Ofertas Especiales</h3>
+                            <p style="color: var(--light-gold); margin: 0; font-size: 1rem; font-weight: 500;">Actualizado diariamente</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Descripción elegante -->
+                    <p style="font-size: 1.1rem; color: rgba(250, 247, 242, 0.9); margin-bottom: 2.5rem; line-height: 1.7;">
+                        Descubre nuestras promociones especiales escaneando el código QR.<br>
+                        <span style="color: var(--primary-gold); font-weight: 600;">¡Ofertas exclusivas actualizadas cada día!</span>
+                    </p>
+                    
+                    <!-- Contenedor QR -->
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
+                        <!-- QR Code Container -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); border: 3px solid var(--primary-gold);">
+                            <div id="qr-code" style="width: 150px; height: 150px; display: flex; align-items: center; justify-content: center;">
+                                <!-- El QR se generará aquí dinámicamente -->
+                                <div style="color: var(--warm-brown); text-align: center;">
+                                    <i class="fas fa-qrcode" style="font-size: 4rem; margin-bottom: 0.5rem; display: block;"></i>
+                                    <small style="font-size: 0.8rem;">Cargando QR...</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Instrucciones -->
+                        <div style="text-align: center;">
+                            <p style="color: var(--light-gold); font-size: 0.95rem; margin-bottom: 0.5rem;">
+                                <i class="fas fa-mobile-alt" style="margin-right: 0.5rem; color: var(--primary-gold);"></i>
+                                Escanea con tu móvil
+                            </p>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%;"></div>
+                                    <span style="color: rgba(250, 247, 242, 0.8); font-size: 0.85rem;">Sin instalaciones</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%;"></div>
+                                    <span style="color: rgba(250, 247, 242, 0.8); font-size: 0.85rem;">Acceso directo</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%;"></div>
+                                    <span style="color: rgba(250, 247, 242, 0.8); font-size: 0.85rem;">Ofertas en tiempo real</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Botón alternativo para escritorio -->
+                        <a href="ofertas/" class="btn-gold btn-outline" style="margin-top: 1rem; display: none;" id="desktop-offers-btn">
+                            <i class="fas fa-external-link-alt" style="margin-right: 0.5rem;"></i>
+                            Ver Ofertas Online
+                        </a>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </section>
+
     <!-- NUESTRA HISTORIA PREMIUM -->
     <section id="sobre" class="section" style="background: linear-gradient(135deg, var(--charcoal) 0%, var(--dark-brown) 100%); position: relative;">
         <!-- Patrón de fondo -->
@@ -1009,10 +1084,62 @@
             }
         });
 
+        // ==========================================
+        // GENERADOR DE QR CODE DINÁMICO
+        // ==========================================
+        
+        // Función para generar QR code usando API gratuita
+        function generateQRCode() {
+            const ofertasURL = window.location.origin + '/ofertas/';
+            const qrContainer = document.getElementById('qr-code');
+            const desktopBtn = document.getElementById('desktop-offers-btn');
+            
+            // Generar QR usando qr-server.com (API gratuita)
+            const qrImageURL = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(ofertasURL)}&bgcolor=FFFFFF&color=2C2C2C&margin=10&format=png&ecc=M`;
+            
+            // Crear imagen QR
+            const qrImg = document.createElement('img');
+            qrImg.src = qrImageURL;
+            qrImg.alt = 'QR Code Ofertas Forn Verge de Lluc';
+            qrImg.style.width = '100%';
+            qrImg.style.height = '100%';
+            qrImg.style.borderRadius = '8px';
+            
+            // Reemplazar el placeholder
+            qrContainer.innerHTML = '';
+            qrContainer.appendChild(qrImg);
+            
+            // Mostrar botón de escritorio en pantallas grandes
+            if (window.innerWidth > 768) {
+                desktopBtn.style.display = 'inline-block';
+            }
+            
+            // Actualizar href del botón
+            desktopBtn.href = ofertasURL;
+        }
+        
+        // Detectar si es móvil para mostrar/ocultar elementos
+        function detectMobile() {
+            const isMobile = window.innerWidth <= 768;
+            const desktopBtn = document.getElementById('desktop-offers-btn');
+            
+            if (isMobile) {
+                desktopBtn.style.display = 'none';
+            } else {
+                desktopBtn.style.display = 'inline-block';
+            }
+        }
+        
         // Aplicar efectos adicionales cuando la página esté cargada
         window.addEventListener('load', function() {
             document.body.classList.add('loaded');
+            
+            // Generar QR code después de que cargue la página
+            setTimeout(generateQRCode, 1000);
         });
+        
+        // Detectar cambios de tamaño de pantalla
+        window.addEventListener('resize', detectMobile);
     </script>
 </body>
 </html> 

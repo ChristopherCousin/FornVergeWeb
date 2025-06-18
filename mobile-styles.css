@@ -260,6 +260,45 @@
     .glass-premium {
         padding: 1.5rem !important;
     }
+    
+    /* OFERTAS SECCIÓN MÓVIL */
+    #ofertas .glass-premium {
+        max-width: 100% !important;
+        padding: 2rem 1.5rem !important;
+        margin: 0 1rem !important;
+    }
+    
+    #ofertas .playfair {
+        font-size: 1.8rem !important;
+    }
+    
+    #ofertas div[style*="display: flex; align-items: center; justify-content: center"] {
+        flex-direction: column !important;
+        gap: 0.8rem !important;
+        text-align: center !important;
+    }
+    
+    #ofertas div[style*="width: 60px; height: 60px"] {
+        width: 50px !important;
+        height: 50px !important;
+    }
+    
+    #ofertas div[id="qr-code"] {
+        width: 130px !important;
+        height: 130px !important;
+    }
+    
+    #ofertas .btn-gold {
+        padding: 12px 25px !important;
+        font-size: 0.9rem !important;
+        width: 100% !important;
+        max-width: 250px !important;
+    }
+    
+    #ofertas div[style*="display: flex; align-items: center; justify-content: center; gap: 1rem"] {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
 }
 
 /* MENÚ MÓVIL OVERLAY */

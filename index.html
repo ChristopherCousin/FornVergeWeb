@@ -620,14 +620,14 @@
                         </div>
                     </div>
                     
-                    <!-- Descripción elegante -->
-                    <p style="font-size: 1.1rem; color: rgba(250, 247, 242, 0.9); margin-bottom: 2.5rem; line-height: 1.7;">
-                        Descubre nuestras promociones especiales escaneando el código QR.<br>
+                    <!-- Descripción adaptativa -->
+                    <p id="offers-description" style="font-size: 1.1rem; color: rgba(250, 247, 242, 0.9); margin-bottom: 2.5rem; line-height: 1.7;">
+                        Descubre nuestras promociones especiales.<br>
                         <span style="color: var(--primary-gold); font-weight: 600;">¡Ofertas exclusivas actualizadas cada día!</span>
                     </p>
                     
-                    <!-- Contenedor QR -->
-                    <div style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
+                    <!-- Contenedor QR (Solo escritorio) -->
+                    <div id="qr-container" style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
                         <!-- QR Code Container -->
                         <div style="background: white; padding: 1.5rem; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); border: 3px solid var(--primary-gold);">
                             <div id="qr-code" style="width: 150px; height: 150px; display: flex; align-items: center; justify-content: center;">
@@ -639,7 +639,7 @@
                             </div>
                         </div>
                         
-                        <!-- Instrucciones -->
+                        <!-- Instrucciones QR -->
                         <div style="text-align: center;">
                             <p style="color: var(--light-gold); font-size: 0.95rem; margin-bottom: 0.5rem;">
                                 <i class="fas fa-mobile-alt" style="margin-right: 0.5rem; color: var(--primary-gold);"></i>
@@ -660,13 +660,25 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Botón alternativo para escritorio -->
-                        <a href="ofertas/" class="btn-gold btn-outline" style="margin-top: 1rem; display: none;" id="desktop-offers-btn">
-                            <i class="fas fa-external-link-alt" style="margin-right: 0.5rem;"></i>
-                            Ver Ofertas Online
-                        </a>
                     </div>
+                    
+                    <!-- Botón directo móvil -->
+                    <div id="mobile-button-container" style="display: none; text-align: center;">
+                        <a href="ofertas/" class="btn-gold" style="display: inline-block; margin-bottom: 1rem;">
+                            <i class="fas fa-percentage" style="margin-right: 0.5rem;"></i>
+                            Ver Ofertas Especiales
+                        </a>
+                        <p style="color: var(--light-gold); font-size: 0.9rem;">
+                            <i class="fas fa-touch" style="margin-right: 0.5rem; color: var(--primary-gold);"></i>
+                            Toca para acceder directamente
+                        </p>
+                    </div>
+                    
+                    <!-- Botón alternativo para escritorio -->
+                    <a href="ofertas/" class="btn-gold btn-outline" style="margin-top: 1rem; display: none;" id="desktop-offers-btn">
+                        <i class="fas fa-external-link-alt" style="margin-right: 0.5rem;"></i>
+                        Ver Ofertas Online
+                    </a>
                 </div>
                 
             </div>
@@ -1131,15 +1143,37 @@
             desktopBtn.href = ofertasURL;
         }
         
-        // Detectar si es móvil para mostrar/ocultar elementos
-        function detectMobile() {
+        // Detectar dispositivo y mostrar interfaz apropiada
+        function detectDeviceAndShowOffers() {
             const isMobile = window.innerWidth <= 768;
+            const qrContainer = document.getElementById('qr-container');
+            const mobileButtonContainer = document.getElementById('mobile-button-container');
             const desktopBtn = document.getElementById('desktop-offers-btn');
+            const description = document.getElementById('offers-description');
             
             if (isMobile) {
+                // MÓVIL: Mostrar botón directo, ocultar QR
+                console.log('📱 Dispositivo móvil detectado - mostrando botón directo');
+                qrContainer.style.display = 'none';
+                mobileButtonContainer.style.display = 'block';
                 desktopBtn.style.display = 'none';
+                description.innerHTML = `
+                    Accede a nuestras promociones especiales directamente desde tu móvil.<br>
+                    <span style="color: var(--primary-gold); font-weight: 600;">¡Ofertas exclusivas actualizadas cada día!</span>
+                `;
             } else {
+                // ESCRITORIO: Mostrar QR + botón alternativo
+                console.log('💻 Dispositivo escritorio detectado - mostrando QR + botón');
+                qrContainer.style.display = 'flex';
+                mobileButtonContainer.style.display = 'none';
                 desktopBtn.style.display = 'inline-block';
+                description.innerHTML = `
+                    Descubre nuestras promociones especiales escaneando el código QR.<br>
+                    <span style="color: var(--primary-gold); font-weight: 600;">¡Ofertas exclusivas actualizadas cada día!</span>
+                `;
+                
+                // Solo generar QR si estamos en escritorio
+                setTimeout(generateQRCode, 1000);
             }
         }
         
@@ -1147,12 +1181,12 @@
         window.addEventListener('load', function() {
             document.body.classList.add('loaded');
             
-            // Generar QR code después de que cargue la página
-            setTimeout(generateQRCode, 1000);
+            // Detectar dispositivo y mostrar interfaz apropiada
+            detectDeviceAndShowOffers();
         });
         
         // Detectar cambios de tamaño de pantalla
-        window.addEventListener('resize', detectMobile);
+        window.addEventListener('resize', detectDeviceAndShowOffers);
     </script>
 </body>
 </html> 

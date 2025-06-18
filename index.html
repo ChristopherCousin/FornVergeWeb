@@ -14,6 +14,9 @@
     <!-- AOS Animations -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
+    <!-- Estilos móviles separados -->
+    <link rel="stylesheet" href="mobile-styles.css">
+    
     <style>
         :root {
             --primary-gold: #D4A574;
@@ -310,45 +313,7 @@
             box-shadow: 0 25px 50px rgba(0,0,0,0.2);
         }
 
-                 /* RESPONSIVE DESIGN */
-         @media (max-width: 768px) {
-             .hero {
-                 padding: 100px 1rem 60px 1rem !important;
-                 min-height: 100vh !important;
-             }
-             
-             .hero-title {
-                 font-size: clamp(2.5rem, 12vw, 4rem) !important;
-                 line-height: 1.1 !important;
-                 margin-bottom: 1.5rem !important;
-             }
-             
-             .hero-subtitle {
-                 font-size: clamp(1rem, 5vw, 1.4rem) !important;
-                 margin-bottom: 2rem !important;
-             }
-             
-             .navbar div[style*="display: flex"] {
-                 display: none !important;
-             }
-             
-             .navbar button {
-                 display: block !important;
-             }
-             
-             .info-card {
-                 padding: 1.5rem !important;
-                 margin-bottom: 1rem !important;
-             }
-             
-             .section {
-                 padding: 4rem 0 !important;
-             }
-             
-             .section-title {
-                 font-size: clamp(2rem, 8vw, 3rem) !important;
-             }
-         }
+        
         
         /* SCROLL INDICATORS */
         .scroll-indicator {
@@ -399,6 +364,19 @@
             </button>
         </div>
     </nav>
+
+    <!-- MENÚ MÓVIL OVERLAY -->
+    <div class="mobile-menu-overlay" id="mobile-menu-overlay">
+        <button class="mobile-menu-close" id="mobile-menu-close">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="mobile-nav-links">
+            <a href="#inicio" onclick="closeMobileMenu()">Inicio</a>
+            <a href="#productos" onclick="closeMobileMenu()">Productos</a>
+            <a href="#sobre" onclick="closeMobileMenu()">Nosotros</a>
+            <a href="#contacto" onclick="closeMobileMenu()">Contacto</a>
+        </div>
+    </div>
 
     <!-- HERO ESPECTACULAR -->
     <section id="inicio" class="hero">
@@ -488,11 +466,11 @@
              <div style="text-align: center; margin-bottom: 5rem;" data-aos="fade-up">
                  <h2 class="section-title playfair">
                      Panadería & Bar Gastronómico
-                 </h2>
+                </h2>
                  <p style="font-size: 1.2rem; color: var(--warm-brown); max-width: 700px; margin: 0 auto; line-height: 1.8;">
                      De la mañana a la noche: productos artesanales, ambiente acogedor y la mejor experiencia gastronómica del barrio
-                 </p>
-             </div>
+                </p>
+            </div>
 
              <!-- Grid de productos premium -->
              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 3rem;">
@@ -613,7 +591,7 @@
                                  <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%; margin-right: 1rem;"></div>
                                  <span style="color: var(--charcoal); font-weight: 500;">Ambiente relajado tarde-noche</span>
                              </div>
-                         </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -978,6 +956,57 @@
         scrollBtn.addEventListener('mouseleave', function() {
             this.style.transform = 'scale(1)';
             this.style.boxShadow = '0 8px 25px rgba(212, 165, 116, 0.4)';
+        });
+
+        // ==========================================
+        // FUNCIONALIDAD MENÚ MÓVIL
+        // ==========================================
+        
+        // Referencias del menú móvil
+        const mobileMenuBtn = document.getElementById('mobile-menu');
+        const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+        
+        // Función para abrir menú móvil
+        function openMobileMenu() {
+            mobileMenuOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // Función para cerrar menú móvil
+        function closeMobileMenu() {
+            mobileMenuOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // Event listeners para el menú móvil
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', openMobileMenu);
+        }
+        
+        if (mobileMenuClose) {
+            mobileMenuClose.addEventListener('click', closeMobileMenu);
+        }
+        
+        // Cerrar menú al hacer click en el overlay
+        mobileMenuOverlay.addEventListener('click', function(e) {
+            if (e.target === mobileMenuOverlay) {
+                closeMobileMenu();
+            }
+        });
+        
+        // Cerrar menú con tecla ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && mobileMenuOverlay.classList.contains('active')) {
+                closeMobileMenu();
+            }
+        });
+        
+        // Detectar cambio de tamaño de pantalla
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768 && mobileMenuOverlay.classList.contains('active')) {
+                closeMobileMenu();
+            }
         });
 
         // Aplicar efectos adicionales cuando la página esté cargada

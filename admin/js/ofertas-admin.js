@@ -8,7 +8,7 @@ console.log('🚀 Iniciando Panel Admin de Ofertas...');
 // Configuración de autenticación
 const ADMIN_PASSWORD = 'fornverge2025'; // Misma contraseña que el admin principal
 let isAuthenticated = false;
-let supabase = null;
+let supabaseClient = null;
 
 // Variables globales
 let offers = [];
@@ -155,11 +155,13 @@ function logout() {
 function initSupabase() {
     try {
         if (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.URL) {
-            supabase = window.SUPABASE_CONFIG.client;
+            supabaseClient = window.SUPABASE_CONFIG.client;
             console.log('✅ Supabase conectado correctamente');
+            console.log('🔗 URL:', window.SUPABASE_CONFIG.URL);
             return true;
         } else {
             console.error('❌ SUPABASE_CONFIG no encontrado');
+            console.error('❌ Disponible:', window.SUPABASE_CONFIG);
             return false;
         }
     } catch (error) {
@@ -176,7 +178,7 @@ async function loadOffers() {
     try {
         console.log('📥 Cargando ofertas desde Supabase...');
         
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('offers')
             .select('*')
             .order('created_at', { ascending: false });
@@ -334,7 +336,7 @@ async function createOffer(data) {
     try {
         console.log('🔄 Insertando en Supabase...');
         
-        const { data: result, error } = await supabase
+        const { data: result, error } = await supabaseClient
             .from('offers')
             .insert([data])
             .select();
@@ -357,7 +359,7 @@ async function updateOffer(offerId, data) {
     try {
         console.log('🔄 Actualizando en Supabase...', offerId);
         
-        const { data: result, error } = await supabase
+        const { data: result, error } = await supabaseClient
             .from('offers')
             .update(data)
             .eq('id', offerId)
@@ -385,7 +387,7 @@ async function deleteOffer(offerId) {
     try {
         console.log('🗑️ Eliminando oferta:', offerId);
         
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('offers')
             .delete()
             .eq('id', offerId);

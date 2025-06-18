@@ -407,19 +407,6 @@
     </div>
 
     <!-- Scripts -->
-    <script>
-        // Configuración Supabase (usar la misma que el proyecto principal)
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-        
-        // Fallback para desarrollo
-        const isDevelopment = window.location.hostname === 'localhost' || !SUPABASE_URL || SUPABASE_URL === 'YOUR_SUPABASE_URL';
-        
-        let supabase;
-        if (!isDevelopment) {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        }
-    </script>
     <script src="js/ofertas-admin.js"></script>
 </body>
 </html> 

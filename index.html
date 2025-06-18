@@ -1088,11 +1088,13 @@
         // GENERADOR DE QR CODE DINÁMICO
         // ==========================================
         
-        // Función para generar QR code usando API gratuita
+        // Función para generar QR code dinámico
         function generateQRCode() {
-            const ofertasURL = window.location.origin + '/ofertas/';
+            const ofertasURL = window.location.origin + window.location.pathname.replace('index.html', '') + 'ofertas/';
             const qrContainer = document.getElementById('qr-code');
             const desktopBtn = document.getElementById('desktop-offers-btn');
+            
+            console.log('🔗 Generando QR para:', ofertasURL);
             
             // Generar QR usando qr-server.com (API gratuita)
             const qrImageURL = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(ofertasURL)}&bgcolor=FFFFFF&color=2C2C2C&margin=10&format=png&ecc=M`;
@@ -1104,6 +1106,17 @@
             qrImg.style.width = '100%';
             qrImg.style.height = '100%';
             qrImg.style.borderRadius = '8px';
+            
+            // Evento de carga exitosa
+            qrImg.onload = function() {
+                console.log('✅ QR Code generado correctamente');
+            };
+            
+            // Evento de error
+            qrImg.onerror = function() {
+                console.error('❌ Error generando QR Code');
+                qrContainer.innerHTML = '<div style="color: var(--warm-brown); text-align: center;"><i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i><small>Error generando QR</small></div>';
+            };
             
             // Reemplazar el placeholder
             qrContainer.innerHTML = '';

@@ -17,6 +17,17 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ================================
+// CONFIGURACIÓN GLOBAL PARA OFERTAS
+// ================================
+
+// Configuración disponible globalmente para el sistema de ofertas
+window.SUPABASE_CONFIG = {
+    URL: SUPABASE_URL,
+    ANON_KEY: SUPABASE_ANON_KEY,
+    client: supabase
+};
+
+// ================================
 // ESTRUCTURA DE BASE DE DATOS
 // ================================
 

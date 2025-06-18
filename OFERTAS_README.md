@@ -47,26 +47,27 @@ FornVergeWeb/
    - ✅ Índices para rendimiento
    - ✅ Datos de ejemplo para testing
 
-### **Paso 2: Configuración de URLs**
+### **Paso 2: Configuración Supabase**
 
-1. **Actualizar configuración Supabase:**
+1. **La configuración ya está en `supabase-config.js`:**
    ```javascript
-   // En assets/js/config/constants.js - añadir:
-   const SUPABASE_CONFIG = {
-       URL: 'tu-url-de-supabase',
-       ANON_KEY: 'tu-anon-key'
-   };
+   // Actualizar estas variables con tus datos reales:
+   const SUPABASE_URL = 'https://tu-proyecto.supabase.co';
+   const SUPABASE_ANON_KEY = 'tu-anon-key';
    ```
 
-2. **El QR apunta automáticamente a:** `tudominio.com/ofertas/`
+2. **El sistema carga automáticamente la configuración**
 
-### **Paso 3: Testing Inmediato**
+3. **El QR apunta automáticamente a:** `tudominio.com/ofertas/`
 
-**¡El sistema ya funciona con datos demo!** 
+### **Paso 3: Testing del Sistema**
+
+**Sistema completamente profesional:** 
 
 - ✅ **Web principal:** Sección ofertas con QR generado automáticamente
-- ✅ **Página móvil:** `/ofertas/` funciona con ofertas de ejemplo
-- ✅ **Panel admin:** `/admin/ofertas-admin.html` para gestión
+- ✅ **Página móvil:** `/ofertas/` conecta directamente con Supabase
+- ✅ **Panel admin:** `/admin/ofertas-admin.html` para gestión CRUD completa
+- ✅ **Sin datos hardcodeados:** Todo viene de la base de datos
 
 ---
 
@@ -153,10 +154,10 @@ FornVergeWeb/
 - Glassmorphism effects
 - Compatible con todos los dispositivos
 
-### **🔧 Fácil Mantenimiento**
-- Sistema demo funcional sin Supabase
-- Datos de ejemplo incluidos
-- Documentación completa en código
+### **🔧 Sistema Profesional**
+- Conexión directa con Supabase (sin fallbacks)
+- Todo el contenido viene de la base de datos
+- Sistema de logs y debugging completo
 - Estructura modular y escalable
 
 ---

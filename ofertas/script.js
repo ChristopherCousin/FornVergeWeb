@@ -3,10 +3,27 @@
 // Sistema de ofertas en tiempo real
 // ==========================================
 
-import { SUPABASE_CONFIG } from '../assets/js/config/constants.js';
+// Configuración Supabase desde el archivo principal
+let supabase = null;
 
-// Inicializar Supabase
-const supabase = window.supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.ANON_KEY);
+// Inicializar cliente Supabase
+function initSupabase() {
+    try {
+        // Verificar si la configuración está disponible
+        if (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.URL) {
+            // Usar el cliente ya configurado
+            supabase = window.SUPABASE_CONFIG.client;
+            console.log('✅ Supabase conectado - Sistema de ofertas listo');
+            return true;
+        } else {
+            console.error('❌ SUPABASE_CONFIG no encontrado - Verificar supabase-config.js');
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ Error inicializando Supabase:', error);
+        return false;
+    }
+}
 
 // ==========================================
 // CLASE PRINCIPAL OFERTAS
@@ -31,14 +48,22 @@ class OfertasManager {
                 once: true
             });
             
-            // Cargar ofertas
+            // Inicializar Supabase
+            const supabaseConnected = initSupabase();
+            if (!supabaseConnected) {
+                console.warn('⚠️ Supabase no configurado - mostrar mensaje de configuración');
+                showConfigurationMessage();
+                return;
+            }
+            
+            // Cargar ofertas desde la base de datos
             await this.loadOffers();
             
             // Configurar refresco automático cada 30 segundos
             setInterval(() => this.loadOffers(), 30000);
             
         } catch (error) {
-            console.error('Error inicializando ofertas:', error);
+            console.error('❌ Error inicializando sistema de ofertas:', error);
             this.showEmptyState();
         }
     }
@@ -49,6 +74,12 @@ class OfertasManager {
     
     async loadOffers() {
         try {
+            if (!supabase) {
+                console.error('Supabase no inicializado');
+                this.showEmptyState();
+                return;
+            }
+
             const today = new Date().toISOString().split('T')[0];
             
             const { data, error } = await supabase
@@ -61,12 +92,13 @@ class OfertasManager {
                 .order('created_at', { ascending: false });
             
             if (error) {
-                console.error('Error cargando ofertas:', error);
+                console.error('Error cargando ofertas desde Supabase:', error);
                 this.showEmptyState();
                 return;
             }
             
             this.offers = data || [];
+            console.log(`Ofertas cargadas: ${this.offers.length}`);
             this.renderOffers();
             
         } catch (error) {
@@ -194,77 +226,36 @@ class OfertasManager {
 }
 
 // ==========================================
-// OFERTAS DEMO (FALLBACK)
+// MENSAJE DE CONFIGURACIÓN PROFESIONAL
 // ==========================================
 
-const DEMO_OFFERS = [
-    {
-        id: 'demo-1',
-        title: 'Desayuno Mallorquín',
-        description: 'Café con leche + ensaimada tradicional + zumo de naranja natural',
-        category: 'desayuno',
-        original_price: 8.50,
-        offer_price: 6.90,
-        start_date: '2025-01-01',
-        end_date: '2025-12-31',
-        is_active: true,
-        priority: 3,
-        terms: 'Válido hasta las 12:00h\nNo acumulable con otras ofertas'
-    },
-    {
-        id: 'demo-2',
-        title: 'Pan del Día 20% OFF',
-        description: 'Descuento especial en todo nuestro pan artesanal horneado hoy',
-        category: 'panaderia',
-        original_price: null,
-        offer_price: null,
-        start_date: '2025-01-01',
-        end_date: '2025-12-31',
-        is_active: true,
-        priority: 2,
-        terms: 'Aplicable a pan del día\nNo válido para pedidos especiales'
-    },
-    {
-        id: 'demo-3',
-        title: 'Tarde de Cervezas',
-        description: '2 cañas + tapa de jamón ibérico por precio especial',
-        category: 'bar',
-        original_price: 12.00,
-        offer_price: 9.50,
-        start_date: '2025-01-01',
-        end_date: '2025-12-31',
-        is_active: true,
-        priority: 1,
-        terms: 'Válido de 17:00 a 20:00h\nSolo fines de semana'
-    }
-];
-
-// ==========================================
-// CARGAR OFERTAS DEMO SI NO HAY SUPABASE
-// ==========================================
-
-class DemoOfertasManager extends OfertasManager {
-    async loadOffers() {
-        try {
-            // Simular delay de carga
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            // Filtrar ofertas activas para hoy
-            const today = new Date().toISOString().split('T')[0];
-            
-            this.offers = DEMO_OFFERS.filter(offer => {
-                return offer.is_active && 
-                       offer.start_date <= today && 
-                       offer.end_date >= today;
-            });
-            
-            this.renderOffers();
-            
-        } catch (error) {
-            console.error('Error cargando ofertas demo:', error);
-            this.showEmptyState();
-        }
-    }
+function showConfigurationMessage() {
+    const container = document.getElementById('offers-container');
+    const loading = document.getElementById('loading');
+    const emptyState = document.getElementById('empty-state');
+    
+    loading.style.display = 'none';
+    emptyState.style.display = 'none';
+    container.style.display = 'block';
+    
+    container.innerHTML = `
+        <div style="text-align: center; padding: 2rem; background: rgba(212, 165, 116, 0.1); border-radius: 16px; border: 2px solid var(--primary-gold);">
+            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto;">
+                <i class="fas fa-cog" style="color: var(--charcoal); font-size: 2rem;"></i>
+            </div>
+                         <h3 style="color: var(--charcoal); margin-bottom: 1rem;">Configuración Requerida</h3>
+             <p style="color: var(--warm-brown); margin-bottom: 1.5rem; line-height: 1.6;">
+                 <strong>Para activar las ofertas dinámicas:</strong><br><br>
+                 1. Ejecutar <code>database/ofertas-schema.sql</code> en Supabase<br>
+                 2. Configurar <code>supabase-config.js</code> con tus credenciales<br>
+                 3. Crear ofertas desde el panel de administración<br><br>
+                 <small>📄 Ver OFERTAS_README.md para instrucciones detalladas</small>
+             </p>
+            <a href="../admin/ofertas-admin.html" style="background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold)); color: var(--charcoal); padding: 1rem 2rem; border-radius: 25px; text-decoration: none; font-weight: 600;">
+                <i class="fas fa-tools" style="margin-right: 0.5rem;"></i>Panel Admin
+            </a>
+        </div>
+    `;
 }
 
 // ==========================================
@@ -272,13 +263,8 @@ class DemoOfertasManager extends OfertasManager {
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Detectar si Supabase está disponible
-    if (typeof SUPABASE_CONFIG !== 'undefined' && SUPABASE_CONFIG.URL) {
-        new OfertasManager();
-    } else {
-        // Usar sistema demo
-        new DemoOfertasManager();
-    }
+    // Siempre usar el sistema profesional con Supabase
+    new OfertasManager();
 });
 
 // ==========================================

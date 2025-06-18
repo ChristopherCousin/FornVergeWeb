@@ -3,8 +3,10 @@
 // Sistema de ofertas en tiempo real
 // ==========================================
 
-// Configuración Supabase desde el archivo principal
-let supabase = null;
+console.log('🍞 Sistema de ofertas iniciado - conectando con Supabase...');
+
+// Cliente Supabase (usar el global configurado)
+let supabaseClient = null;
 
 // Inicializar cliente Supabase
 function initSupabase() {
@@ -12,11 +14,13 @@ function initSupabase() {
         // Verificar si la configuración está disponible
         if (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.URL) {
             // Usar el cliente ya configurado
-            supabase = window.SUPABASE_CONFIG.client;
+            supabaseClient = window.SUPABASE_CONFIG.client;
             console.log('✅ Supabase conectado - Sistema de ofertas listo');
+            console.log('🔗 URL:', window.SUPABASE_CONFIG.URL);
             return true;
         } else {
             console.error('❌ SUPABASE_CONFIG no encontrado - Verificar supabase-config.js');
+            console.error('🔍 Disponible en window:', Object.keys(window).filter(key => key.includes('SUPABASE')));
             return false;
         }
     } catch (error) {
@@ -74,7 +78,7 @@ class OfertasManager {
     
     async loadOffers() {
         try {
-            if (!supabase) {
+            if (!supabaseClient) {
                 console.error('Supabase no inicializado');
                 this.showEmptyState();
                 return;
@@ -82,7 +86,7 @@ class OfertasManager {
 
             const today = new Date().toISOString().split('T')[0];
             
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('offers')
                 .select('*')
                 .lte('start_date', today)

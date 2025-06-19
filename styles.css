@@ -1,8 +1,11 @@
 /* Estilos principales para Forn Verge de Lluc */
 
+/* Comentado para evitar conflictos con el nuevo diseño */
+/*
 body {
     font-family: 'Poppins', sans-serif;
 }
+*/
 
 .gradient-bg {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -96,6 +99,8 @@ body {
         display: block;
     }
     
+    /* Comentado para evitar conflictos con el nuevo diseño hero */
+    /*
     .hero h1 {
         font-size: 3rem;
     }
@@ -103,6 +108,7 @@ body {
     .section-title {
         font-size: 2.5rem;
     }
+    */
 }
 
 /* Print styles for employee schedules */

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ofertas Especiales - Forn Verge de Lluc</title>
+    
+    <!-- Fonts profesionales -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- Configuración Supabase -->
+    <script src="../supabase-config.js"></script>
+    
+    <!-- AOS Animations -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-gold: #D4A574;
+            --dark-gold: #B8956A;
+            --light-gold: #E8D5B7;
+            --cream: #FAF7F2;
+            --warm-brown: #8B4513;
+            --dark-brown: #5D2F05;
+            --soft-white: #FFFEF9;
+            --charcoal: #2C2C2C;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, var(--cream) 0%, var(--soft-white) 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .playfair {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        /* HEADER ELEGANTE MÓVIL */
+        .header {
+            background: linear-gradient(135deg, var(--charcoal) 0%, var(--dark-brown) 100%);
+            color: var(--soft-white);
+            padding: 2rem 1rem 1.5rem 1rem;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9InJnYmEoMjEyLDE2NSwxMTYsMC4xKSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+');
+            opacity: 0.4;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem auto;
+            box-shadow: 0 8px 25px rgba(212, 165, 116, 0.4);
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            color: var(--light-gold);
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        
+        /* CONTENEDOR PRINCIPAL */
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        /* LOADING STATE */
+        .loading {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--light-gold);
+            border-top: 4px solid var(--primary-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* CARDS DE OFERTAS */
+        .offer-card {
+            background: var(--soft-white);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 30px rgba(139, 69, 19, 0.1);
+            border: 1px solid rgba(212, 165, 116, 0.2);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .offer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(139, 69, 19, 0.2);
+        }
+        
+        .offer-card.featured {
+            border: 2px solid var(--primary-gold);
+            background: linear-gradient(145deg, var(--soft-white) 0%, var(--cream) 100%);
+        }
+        
+        .offer-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold));
+            color: var(--charcoal);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(212, 165, 116, 0.3);
+        }
+        
+        .offer-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--warm-brown), var(--dark-brown));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        
+        .offer-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--charcoal);
+            margin-bottom: 0.5rem;
+        }
+        
+        .offer-description {
+            color: var(--warm-brown);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+        
+        .offer-price {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .original-price {
+            text-decoration: line-through;
+            color: rgba(139, 69, 19, 0.6);
+            font-size: 0.9rem;
+        }
+        
+        .offer-price-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+        }
+        
+        .offer-savings {
+            background: rgba(212, 165, 116, 0.2);
+            color: var(--warm-brown);
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .offer-validity {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(139, 69, 19, 0.7);
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+        
+        .offer-terms {
+            background: rgba(212, 165, 116, 0.1);
+            padding: 1rem;
+            border-radius: 15px;
+            border-left: 4px solid var(--primary-gold);
+        }
+        
+        .offer-terms h4 {
+            color: var(--charcoal);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .offer-terms ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .offer-terms li {
+            color: var(--warm-brown);
+            font-size: 0.8rem;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .offer-terms li::before {
+            content: "•";
+            color: var(--primary-gold);
+            font-weight: bold;
+        }
+        
+        /* ESTADO VACÍO */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+        
+        .empty-state-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(212, 165, 116, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem auto;
+        }
+        
+        .empty-state h3 {
+            color: var(--charcoal);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .empty-state p {
+            color: var(--warm-brown);
+            margin-bottom: 2rem;
+        }
+        
+        /* FOOTER */
+        .footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            background: rgba(212, 165, 116, 0.1);
+            margin-top: 2rem;
+        }
+        
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+        
+        .footer-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .footer h3 {
+            color: var(--charcoal);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .footer p {
+            color: var(--warm-brown);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .footer-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: rgba(139, 69, 19, 0.8);
+        }
+        
+        .footer-info div {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        /* BTN PRINCIPAL */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold));
+            color: var(--charcoal);
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(212, 165, 116, 0.3);
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(212, 165, 116, 0.4);
+        }
+        
+        /* RESPONSIVE ADICIONAL */
+        @media (max-width: 480px) {
+            .container {
+                padding: 0.5rem;
+            }
+            
+            .offer-card {
+                padding: 1.2rem;
+                margin-bottom: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.7rem;
+            }
+            
+            .offer-title {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- HEADER ELEGANTE -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-wheat-awn" style="color: var(--charcoal); font-size: 1.8rem;"></i>
+            </div>
+            <h1 class="playfair">Ofertas Especiales</h1>
+            <p>Forn Verge de Lluc • Actualizado en tiempo real</p>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="container">
+        
+        <!-- LOADING STATE -->
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <h3 style="color: var(--charcoal); margin-bottom: 0.5rem;">Cargando ofertas...</h3>
+            <p style="color: var(--warm-brown);">Un momento por favor</p>
+        </div>
+        
+        <!-- CONTENEDOR DE OFERTAS -->
+        <div id="offers-container" style="display: none;">
+            <!-- Las ofertas se cargarán aquí dinámicamente -->
+        </div>
+        
+        <!-- ESTADO VACÍO -->
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <div class="empty-state-icon">
+                <i class="fas fa-percentage" style="color: var(--primary-gold); font-size: 2rem;"></i>
+            </div>
+            <h3 class="playfair">¡Vuelve pronto!</h3>
+            <p>No hay ofertas activas en este momento, pero seguimos horneando nuevas promociones para ti.</p>
+            <a href="../" class="btn-primary">
+                <i class="fas fa-home" style="margin-right: 0.5rem;"></i>
+                Volver al Inicio
+            </a>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-logo">
+            <div class="footer-logo-icon">
+                <i class="fas fa-wheat-awn" style="color: var(--charcoal); font-size: 1.2rem;"></i>
+            </div>
+            <h3 class="playfair">Forn Verge de Lluc</h3>
+        </div>
+        <p>Panadería Artesanal & Bar de Barrio</p>
+        
+        <div class="footer-info">
+            <div>
+                <i class="fas fa-map-marker-alt" style="color: var(--primary-gold);"></i>
+                <span>C/ Aragó, 323a - Llevant, Palma</span>
+            </div>
+            <div>
+                <i class="fas fa-clock" style="color: var(--primary-gold);"></i>
+                <span>7:00 - 21:00 • Todos los días</span>
+            </div>
+            <div>
+                <i class="fas fa-star" style="color: var(--primary-gold);"></i>
+                <span>Desde 1985 • Tradición familiar</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 

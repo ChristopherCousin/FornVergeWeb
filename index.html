@@ -3,12 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forn Verge de Lluc - Panadería & Bar | Palma, Mallorca</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Forn Verge de Lluc - Panadería Artesanal | Palma, Mallorca</title>
+    
+    <!-- Fonts profesionales -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- AOS Animations -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Estilos móviles separados -->
+    <link rel="stylesheet" href="mobile-styles.css">
     
     <style>
+        :root {
+            --primary-gold: #D4A574;
+            --dark-gold: #B8956A;
+            --light-gold: #E8D5B7;
+            --cream: #FAF7F2;
+            --warm-brown: #8B4513;
+            --dark-brown: #5D2F05;
+            --soft-white: #FFFEF9;
+            --charcoal: #2C2C2C;
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -16,397 +36,747 @@
         }
         
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', sans-serif;
             line-height: 1.6;
+            overflow-x: hidden;
         }
         
-        /* Navegación fija */
+        .playfair {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        /* NAVEGACIÓN ELEGANTE */
         .navbar {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
+            background: rgba(42, 30, 20, 0.95);
+            backdrop-filter: blur(20px);
             z-index: 1000;
             padding: 1rem 0;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(212, 165, 116, 0.2);
         }
         
-        /* Hero Section */
+        .navbar.scrolled {
+            background: rgba(42, 30, 20, 0.98);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        /* HERO ESPECTACULAR */
         .hero {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            position: relative;
-            overflow: hidden;
+            min-height: 100vh !important;
+            background: linear-gradient(
+                135deg,
+                rgba(42, 30, 20, 0.95) 0%,
+                rgba(93, 47, 5, 0.9) 30%,
+                rgba(139, 69, 19, 0.85) 70%,
+                rgba(42, 30, 20, 0.95) 100%
+            ) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            position: relative !important;
+            background-size: cover !important;
+            background-position: center !important;
+            padding: 120px 0 80px 0 !important;
         }
         
         .hero::before {
             content: '';
             position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(212, 165, 116, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(250, 247, 242, 0.1) 0%, transparent 50%),
+                linear-gradient(45deg, transparent 40%, rgba(212, 165, 116, 0.05) 60%);
+            animation: breathe 8s ease-in-out infinite;
+        }
+        
+        @keyframes breathe {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        /* EFECTOS DE VIDRIO PREMIUM */
+        .glass-premium {
+            background: rgba(250, 247, 242, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 165, 116, 0.2);
+            border-radius: 24px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        /* ANIMACIONES PROFESIONALES */
+        .hero-content {
+            animation: fadeInUp 1.2s ease-out !important;
+            width: 100% !important;
+            max-width: 1200px !important;
+            margin: 0 auto !important;
+            text-align: center !important;
+            position: relative !important;
+            z-index: 10 !important;
+        }
+        
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(60px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .hero-title {
+            font-size: clamp(3.5rem, 10vw, 7rem) !important;
+            font-weight: 900 !important;
+            line-height: 1.1 !important;
+            color: #FFFFFF !important;
+            margin-bottom: 2rem !important;
+            text-shadow: 
+                0 3px 6px rgba(0,0,0,0.9),
+                0 6px 12px rgba(0,0,0,0.7),
+                0 0 30px rgba(255, 215, 0, 0.4) !important;
+            text-align: center !important;
+            display: block !important;
+            width: 100% !important;
+            position: relative !important;
+            z-index: 10 !important;
+        }
+        
+        .hero-subtitle {
+            font-size: clamp(1.3rem, 4vw, 2rem) !important;
+            color: #FFFFFF !important;
+            margin-bottom: 3rem !important;
+            font-weight: 500 !important;
+            letter-spacing: 1px !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8) !important;
+            text-align: center !important;
+            display: block !important;
+            width: 100% !important;
+        }
+
+        /* BOTONES PREMIUM */
+        .btn-gold {
+            background: linear-gradient(135deg, var(--primary-gold) 0%, var(--dark-gold) 100%);
+            color: var(--charcoal);
+            padding: 18px 40px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 25px rgba(212, 165, 116, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-gold::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
             width: 100%;
             height: 100%;
-            background-image: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
-                              radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
-                              radial-gradient(circle at 40% 40%, rgba(255,255,255,0.1) 0%, transparent 50%);
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
         }
         
-        .glass-card {
-            background: rgba(255, 255, 255, 0.2);
+        .btn-gold:hover::before {
+            left: 100%;
+        }
+        
+        .btn-gold:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(212, 165, 116, 0.4);
+        }
+        
+        .btn-outline {
+            border: 2px solid var(--primary-gold);
+            color: var(--primary-gold);
+            background: transparent;
+            padding: 16px 38px;
+        }
+        
+        .btn-outline:hover {
+            background: var(--primary-gold);
+            color: var(--charcoal);
+            transform: translateY(-3px);
+        }
+        
+        /* CARDS ELEGANTES */
+        .info-card {
+            background: rgba(250, 247, 242, 0.12);
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(212, 165, 116, 0.25);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
         
-        /* Animaciones */
-        .fade-in {
-            animation: fadeIn 1s ease-in;
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(212, 165, 116, 0.1), transparent);
+            animation: rotate 10s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+        .info-card:hover::before {
+            opacity: 1;
         }
         
-        .card-hover {
-            transition: all 0.3s ease;
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
         }
         
-        .card-hover:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        .info-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            border-color: var(--primary-gold);
         }
         
-        /* Gradient text */
-        .gradient-text {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .info-card-icon {
+            font-size: 3rem;
+            color: var(--primary-gold);
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        }
+
+        /* SECCIONES CON ESTILO */
+        .section {
+            padding: 8rem 0;
+            position: relative;
         }
         
-        /* Responsivo */
-        @media (max-width: 768px) {
-            .hero {
-                padding: 2rem 1rem;
+        .section-cream {
+            background: var(--cream);
+            position: relative;
+        }
+        
+        .section-cream::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9InJnYmEoMjEyLDE2NSwxMTYsMC4wMykiPjxjaXJjbGUgY3g9IjMwIiBjeT0iMzAiIHI9IjIiLz48L2c+PC9nPjwvc3ZnPg==');
+            opacity: 0.5;
+        }
+
+        /* TÍTULOS ELEGANTES */
+        .section-title {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 700;
+            color: var(--charcoal);
+            margin-bottom: 3rem;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-gold), var(--dark-gold));
+            border-radius: 2px;
+        }
+        
+        /* EFECTOS HOVER PREMIUM */
+        .hover-lift {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+        }
+
+        
+        
+        /* SCROLL INDICATORS */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0) translateX(-50%);
             }
-            
-            .hero h1 {
-                font-size: 2.5rem !important;
+            40% {
+                transform: translateY(-10px) translateX(-50%);
+            }
+            60% {
+                transform: translateY(-5px) translateX(-50%);
             }
         }
     </style>
 </head>
-<body class="bg-gray-50">
+<body>
     
-    <!-- Navegación -->
-    <nav class="navbar">
-        <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <i class="fas fa-bread-slice text-white text-xl"></i>
+    <!-- NAVEGACIÓN PREMIUM -->
+    <nav class="navbar" id="navbar">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="width: 3.5rem; height: 3.5rem; background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold)); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(212, 165, 116, 0.4);">
+                    <i class="fas fa-wheat-awn" style="color: var(--charcoal); font-size: 1.5rem;"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-gray-800">Forn Verge de Lluc</h1>
-                    <p class="text-sm text-gray-600">Panadería & Bar</p>
+                    <h1 class="playfair" style="font-size: 1.5rem; font-weight: 700; color: var(--primary-gold); margin: 0;">Forn Verge de Lluc</h1>
+                    <p style="color: var(--light-gold); margin: 0; font-size: 0.9rem; letter-spacing: 0.5px;">Panadería & Bar</p>
                 </div>
             </div>
             
-            <div class="hidden md:flex space-x-6">
-                <a href="#inicio" class="text-gray-700 hover:text-blue-600 font-medium transition">Inicio</a>
-                <a href="#productos" class="text-gray-700 hover:text-blue-600 font-medium transition">Productos</a>
-                <a href="#sobre" class="text-gray-700 hover:text-blue-600 font-medium transition">Nosotros</a>
-                <a href="#contacto" class="text-gray-700 hover:text-blue-600 font-medium transition">Contacto</a>
+            <div style="display: flex; gap: 2.5rem; align-items: center;">
+                <a href="#inicio" style="color: var(--light-gold); text-decoration: none; font-weight: 500; transition: all 0.3s ease; position: relative;">Inicio</a>
+                <a href="#productos" style="color: var(--light-gold); text-decoration: none; font-weight: 500; transition: all 0.3s ease; position: relative;">Productos</a>
+                <a href="#sobre" style="color: var(--light-gold); text-decoration: none; font-weight: 500; transition: all 0.3s ease; position: relative;">Nosotros</a>
+                <a href="#contacto" style="color: var(--light-gold); text-decoration: none; font-weight: 500; transition: all 0.3s ease; position: relative;">Contacto</a>
             </div>
             
-            <button class="md:hidden text-gray-700">
-                <i class="fas fa-bars text-xl"></i>
+            <button style="display: none; background: none; border: none; color: var(--primary-gold); font-size: 1.5rem;" id="mobile-menu">
+                <i class="fas fa-bars"></i>
             </button>
         </div>
     </nav>
 
-    <!-- Hero Section -->
+    <!-- MENÚ MÓVIL OVERLAY -->
+    <div class="mobile-menu-overlay" id="mobile-menu-overlay">
+        <button class="mobile-menu-close" id="mobile-menu-close">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="mobile-nav-links">
+            <a href="#inicio" onclick="closeMobileMenu()">Inicio</a>
+            <a href="#productos" onclick="closeMobileMenu()">Productos</a>
+            <a href="#sobre" onclick="closeMobileMenu()">Nosotros</a>
+            <a href="#contacto" onclick="closeMobileMenu()">Contacto</a>
+        </div>
+    </div>
+
+    <!-- HERO ESPECTACULAR -->
     <section id="inicio" class="hero">
-        <div class="max-w-6xl mx-auto px-4 text-center text-white relative z-10">
-            <div class="fade-in">
-                <h1 class="text-6xl md:text-7xl font-bold mb-6">
-                    🥖 Forn Verge de Lluc
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem; text-align: center; position: relative; z-index: 10;">
+            <div class="hero-content">
+                <!-- Título principal -->
+                <h1 class="hero-title playfair">
+                    Forn Verge de Lluc
                 </h1>
-                <p class="text-2xl mb-4 opacity-90">
-                    Tu panadería y bar de confianza en Palma
-                </p>
-                <p class="text-lg mb-12 opacity-80 max-w-2xl mx-auto">
-                    Desde 1985, elaboramos productos artesanales con ingredientes de primera calidad 
-                    y técnicas tradicionales mallorquinas.
+                
+                <!-- Subtítulo elegante -->
+                <p class="hero-subtitle">
+                    Panadería Artesanal & Bar de Barrio • Desde 1985
                 </p>
                 
-                <!-- Cards info -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
-                    <div class="glass-card rounded-2xl p-6">
-                        <i class="fas fa-clock text-4xl mb-4 text-yellow-300"></i>
-                        <h3 class="text-xl font-bold mb-2">Horario</h3>
-                        <p class="text-lg font-bold">7:00 - 21:00</p>
-                        <p class="opacity-80">Lunes a Domingo</p>
+                <!-- Descripción poética -->
+                <p style="font-size: 1.1rem; color: #F5E6D3; margin-bottom: 3rem; max-width: 650px; margin-left: auto; margin-right: auto; line-height: 1.8; font-weight: 400; text-shadow: 0 1px 3px rgba(0,0,0,0.6);">
+                    Por las mañanas, el aroma del pan recién horneado. Por las tardes y fines de semana, 
+                    el ambiente perfecto para relajarse con una copa, café o cerveza en el corazón de Llevant.
+                </p>
+                
+                <!-- Cards de información premium -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; max-width: 1000px; margin: 0 auto 3rem auto;">
+                    
+                    <div class="info-card" data-aos="fade-up" data-aos-delay="100">
+                        <div style="position: relative; z-index: 2;">
+                            <i class="fas fa-sun info-card-icon"></i>
+                            <h3 style="color: var(--primary-gold); font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5rem;">Horario Continuo</h3>
+                            <p style="color: var(--soft-white); font-size: 1.1rem; font-weight: 600; margin-bottom: 0.3rem;">7:00 - 21:00</p>
+                            <p style="color: rgba(250, 247, 242, 0.8); font-size: 0.95rem;">Todos los días del año</p>
+                        </div>
                     </div>
-                    <div class="glass-card rounded-2xl p-6">
-                        <i class="fas fa-map-marker-alt text-4xl mb-4 text-yellow-300"></i>
-                        <h3 class="text-xl font-bold mb-2">Ubicación</h3>
-                        <p class="text-lg font-bold">C/ Aragó, 323a</p>
-                        <p class="opacity-80">Llevant, Palma</p>
+                    
+                    <div class="info-card" data-aos="fade-up" data-aos-delay="200">
+                        <div style="position: relative; z-index: 2;">
+                            <i class="fas fa-map-marker-alt info-card-icon"></i>
+                            <h3 style="color: var(--primary-gold); font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5rem;">En el Corazón</h3>
+                            <p style="color: var(--soft-white); font-size: 1.1rem; font-weight: 600; margin-bottom: 0.3rem;">C/ Aragó, 323a</p>
+                            <p style="color: rgba(250, 247, 242, 0.8); font-size: 0.95rem;">Llevant, Palma</p>
+                        </div>
                     </div>
-                    <div class="glass-card rounded-2xl p-6">
-                        <i class="fas fa-heart text-4xl mb-4 text-yellow-300"></i>
-                        <h3 class="text-xl font-bold mb-2">Tradición</h3>
-                        <p class="text-lg font-bold">40 años</p>
-                        <p class="opacity-80">de experiencia</p>
+                    
+                    <div class="info-card" data-aos="fade-up" data-aos-delay="300">
+                        <div style="position: relative; z-index: 2;">
+                            <i class="fas fa-wine-glass-alt info-card-icon"></i>
+                            <h3 style="color: var(--primary-gold); font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5rem;">Ambiente Bar</h3>
+                            <p style="color: var(--soft-white); font-size: 1.1rem; font-weight: 600; margin-bottom: 0.3rem;">Tardes & Fines de Semana</p>
+                            <p style="color: rgba(250, 247, 242, 0.8); font-size: 0.95rem;">Copas, cervezas, tapas</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card" data-aos="fade-up" data-aos-delay="400">
+                        <div style="position: relative; z-index: 2;">
+                            <i class="fas fa-award info-card-icon"></i>
+                            <h3 style="color: var(--primary-gold); font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5rem;">40 Años</h3>
+                            <p style="color: var(--soft-white); font-size: 1.1rem; font-weight: 600; margin-bottom: 0.3rem;">de Tradición</p>
+                            <p style="color: rgba(250, 247, 242, 0.8); font-size: 0.95rem;">Sabor auténtico</p>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Botones -->
-                <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <a href="#productos" class="bg-white text-blue-600 px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition transform hover:scale-105 shadow-lg">
-                        Ver Productos
+                <!-- Botones de acción premium -->
+                <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center; margin-bottom: 2rem;" data-aos="fade-up" data-aos-delay="400">
+                    <a href="#productos" class="btn-gold">
+                        <i class="fas fa-bread-slice" style="margin-right: 0.5rem;"></i>
+                        Descubrir Productos
                     </a>
-                    <a href="#contacto" class="border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-blue-600 transition transform hover:scale-105">
-                        Contactanos
+                    <a href="#contacto" class="btn-gold btn-outline">
+                        <i class="fas fa-location-dot" style="margin-right: 0.5rem;"></i>
+                        Cómo Llegar
                     </a>
                 </div>
             </div>
         </div>
+        
+        <!-- Indicador de scroll elegante -->
+        <div class="scroll-indicator" data-aos="fade-in" data-aos-delay="1000">
+            <i class="fas fa-chevron-down" style="color: var(--primary-gold); font-size: 1.5rem; animation: bounce 2s infinite;"></i>
+        </div>
     </section>
 
-    <!-- Productos Section -->
-    <section id="productos" class="py-20 bg-white">
-        <div class="max-w-6xl mx-auto px-4">
-            <div class="text-center mb-16">
-                <h2 class="text-5xl font-bold gradient-text mb-4">
-                    🍞 Nuestros Productos
+         <!-- PRODUCTOS PREMIUM -->
+     <section id="productos" class="section section-cream">
+         <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 2;">
+             
+                          <!-- Título de sección -->
+             <div style="text-align: center; margin-bottom: 5rem;" data-aos="fade-up">
+                 <h2 class="section-title playfair">
+                     Panadería & Bar Gastronómico
                 </h2>
-                <p class="text-xl text-gray-600">
-                    Calidad artesanal en cada elaboración
+                 <p style="font-size: 1.2rem; color: var(--warm-brown); max-width: 700px; margin: 0 auto; line-height: 1.8;">
+                     De la mañana a la noche: productos artesanales, ambiente acogedor y la mejor experiencia gastronómica del barrio
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Pan -->
-                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-3xl p-8 card-hover">
-                    <div class="text-center">
-                        <div class="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                            <i class="fas fa-bread-slice text-white text-3xl"></i>
+             <!-- Grid de productos premium -->
+             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 3rem;">
+                 
+                 <!-- Panadería Artesanal -->
+                 <div class="hover-lift" style="background: linear-gradient(145deg, var(--soft-white) 0%, var(--cream) 100%); border-radius: 24px; padding: 3rem; box-shadow: 0 15px 35px rgba(139, 69, 19, 0.1); border: 1px solid rgba(212, 165, 116, 0.2); position: relative; overflow: hidden;" data-aos="fade-up" data-aos-delay="100">
+                     
+                     <!-- Decoración de fondo -->
+                     <div style="position: absolute; top: -20px; right: -20px; width: 120px; height: 120px; background: linear-gradient(135deg, var(--primary-gold), var(--light-gold)); border-radius: 50%; opacity: 0.1;"></div>
+                     
+                     <div style="position: relative; z-index: 2;">
+                         <!-- Icono premium -->
+                         <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--warm-brown) 0%, var(--dark-brown) 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem auto; box-shadow: 0 8px 25px rgba(139, 69, 19, 0.3);">
+                             <i class="fas fa-wheat-awn" style="color: var(--primary-gold); font-size: 2.5rem;"></i>
+                         </div>
+                         
+                         <h3 class="playfair" style="font-size: 2rem; font-weight: 700; color: var(--charcoal); margin-bottom: 1rem; text-align: center;">Panadería Tradicional</h3>
+                         
+                         <p style="color: var(--warm-brown); margin-bottom: 2rem; text-align: center; font-size: 1.1rem; line-height: 1.6;">
+                             El arte del pan mallorquín, transmitido por generaciones con harinas selectas
+                         </p>
+                         
+                         <!-- Lista de productos -->
+                         <div style="space-y: 1rem;">
+                             <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                                 <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%; margin-right: 1rem;"></div>
+                                 <span style="color: var(--charcoal); font-weight: 500;">Pan de payés mallorquín auténtico</span>
+                             </div>
+                             <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                                 <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%; margin-right: 1rem;"></div>
+                                 <span style="color: var(--charcoal); font-weight: 500;">Baguettes francesas crujientes</span>
+                             </div>
+                             <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                                 <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%; margin-right: 1rem;"></div>
+                                 <span style="color: var(--charcoal); font-weight: 500;">Pan integral con semillas</span>
+                             </div>
+                             <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                                 <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%; margin-right: 1rem;"></div>
+                                 <span style="color: var(--charcoal); font-weight: 500;">Especialidades de temporada</span>
+                             </div>
                         </div>
-                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Panadería</h3>
-                        <p class="text-gray-600 mb-6">Pan fresco cada día con ingredientes de calidad</p>
-                        <ul class="text-left text-gray-700 space-y-2">
-                            <li class="flex items-center"><i class="fas fa-check text-blue-500 mr-3"></i>Pan de payés mallorquín</li>
-                            <li class="flex items-center"><i class="fas fa-check text-blue-500 mr-3"></i>Baguettes francesas</li>
-                            <li class="flex items-center"><i class="fas fa-check text-blue-500 mr-3"></i>Pan integral y cereales</li>
-                            <li class="flex items-center"><i class="fas fa-check text-blue-500 mr-3"></i>Especialidades locales</li>
-                        </ul>
                     </div>
                 </div>
 
-                <!-- Pastelería -->
-                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-3xl p-8 card-hover">
-                    <div class="text-center">
-                        <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                            <i class="fas fa-birthday-cake text-white text-3xl"></i>
+                 <!-- Pastelería Mallorquina -->
+                 <div class="hover-lift" style="background: linear-gradient(145deg, var(--soft-white) 0%, var(--cream) 100%); border-radius: 24px; padding: 3rem; box-shadow: 0 15px 35px rgba(139, 69, 19, 0.1); border: 1px solid rgba(212, 165, 116, 0.2); position: relative; overflow: hidden;" data-aos="fade-up" data-aos-delay="200">
+                     
+                     <!-- Decoración de fondo -->
+                     <div style="position: absolute; top: -20px; right: -20px; width: 120px; height: 120px; background: linear-gradient(135deg, var(--primary-gold), var(--light-gold)); border-radius: 50%; opacity: 0.1;"></div>
+                     
+                     <div style="position: relative; z-index: 2;">
+                         <!-- Icono premium -->
+                         <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--warm-brown) 0%, var(--dark-brown) 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem auto; box-shadow: 0 8px 25px rgba(139, 69, 19, 0.3);">
+                             <i class="fas fa-cookie-bite" style="color: var(--primary-gold); font-size: 2.5rem;"></i>
+                         </div>
+                         
+                         <h3 class="playfair" style="font-size: 2rem; font-weight: 700; color: var(--charcoal); margin-bottom: 1rem; text-align: center;">Dulcería Artesanal</h3>
+                         
+                         <p style="color: var(--warm-brown); margin-bottom: 2rem; text-align: center; font-size: 1.1rem; line-height: 1.6;">
+                             Los sabores dulces de Mallorca, desde la clásica ensaimada hasta creaciones únicas
+                         </p>
+                         
+                         <!-- Lista de productos -->
+                         <div style="space-y: 1rem;">
+                             <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                                 <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%; margin-right: 1rem;"></div>
+                                 <span style="color: var(--charcoal); font-weight: 500;">Ensaimadas tradicionales</span>
+                             </div>
+                             <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                                 <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%; margin-right: 1rem;"></div>
+                                 <span style="color: var(--charcoal); font-weight: 500;">Coca de trempó casera</span>
+                             </div>
+                             <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                                 <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%; margin-right: 1rem;"></div>
+                                 <span style="color: var(--charcoal); font-weight: 500;">Crespells y rubiols</span>
+                             </div>
+                             <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                                 <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%; margin-right: 1rem;"></div>
+                                 <span style="color: var(--charcoal); font-weight: 500;">Tartas personalizadas</span>
+                             </div>
                         </div>
-                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Pastelería</h3>
-                        <p class="text-gray-600 mb-6">Dulces tradicionales mallorquines</p>
-                        <ul class="text-left text-gray-700 space-y-2">
-                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i>Ensaimadas artesanales</li>
-                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i>Coca de trempó</li>
-                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i>Tartas personalizadas</li>
-                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i>Crespells y rubiols</li>
-                        </ul>
                     </div>
                 </div>
 
-                <!-- Bar -->
-                <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-3xl p-8 card-hover">
-                    <div class="text-center">
-                        <div class="w-20 h-20 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                            <i class="fas fa-coffee text-white text-3xl"></i>
+                 <!-- Bar & Cafetería -->
+                 <div class="hover-lift" style="background: linear-gradient(145deg, var(--soft-white) 0%, var(--cream) 100%); border-radius: 24px; padding: 3rem; box-shadow: 0 15px 35px rgba(139, 69, 19, 0.1); border: 1px solid rgba(212, 165, 116, 0.2); position: relative; overflow: hidden;" data-aos="fade-up" data-aos-delay="300">
+                     
+                     <!-- Decoración de fondo -->
+                     <div style="position: absolute; top: -20px; right: -20px; width: 120px; height: 120px; background: linear-gradient(135deg, var(--primary-gold), var(--light-gold)); border-radius: 50%; opacity: 0.1;"></div>
+                     
+                     <div style="position: relative; z-index: 2;">
+                         <!-- Icono premium -->
+                         <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--warm-brown) 0%, var(--dark-brown) 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem auto; box-shadow: 0 8px 25px rgba(139, 69, 19, 0.3);">
+                             <i class="fas fa-mug-hot" style="color: var(--primary-gold); font-size: 2.5rem;"></i>
+                         </div>
+                         
+                                                  <h3 class="playfair" style="font-size: 2rem; font-weight: 700; color: var(--charcoal); margin-bottom: 1rem; text-align: center;">Bar de Barrio</h3>
+                         
+                         <p style="color: var(--warm-brown); margin-bottom: 2rem; text-align: center; font-size: 1.1rem; line-height: 1.6;">
+                             El alma social del barrio: de cafés matutinos a cervezas vespertinas, el lugar perfecto para cada momento del día
+                         </p>
+                         
+                         <!-- Lista de productos -->
+                         <div style="space-y: 1rem;">
+                             <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                                 <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%; margin-right: 1rem;"></div>
+                                 <span style="color: var(--charcoal); font-weight: 500;">Café especialidad y bebidas calientes</span>
+                             </div>
+                             <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                                 <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%; margin-right: 1rem;"></div>
+                                 <span style="color: var(--charcoal); font-weight: 500;">Cervezas, vinos y copas</span>
+                             </div>
+                             <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                                 <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%; margin-right: 1rem;"></div>
+                                 <span style="color: var(--charcoal); font-weight: 500;">Bocadillos y tapas caseras</span>
+                             </div>
+                             <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                                 <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%; margin-right: 1rem;"></div>
+                                 <span style="color: var(--charcoal); font-weight: 500;">Ambiente relajado tarde-noche</span>
+                             </div>
                         </div>
-                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Bar Cafetería</h3>
-                        <p class="text-gray-600 mb-6">Ambiente acogedor y familiar</p>
-                        <ul class="text-left text-gray-700 space-y-2">
-                            <li class="flex items-center"><i class="fas fa-check text-purple-500 mr-3"></i>Café recién molido</li>
-                            <li class="flex items-center"><i class="fas fa-check text-purple-500 mr-3"></i>Zumos naturales</li>
-                            <li class="flex items-center"><i class="fas fa-check text-purple-500 mr-3"></i>Bocadillos artesanales</li>
-                            <li class="flex items-center"><i class="fas fa-check text-purple-500 mr-3"></i>Tapas mallorquinas</li>
-                        </ul>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Sobre Nosotros -->
-    <section id="sobre" class="py-20 bg-gray-100">
-        <div class="max-w-6xl mx-auto px-4">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <div>
-                    <h2 class="text-5xl font-bold gradient-text mb-6">
-                        👨‍🍳 Nuestra Historia
-                    </h2>
-                    <p class="text-lg text-gray-700 mb-6">
-                        <strong>Forn Verge de Lluc</strong> es una panadería familiar que sirve a Palma desde 1985. 
-                        Nos hemos convertido en un punto de encuentro para vecinos que buscan productos frescos y de calidad.
-                    </p>
-                    <p class="text-lg text-gray-700 mb-8">
-                        Mantenemos viva la tradición panadera mallorquina con ingredientes locales 
-                        y técnicas artesanales transmitidas por generaciones.
+    <!-- OFERTAS ESPECIALES - SECCIÓN SUTIL -->
+    <section id="ofertas" class="section" style="background: linear-gradient(135deg, var(--charcoal) 0%, var(--dark-brown) 50%, var(--charcoal) 100%); position: relative; padding: 4rem 0;">
+        <!-- Patrón de fondo elegante -->
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9InJnYmEoMjEyLDE2NSwxMTYsMC4wOCkiIGZpbGwtcnVsZT0ibm9uemVybyI+PHBhdGggZD0iTTQwIDQwYzAgMTEuMDQ2LTguOTU0IDIwLTIwIDIwcy0yMC04Ljk1NC0yMC0yMCA4Ljk1NC0yMCAyMC0yMCAyMCA4Ljk1NCAyMCAyMHoiLz48L2c+PC9nPjwvc3ZnPg=='); opacity: 0.4;"></div>
+        
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 2;">
+            <div style="text-align: center;" data-aos="fade-up">
+                
+                <!-- Contenedor principal centrado -->
+                <div class="glass-premium" style="max-width: 600px; margin: 0 auto; padding: 3rem 2rem; background: rgba(250, 247, 242, 0.1); backdrop-filter: blur(20px); border: 1px solid rgba(212, 165, 116, 0.3);">
+                    
+                    <!-- Icono y título -->
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 2rem;">
+                        <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold)); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(212, 165, 116, 0.4);">
+                            <i class="fas fa-percentage" style="color: var(--charcoal); font-size: 1.8rem;"></i>
+                        </div>
+                        <div>
+                            <h3 class="playfair" style="font-size: 2.2rem; font-weight: 700; color: var(--primary-gold); margin: 0; line-height: 1.2;">Ofertas Especiales</h3>
+                            <p style="color: var(--light-gold); margin: 0; font-size: 1rem; font-weight: 500;">Actualizado diariamente</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Descripción adaptativa -->
+                    <p id="offers-description" style="font-size: 1.1rem; color: rgba(250, 247, 242, 0.9); margin-bottom: 2.5rem; line-height: 1.7;">
+                        Descubre nuestras promociones especiales.<br>
+                        <span style="color: var(--primary-gold); font-weight: 600;">¡Ofertas exclusivas actualizadas cada día!</span>
                     </p>
                     
-                    <!-- Stats -->
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="bg-white rounded-2xl p-6 text-center shadow-lg card-hover">
-                            <h4 class="text-3xl font-bold text-blue-600 mb-2">40+</h4>
-                            <p class="text-gray-700">Años experiencia</p>
-                        </div>
-                        <div class="bg-white rounded-2xl p-6 text-center shadow-lg card-hover">
-                            <h4 class="text-3xl font-bold text-green-600 mb-2">100%</h4>
-                            <p class="text-gray-700">Productos artesanales</p>
-                        </div>
-                        <div class="bg-white rounded-2xl p-6 text-center shadow-lg card-hover">
-                            <h4 class="text-3xl font-bold text-purple-600 mb-2">365</h4>
-                            <p class="text-gray-700">Días al año</p>
-                        </div>
-                        <div class="bg-white rounded-2xl p-6 text-center shadow-lg card-hover">
-                            <h4 class="text-3xl font-bold text-orange-600 mb-2">5★</h4>
-                            <p class="text-gray-700">Valoración</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div>
-                    <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl p-8 text-white shadow-2xl">
-                        <h3 class="text-3xl font-bold mb-8 text-center">¿Por qué elegirnos?</h3>
-                        <div class="space-y-6">
-                            <div class="flex items-start space-x-4">
-                                <i class="fas fa-check-circle text-yellow-300 text-2xl mt-1"></i>
-                                <div>
-                                    <h4 class="text-xl font-bold mb-2">Ingredientes Locales</h4>
-                                    <p class="opacity-90">Trabajamos con proveedores mallorquines de confianza</p>
+                    <!-- Contenedor QR (Solo escritorio) -->
+                    <div id="qr-container" style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
+                        <!-- QR Code Container -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); border: 3px solid var(--primary-gold);">
+                            <div id="qr-code" style="width: 150px; height: 150px; display: flex; align-items: center; justify-content: center;">
+                                <!-- El QR se generará aquí dinámicamente -->
+                                <div style="color: var(--warm-brown); text-align: center;">
+                                    <i class="fas fa-qrcode" style="font-size: 4rem; margin-bottom: 0.5rem; display: block;"></i>
+                                    <small style="font-size: 0.8rem;">Cargando QR...</small>
                                 </div>
                             </div>
-                            <div class="flex items-start space-x-4">
-                                <i class="fas fa-check-circle text-yellow-300 text-2xl mt-1"></i>
-                                <div>
-                                    <h4 class="text-xl font-bold mb-2">Elaboración Diaria</h4>
-                                    <p class="opacity-90">Todo fresco cada mañana, sin conservantes</p>
+                        </div>
+                        
+                        <!-- Instrucciones QR -->
+                        <div style="text-align: center;">
+                            <p style="color: var(--light-gold); font-size: 0.95rem; margin-bottom: 0.5rem;">
+                                <i class="fas fa-mobile-alt" style="margin-right: 0.5rem; color: var(--primary-gold);"></i>
+                                Escanea con tu móvil
+                            </p>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%;"></div>
+                                    <span style="color: rgba(250, 247, 242, 0.8); font-size: 0.85rem;">Sin instalaciones</span>
                                 </div>
-                            </div>
-                            <div class="flex items-start space-x-4">
-                                <i class="fas fa-check-circle text-yellow-300 text-2xl mt-1"></i>
-                                <div>
-                                    <h4 class="text-xl font-bold mb-2">Tradición Familiar</h4>
-                                    <p class="opacity-90">Recetas transmitidas por generaciones</p>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%;"></div>
+                                    <span style="color: rgba(250, 247, 242, 0.8); font-size: 0.85rem;">Acceso directo</span>
                                 </div>
-                            </div>
-                            <div class="flex items-start space-x-4">
-                                <i class="fas fa-check-circle text-yellow-300 text-2xl mt-1"></i>
-                                <div>
-                                    <h4 class="text-xl font-bold mb-2">Servicio Personalizado</h4>
-                                    <p class="opacity-90">Atención cercana y familiar</p>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div style="width: 8px; height: 8px; background: var(--primary-gold); border-radius: 50%;"></div>
+                                    <span style="color: rgba(250, 247, 242, 0.8); font-size: 0.85rem;">Ofertas en tiempo real</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contacto -->
-    <section id="contacto" class="py-20 bg-gradient-to-br from-blue-500 to-purple-600">
-        <div class="max-w-6xl mx-auto px-4">
-            <div class="text-center mb-12">
-                <h2 class="text-5xl font-bold text-white mb-4">
-                    📍 Visítanos
-                </h2>
-                <p class="text-xl text-blue-100">
-                    Te esperamos en el corazón de Palma
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                <!-- Información -->
-                <div class="glass-card rounded-3xl p-8">
-                    <h3 class="text-3xl font-bold text-white mb-8">Información de Contacto</h3>
-                    <div class="space-y-6">
-                        <div class="flex items-start space-x-4">
-                            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                                <i class="fas fa-map-marker-alt text-white text-xl"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-xl font-bold text-white mb-2">Dirección</h4>
-                                <p class="text-blue-100 text-lg">C/ Aragó, 323a</p>
-                                <p class="text-blue-100">Llevant, 07009 Palma</p>
-                                <p class="text-blue-100">Illes Balears</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start space-x-4">
-                            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                                <i class="fas fa-clock text-white text-xl"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-xl font-bold text-white mb-2">Horario</h4>
-                                <p class="text-blue-100 text-lg font-bold">7:00 - 21:00</p>
-                                <p class="text-blue-100">Lunes a Domingo</p>
-                                <p class="text-blue-200 text-sm">Sin interrupción</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start space-x-4">
-                            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                                <i class="fab fa-facebook text-white text-xl"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-xl font-bold text-white mb-2">Redes Sociales</h4>
-                                <a href="#" class="text-blue-100 hover:text-white text-lg transition">
-                                    @Fornvergedelluc
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Cómo llegar -->
-                <div class="glass-card rounded-3xl p-8">
-                    <h3 class="text-3xl font-bold text-white mb-8">Cómo llegar</h3>
-                    <div class="text-center mb-8">
-                        <i class="fas fa-map text-white text-6xl mb-4"></i>
-                        <h4 class="text-2xl font-bold text-white mb-4">Ubicación céntrica</h4>
-                        <p class="text-blue-100 text-lg">
-                            Barrio de Llevant, zona accesible y bien comunicada de Palma
+                    
+                    <!-- Botón directo móvil -->
+                    <div id="mobile-button-container" style="display: none; text-align: center;">
+                        <a href="ofertas/" class="btn-gold" style="display: inline-block; margin-bottom: 1rem;">
+                            <i class="fas fa-percentage" style="margin-right: 0.5rem;"></i>
+                            Ver Ofertas Especiales
+                        </a>
+                        <p style="color: var(--light-gold); font-size: 0.9rem;">
+                            <i class="fas fa-touch" style="margin-right: 0.5rem; color: var(--primary-gold);"></i>
+                            Toca para acceder directamente
                         </p>
                     </div>
                     
-                    <div class="space-y-4">
-                        <div class="bg-white/20 rounded-xl p-4 flex items-center space-x-4">
-                            <i class="fas fa-bus text-white text-2xl"></i>
-                            <div>
-                                <h5 class="text-white font-bold">Transporte público</h5>
-                                <p class="text-blue-100">Varias líneas cercanas</p>
-                            </div>
+                    <!-- Botón alternativo para escritorio -->
+                    <a href="ofertas/" class="btn-gold btn-outline" style="margin-top: 1rem; display: none;" id="desktop-offers-btn">
+                        <i class="fas fa-external-link-alt" style="margin-right: 0.5rem;"></i>
+                        Ver Ofertas Online
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </section>
+
+    <!-- NUESTRA HISTORIA PREMIUM -->
+    <section id="sobre" class="section" style="background: linear-gradient(135deg, var(--charcoal) 0%, var(--dark-brown) 100%); position: relative;">
+        <!-- Patrón de fondo -->
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9InJnYmEoMjEyLDE2NSwxMTYsMC4wNSkiPjxjaXJjbGUgY3g9IjQwIiBjeT0iNDAiIHI9IjMiLz48L2c+PC9nPjwvc3ZnPg=='); opacity: 0.3;"></div>
+        
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 2;">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;" data-aos="fade-up">
+                
+                <!-- Contenido principal -->
+                <div>
+                    <h2 class="section-title playfair" style="color: var(--primary-gold); text-align: left;" data-aos="fade-right">
+                        Legado Familiar
+                    </h2>
+                    
+                    <p style="font-size: 1.2rem; color: var(--light-gold); margin-bottom: 2rem; line-height: 1.8;" data-aos="fade-right" data-aos-delay="100">
+                        <strong style="color: var(--primary-gold);">Forn Verge de Lluc</strong> es más que una panadería: 
+                        es el corazón gastronómico del barrio de Llevant desde 1985, donde cada amanecer 
+                        trae el aroma inconfundible del pan recién horneado.
+                    </p>
+                    
+                    <p style="font-size: 1.1rem; color: rgba(250, 247, 242, 0.9); margin-bottom: 3rem; line-height: 1.8;" data-aos="fade-right" data-aos-delay="200">
+                        Tres generaciones han perfeccionado nuestras recetas, manteniendo viva la esencia 
+                        de la panadería tradicional mallorquina con técnicas artesanales e ingredientes 
+                        seleccionados de productores locales.
+                    </p>
+                    
+                    <!-- Stats elegantes -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" data-aos="fade-up" data-aos-delay="300">
+                        <div class="glass-premium" style="padding: 2rem; text-align: center; transition: all 0.3s ease;">
+                            <h4 style="font-size: 2.5rem; font-weight: 800; color: var(--primary-gold); margin-bottom: 0.5rem;">40+</h4>
+                            <p style="color: var(--light-gold); font-weight: 500;">Años de tradición</p>
                         </div>
-                        <div class="bg-white/20 rounded-xl p-4 flex items-center space-x-4">
-                            <i class="fas fa-car text-white text-2xl"></i>
-                            <div>
-                                <h5 class="text-white font-bold">Aparcamiento</h5>
-                                <p class="text-blue-100">Zona de fácil aparcamiento</p>
-                            </div>
+                        <div class="glass-premium" style="padding: 2rem; text-align: center; transition: all 0.3s ease;">
+                            <h4 style="font-size: 2.5rem; font-weight: 800; color: var(--primary-gold); margin-bottom: 0.5rem;">100%</h4>
+                            <p style="color: var(--light-gold); font-weight: 500;">Artesanal</p>
                         </div>
-                        <div class="bg-white/20 rounded-xl p-4 flex items-center space-x-4">
-                            <i class="fas fa-walking text-white text-2xl"></i>
-                            <div>
-                                <h5 class="text-white font-bold">A pie</h5>
-                                <p class="text-blue-100">Accesible desde el centro</p>
+                        <div class="glass-premium" style="padding: 2rem; text-align: center; transition: all 0.3s ease;">
+                            <h4 style="font-size: 2.5rem; font-weight: 800; color: var(--primary-gold); margin-bottom: 0.5rem;">365</h4>
+                            <p style="color: var(--light-gold); font-weight: 500;">Días al año</p>
+                        </div>
+                        <div class="glass-premium" style="padding: 2rem; text-align: center; transition: all 0.3s ease;">
+                            <h4 style="font-size: 2.5rem; font-weight: 800; color: var(--primary-gold); margin-bottom: 0.5rem;">⭐⭐⭐⭐⭐</h4>
+                            <p style="color: var(--light-gold); font-weight: 500;">Excelencia</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Valores y promesas -->
+                <div class="glass-premium" style="padding: 3rem; background: rgba(250, 247, 242, 0.08);" data-aos="fade-left">
+                    <h3 class="playfair" style="font-size: 2.2rem; font-weight: 700; color: var(--primary-gold); margin-bottom: 2rem; text-align: center;">
+                        Nuestros Valores
+                    </h3>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 2rem;">
+                        <div style="display: flex; align-items: flex-start; gap: 1.5rem;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold)); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-seedling" style="color: var(--charcoal); font-size: 1.5rem;"></i>
+                            </div>
+                <div>
+                                <h4 style="color: var(--primary-gold); font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5rem;">Ingredientes Naturales</h4>
+                                <p style="color: var(--light-gold); line-height: 1.6;">Selección minuciosa de harinas mallorquinas y productos km0</p>
+                            </div>
+                                </div>
+                        
+                        <div style="display: flex; align-items: flex-start; gap: 1.5rem;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold)); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-clock" style="color: var(--charcoal); font-size: 1.5rem;"></i>
+                            </div>
+                                <div>
+                                <h4 style="color: var(--primary-gold); font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5rem;">Elaboración Madrugadora</h4>
+                                <p style="color: var(--light-gold); line-height: 1.6;">Cada día desde las 4:00h, para garantizar máxima frescura</p>
+                            </div>
+                                </div>
+                        
+                        <div style="display: flex; align-items: flex-start; gap: 1.5rem;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold)); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-heart" style="color: var(--charcoal); font-size: 1.5rem;"></i>
+                            </div>
+                                <div>
+                                <h4 style="color: var(--primary-gold); font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5rem;">Pasión Familiar</h4>
+                                <p style="color: var(--light-gold); line-height: 1.6;">Recetas familiares transmitidas con amor y dedicación</p>
+                            </div>
+                                </div>
+                        
+                        <div style="display: flex; align-items: flex-start; gap: 1.5rem;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold)); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-handshake" style="color: var(--charcoal); font-size: 1.5rem;"></i>
+                            </div>
+                                <div>
+                                <h4 style="color: var(--primary-gold); font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5rem;">Compromiso Vecinal</h4>
+                                <p style="color: var(--light-gold); line-height: 1.6;">El punto de encuentro y conexión del barrio de Llevant</p>
                             </div>
                         </div>
                     </div>
@@ -415,64 +785,210 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-12">
-        <div class="max-w-6xl mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Logo -->
-                <div>
-                    <div class="flex items-center space-x-3 mb-4">
-                        <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                            <i class="fas fa-bread-slice text-white"></i>
+    <!-- CONTACTO PREMIUM -->
+    <section id="contacto" class="section section-cream">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 2;">
+            
+            <!-- Título elegante -->
+            <div style="text-align: center; margin-bottom: 4rem;" data-aos="fade-up">
+                <h2 class="section-title playfair">
+                    Ven a Visitarnos
+                </h2>
+                <p style="font-size: 1.2rem; color: var(--warm-brown); max-width: 600px; margin: 0 auto; line-height: 1.8;">
+                    Te esperamos en el corazón gastronómico del barrio de Llevant
+                </p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start;">
+                
+                <!-- Información de contacto premium -->
+                <div class="hover-lift" style="background: var(--soft-white); border-radius: 24px; padding: 3rem; box-shadow: 0 15px 35px rgba(139, 69, 19, 0.1); border: 1px solid rgba(212, 165, 116, 0.2);" data-aos="fade-right">
+                    
+                    <h3 class="playfair" style="font-size: 2rem; font-weight: 700; color: var(--charcoal); margin-bottom: 2.5rem; text-align: center;">
+                        Información de Contacto
+                    </h3>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 2rem;">
+                        <div style="display: flex; align-items: flex-start; gap: 1.5rem;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold)); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-map-marker-alt" style="color: var(--charcoal); font-size: 1.5rem;"></i>
+                            </div>
+                            <div>
+                                <h4 style="color: var(--charcoal); font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5rem;">Nuestra Ubicación</h4>
+                                <p style="color: var(--warm-brown); font-size: 1.1rem; line-height: 1.6; margin-bottom: 0.3rem;"><strong>C/ Aragó, 323a</strong></p>
+                                <p style="color: var(--warm-brown); line-height: 1.6;">Llevant, 07009 Palma</p>
+                                <p style="color: var(--warm-brown); line-height: 1.6;">Illes Balears</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-2xl font-bold">Forn Verge de Lluc</h3>
-                            <p class="text-gray-400">Panadería & Bar</p>
+
+                        <div style="display: flex; align-items: flex-start; gap: 1.5rem;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold)); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-clock" style="color: var(--charcoal); font-size: 1.5rem;"></i>
+                            </div>
+                            <div>
+                                <h4 style="color: var(--charcoal); font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5rem;">Horario de Apertura</h4>
+                                <p style="color: var(--warm-brown); font-size: 1.1rem; font-weight: 600; margin-bottom: 0.3rem;">7:00 - 21:00</p>
+                                <p style="color: var(--warm-brown); line-height: 1.6;">Todos los días del año</p>
+                                <p style="color: var(--warm-brown); font-size: 0.95rem; font-style: italic;">Horario continuo</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: flex-start; gap: 1.5rem;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold)); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fab fa-facebook" style="color: var(--charcoal); font-size: 1.5rem;"></i>
+                            </div>
+                            <div>
+                                <h4 style="color: var(--charcoal); font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5rem;">Síguenos</h4>
+                                <a href="#" style="color: var(--warm-brown); font-size: 1.1rem; text-decoration: none; transition: all 0.3s ease;">
+                                    @FornVergedeLluc
+                                </a>
+                                <p style="color: var(--warm-brown); line-height: 1.6; font-size: 0.95rem; margin-top: 0.3rem;">Noticias y productos especiales</p>
+                            </div>
                         </div>
                     </div>
-                    <p class="text-gray-400">
-                        Tradición artesanal en Palma desde 1985. 
-                        Comprometidos con la calidad y el sabor auténtico mallorquín.
+                </div>
+
+                <!-- Cómo llegar premium -->
+                <div class="hover-lift" style="background: var(--soft-white); border-radius: 24px; padding: 3rem; box-shadow: 0 15px 35px rgba(139, 69, 19, 0.1); border: 1px solid rgba(212, 165, 116, 0.2);" data-aos="fade-left">
+                    
+                    <h3 class="playfair" style="font-size: 2rem; font-weight: 700; color: var(--charcoal); margin-bottom: 2rem; text-align: center;">
+                        Cómo Llegar
+                    </h3>
+                    
+                    <div style="text-align: center; margin-bottom: 2.5rem;">
+                        <div style="width: 100px; height: 100px; background: linear-gradient(135deg, var(--warm-brown), var(--dark-brown)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto; box-shadow: 0 8px 25px rgba(139, 69, 19, 0.3);">
+                            <i class="fas fa-location-dot" style="color: var(--primary-gold); font-size: 2.5rem;"></i>
+                        </div>
+                        <h4 style="color: var(--charcoal); font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;">En el Corazón de Llevant</h4>
+                        <p style="color: var(--warm-brown); line-height: 1.8;">
+                            Barrio tradicional, zona tranquila y muy bien comunicada de Palma
+                        </p>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div style="background: rgba(212, 165, 116, 0.1); border-radius: 16px; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem;">
+                            <i class="fas fa-bus" style="color: var(--primary-gold); font-size: 1.8rem;"></i>
+                            <div>
+                                <h5 style="color: var(--charcoal); font-weight: 600; margin-bottom: 0.3rem;">Transporte Público</h5>
+                                <p style="color: var(--warm-brown); line-height: 1.5;">Múltiples líneas de autobús cercanas</p>
+                            </div>
+                        </div>
+                        
+                        <div style="background: rgba(212, 165, 116, 0.1); border-radius: 16px; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem;">
+                            <i class="fas fa-car" style="color: var(--primary-gold); font-size: 1.8rem;"></i>
+                            <div>
+                                <h5 style="color: var(--charcoal); font-weight: 600; margin-bottom: 0.3rem;">En Coche</h5>
+                                <p style="color: var(--warm-brown); line-height: 1.5;">Amplio aparcamiento en la zona</p>
+                            </div>
+                        </div>
+                        
+                        <div style="background: rgba(212, 165, 116, 0.1); border-radius: 16px; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem;">
+                            <i class="fas fa-walking" style="color: var(--primary-gold); font-size: 1.8rem;"></i>
+                            <div>
+                                <h5 style="color: var(--charcoal); font-weight: 600; margin-bottom: 0.3rem;">A Pie</h5>
+                                <p style="color: var(--warm-brown); line-height: 1.5;">Paseo agradable desde el centro</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER ELEGANTE -->
+    <footer style="background: linear-gradient(135deg, var(--charcoal) 0%, var(--dark-brown) 100%); color: var(--light-gold); padding: 4rem 0 2rem 0; position: relative;">
+        
+        <!-- Patrón de fondo -->
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9InJnYmEoMjEyLDE2NSwxMTYsMC4wMykiPjxjaXJjbGUgY3g9IjMwIiBjeT0iMzAiIHI9IjIiLz48L2c+PC9nPjwvc3ZnPg=='); opacity: 0.3;"></div>
+        
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 2;">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem;">
+                
+                <!-- Logo y descripción -->
+                <div>
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="width: 3.5rem; height: 3.5rem; background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold)); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-wheat-awn" style="color: var(--charcoal); font-size: 1.5rem;"></i>
+                        </div>
+                        <div>
+                            <h3 class="playfair" style="font-size: 1.8rem; font-weight: 700; color: var(--primary-gold); margin: 0;">Forn Verge de Lluc</h3>
+                            <p style="color: var(--light-gold); margin: 0; font-size: 0.9rem;">Panadería Artesanal</p>
+                        </div>
+                    </div>
+                    <p style="color: rgba(250, 247, 242, 0.8); line-height: 1.6; font-size: 0.95rem;">
+                        Tradición artesanal en Palma desde 1985. Comprometidos con la calidad 
+                        y el sabor auténtico mallorquín.
                     </p>
                 </div>
 
-                <!-- Enlaces -->
+                <!-- Enlaces rápidos -->
                 <div>
-                    <h4 class="text-xl font-bold mb-4">Enlaces</h4>
-                    <ul class="space-y-3">
-                        <li><a href="#inicio" class="text-gray-400 hover:text-white transition">Inicio</a></li>
-                        <li><a href="#productos" class="text-gray-400 hover:text-white transition">Productos</a></li>
-                        <li><a href="#sobre" class="text-gray-400 hover:text-white transition">Nosotros</a></li>
-                        <li><a href="#contacto" class="text-gray-400 hover:text-white transition">Contacto</a></li>
-                    </ul>
+                    <h4 style="color: var(--primary-gold); font-size: 1.3rem; font-weight: 600; margin-bottom: 1.5rem;">Enlaces</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                        <a href="#inicio" style="color: var(--light-gold); text-decoration: none; transition: all 0.3s ease; font-size: 0.95rem;">Inicio</a>
+                        <a href="#productos" style="color: var(--light-gold); text-decoration: none; transition: all 0.3s ease; font-size: 0.95rem;">Productos</a>
+                        <a href="#sobre" style="color: var(--light-gold); text-decoration: none; transition: all 0.3s ease; font-size: 0.95rem;">Nosotros</a>
+                        <a href="#contacto" style="color: var(--light-gold); text-decoration: none; transition: all 0.3s ease; font-size: 0.95rem;">Contacto</a>
+                    </div>
                 </div>
 
-                <!-- Info -->
+                <!-- Información de contacto -->
                 <div>
-                    <h4 class="text-xl font-bold mb-4">Información</h4>
-                    <div class="space-y-3 text-gray-400">
-                        <p><i class="fas fa-map-marker-alt mr-3 text-blue-400"></i>C/ Aragó, 323a, Palma</p>
-                        <p><i class="fas fa-clock mr-3 text-blue-400"></i>7:00 - 21:00 (Todos los días)</p>
-                        <p><i class="fab fa-facebook mr-3 text-blue-400"></i>@Fornvergedelluc</p>
+                    <h4 style="color: var(--primary-gold); font-size: 1.3rem; font-weight: 600; margin-bottom: 1.5rem;">Contacto</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.8rem; color: rgba(250, 247, 242, 0.8);">
+                        <div style="display: flex; align-items: center; gap: 0.8rem;">
+                            <i class="fas fa-map-marker-alt" style="color: var(--primary-gold); width: 16px;"></i>
+                            <span style="font-size: 0.95rem;">C/ Aragó, 323a, Palma</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.8rem;">
+                            <i class="fas fa-clock" style="color: var(--primary-gold); width: 16px;"></i>
+                            <span style="font-size: 0.95rem;">7:00 - 21:00 (Todos los días)</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.8rem;">
+                            <i class="fab fa-facebook" style="color: var(--primary-gold); width: 16px;"></i>
+                            <span style="font-size: 0.95rem;">@FornVergedeLluc</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="border-t border-gray-700 mt-8 pt-8 text-center">
-                <p class="text-gray-400">
-                    © 2025 Forn Verge de Lluc. Todos los derechos reservados.
+            <!-- Línea divisoria y copyright -->
+            <div style="border-top: 1px solid rgba(212, 165, 116, 0.3); padding-top: 2rem; text-align: center;">
+                <p style="color: rgba(250, 247, 242, 0.7); font-size: 0.9rem; margin: 0;">
+                    © 2025 Forn Verge de Lluc. Todos los derechos reservados. | Panadería artesanal mallorquina
                 </p>
             </div>
         </div>
     </footer>
 
-    <!-- Botón scroll top -->
-    <button id="scrollTop" class="fixed bottom-8 right-8 bg-blue-600 text-white w-14 h-14 rounded-full shadow-lg hover:bg-blue-700 transition transform hover:scale-110 opacity-0 invisible">
-        <i class="fas fa-arrow-up"></i>
+    <!-- Botón scroll top premium -->
+    <button id="scrollTop" style="position: fixed; bottom: 2rem; right: 2rem; background: linear-gradient(135deg, var(--primary-gold), var(--dark-gold)); color: var(--charcoal); width: 60px; height: 60px; border-radius: 50%; border: none; box-shadow: 0 8px 25px rgba(212, 165, 116, 0.4); cursor: pointer; transition: all 0.3s ease; opacity: 0; visibility: hidden; z-index: 1000;">
+        <i class="fas fa-arrow-up" style="font-size: 1.2rem;"></i>
     </button>
 
+    <!-- SCRIPTS PROFESIONALES -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        // Smooth scrolling
+        // Inicializar animaciones AOS
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true,
+            offset: 100
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Smooth scroll para los enlaces del menú
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -486,15 +1002,28 @@
             });
         });
 
+        // Efectos hover dinámicos para enlaces de navegación
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('mouseenter', function() {
+                this.style.color = 'var(--primary-gold)';
+                this.style.transform = 'translateY(-2px)';
+            });
+            
+            link.addEventListener('mouseleave', function() {
+                this.style.color = 'var(--light-gold)';
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
         // Scroll to top button
         const scrollBtn = document.getElementById('scrollTop');
         window.addEventListener('scroll', () => {
             if (window.pageYOffset > 300) {
-                scrollBtn.classList.remove('opacity-0', 'invisible');
-                scrollBtn.classList.add('opacity-100', 'visible');
+                scrollBtn.style.opacity = '1';
+                scrollBtn.style.visibility = 'visible';
             } else {
-                scrollBtn.classList.add('opacity-0', 'invisible');
-                scrollBtn.classList.remove('opacity-100', 'visible');
+                scrollBtn.style.opacity = '0';
+                scrollBtn.style.visibility = 'hidden';
             }
         });
 
@@ -505,15 +1034,159 @@
             });
         });
 
-        // Navbar background on scroll
-        const navbar = document.querySelector('.navbar');
-        window.addEventListener('scroll', () => {
-            if (window.pageYOffset > 50) {
-                navbar.style.background = 'rgba(255,255,255,0.98)';
-            } else {
-                navbar.style.background = 'rgba(255,255,255,0.95)';
+        // Hover effect para el botón de scroll
+        scrollBtn.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.1)';
+            this.style.boxShadow = '0 15px 35px rgba(212, 165, 116, 0.6)';
+        });
+
+        scrollBtn.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+            this.style.boxShadow = '0 8px 25px rgba(212, 165, 116, 0.4)';
+        });
+
+        // ==========================================
+        // FUNCIONALIDAD MENÚ MÓVIL
+        // ==========================================
+        
+        // Referencias del menú móvil
+        const mobileMenuBtn = document.getElementById('mobile-menu');
+        const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+        
+        // Función para abrir menú móvil
+        function openMobileMenu() {
+            mobileMenuOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // Función para cerrar menú móvil
+        function closeMobileMenu() {
+            mobileMenuOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        // Event listeners para el menú móvil
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', openMobileMenu);
+        }
+        
+        if (mobileMenuClose) {
+            mobileMenuClose.addEventListener('click', closeMobileMenu);
+        }
+        
+        // Cerrar menú al hacer click en el overlay
+        mobileMenuOverlay.addEventListener('click', function(e) {
+            if (e.target === mobileMenuOverlay) {
+                closeMobileMenu();
             }
         });
+        
+        // Cerrar menú con tecla ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && mobileMenuOverlay.classList.contains('active')) {
+                closeMobileMenu();
+            }
+        });
+        
+        // Detectar cambio de tamaño de pantalla
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768 && mobileMenuOverlay.classList.contains('active')) {
+                closeMobileMenu();
+            }
+        });
+
+        // ==========================================
+        // GENERADOR DE QR CODE DINÁMICO
+        // ==========================================
+        
+        // Función para generar QR code dinámico
+        function generateQRCode() {
+            const ofertasURL = window.location.origin + window.location.pathname.replace('index.html', '') + 'ofertas/';
+            const qrContainer = document.getElementById('qr-code');
+            const desktopBtn = document.getElementById('desktop-offers-btn');
+            
+            console.log('🔗 Generando QR para:', ofertasURL);
+            
+            // Generar QR usando qr-server.com (API gratuita)
+            const qrImageURL = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(ofertasURL)}&bgcolor=FFFFFF&color=2C2C2C&margin=10&format=png&ecc=M`;
+            
+            // Crear imagen QR
+            const qrImg = document.createElement('img');
+            qrImg.src = qrImageURL;
+            qrImg.alt = 'QR Code Ofertas Forn Verge de Lluc';
+            qrImg.style.width = '100%';
+            qrImg.style.height = '100%';
+            qrImg.style.borderRadius = '8px';
+            
+            // Evento de carga exitosa
+            qrImg.onload = function() {
+                console.log('✅ QR Code generado correctamente');
+            };
+            
+            // Evento de error
+            qrImg.onerror = function() {
+                console.error('❌ Error generando QR Code');
+                qrContainer.innerHTML = '<div style="color: var(--warm-brown); text-align: center;"><i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i><small>Error generando QR</small></div>';
+            };
+            
+            // Reemplazar el placeholder
+            qrContainer.innerHTML = '';
+            qrContainer.appendChild(qrImg);
+            
+            // Mostrar botón de escritorio en pantallas grandes
+            if (window.innerWidth > 768) {
+                desktopBtn.style.display = 'inline-block';
+            }
+            
+            // Actualizar href del botón
+            desktopBtn.href = ofertasURL;
+        }
+        
+        // Detectar dispositivo y mostrar interfaz apropiada
+        function detectDeviceAndShowOffers() {
+            const isMobile = window.innerWidth <= 768;
+            const qrContainer = document.getElementById('qr-container');
+            const mobileButtonContainer = document.getElementById('mobile-button-container');
+            const desktopBtn = document.getElementById('desktop-offers-btn');
+            const description = document.getElementById('offers-description');
+            
+            if (isMobile) {
+                // MÓVIL: Mostrar botón directo, ocultar QR
+                console.log('📱 Dispositivo móvil detectado - mostrando botón directo');
+                qrContainer.style.display = 'none';
+                mobileButtonContainer.style.display = 'block';
+                desktopBtn.style.display = 'none';
+                description.innerHTML = `
+                    Accede a nuestras promociones especiales directamente desde tu móvil.<br>
+                    <span style="color: var(--primary-gold); font-weight: 600;">¡Ofertas exclusivas actualizadas cada día!</span>
+                `;
+            } else {
+                // ESCRITORIO: Mostrar QR + botón alternativo
+                console.log('💻 Dispositivo escritorio detectado - mostrando QR + botón');
+                qrContainer.style.display = 'flex';
+                mobileButtonContainer.style.display = 'none';
+                desktopBtn.style.display = 'inline-block';
+                description.innerHTML = `
+                    Descubre nuestras promociones especiales escaneando el código QR.<br>
+                    <span style="color: var(--primary-gold); font-weight: 600;">¡Ofertas exclusivas actualizadas cada día!</span>
+                `;
+                
+                // Solo generar QR si estamos en escritorio
+                setTimeout(generateQRCode, 1000);
+            }
+        }
+        
+        // Aplicar efectos adicionales cuando la página esté cargada
+        window.addEventListener('load', function() {
+            document.body.classList.add('loaded');
+            
+            // Detectar dispositivo y mostrar interfaz apropiada
+            detectDeviceAndShowOffers();
+        });
+        
+        // Detectar cambios de tamaño de pantalla
+        window.addEventListener('resize', detectDeviceAndShowOffers);
     </script>
 </body>
 </html> 

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progreso Descongelación - Forn Verge de Lluc</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .admin-header { background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%); }
+        .completado { background: #d1fae5; border-left: 4px solid #10b981; }
+        .pendiente { background: #fef3c7; border-left: 4px solid #f59e0b; }
+        .auto-refresh { animation: spin 2s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    
+    <!-- Header -->
+    <header class="admin-header text-white p-6 shadow-xl">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-chart-line text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold">Progreso Descongelación</h1>
+                        <p class="text-blue-200">Control en tiempo real - Forn Verge de Lluc</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-lg font-semibold" id="currentDate"></div>
+                    <div class="text-blue-200" id="currentTime"></div>
+                    <div class="text-sm text-blue-300 mt-2">
+                        <i id="refreshIcon" class="fas fa-sync-alt mr-1"></i>
+                        Actualizado: <span id="lastUpdate">Cargando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Resumen Global -->
+    <div class="max-w-7xl mx-auto p-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl p-6 shadow-lg text-center">
+                <div class="text-3xl font-bold text-green-600" id="totalCompletado">0</div>
+                <div class="text-gray-600 font-medium">Completados</div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-lg text-center">
+                <div class="text-3xl font-bold text-orange-600" id="totalPendiente">0</div>
+                <div class="text-gray-600 font-medium">Pendientes</div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-lg text-center">
+                <div class="text-3xl font-bold text-blue-600" id="porcentajeTotal">0%</div>
+                <div class="text-gray-600 font-medium">Progreso Total</div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-lg text-center">
+                <div class="text-3xl font-bold text-purple-600" id="ultimaActividad">--:--</div>
+                <div class="text-gray-600 font-medium">Última Actividad</div>
+            </div>
+        </div>
+
+        <!-- Progreso por Tandas -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-xl p-6 shadow-lg">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">🌅 Mañana (6:00-11:00)</h3>
+                <div class="space-y-2" id="mañanaList"></div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-lg">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">☀️ Mediodía (11:00-17:00)</h3>
+                <div class="space-y-2" id="mediodiaList"></div>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-lg">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">🌆 Tarde (17:00-21:00)</h3>
+                <div class="space-y-2" id="tardeList"></div>
+            </div>
+        </div>
+
+        <!-- Log de Actividad -->
+        <div class="bg-white rounded-xl p-6 shadow-lg">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">📝 Actividad Reciente</h3>
+            <div class="space-y-2 max-h-60 overflow-y-auto" id="activityLog"></div>
+        </div>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        // Configuración Supabase
+        const SUPABASE_URL = 'https://csxgkxjeifakwslamglc.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzeGdreGplaWZha3dzbGFtZ2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjM4NjIsImV4cCI6MjA2NDg5OTg2Mn0.iGDmQJGRjsldPGmXLO5PFiaLOk7P3Rpr0omF3b8SJkg';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let datosProgreso = [];
+
+        // Actualizar fecha y hora
+        function actualizarFechaHora() {
+            const ahora = new Date();
+            document.getElementById('currentDate').textContent = ahora.toLocaleDateString('es-ES', { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+            });
+            document.getElementById('currentTime').textContent = ahora.toLocaleTimeString('es-ES');
+        }
+
+        // Cargar datos desde Supabase
+        async function cargarProgreso() {
+            try {
+                const refreshIcon = document.getElementById('refreshIcon');
+                refreshIcon.classList.add('auto-refresh');
+                
+                const hoyFecha = new Date().toISOString().split('T')[0];
+                
+                const { data, error } = await supabase
+                    .from('descongelacion_completados')
+                    .select('*')
+                    .eq('fecha', hoyFecha)
+                    .order('completado_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                datosProgreso = data;
+                mostrarProgreso();
+                
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('es-ES');
+                refreshIcon.classList.remove('auto-refresh');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('refreshIcon').classList.remove('auto-refresh');
+            }
+        }
+
+        // Mostrar progreso
+        function mostrarProgreso() {
+            const mañanaContainer = document.getElementById('mañanaList');
+            const mediodiaContainer = document.getElementById('mediodiaList');
+            const tardeContainer = document.getElementById('tardeList');
+            const activityLog = document.getElementById('activityLog');
+            
+            // Limpiar contenedores
+            mañanaContainer.innerHTML = '';
+            mediodiaContainer.innerHTML = '';
+            tardeContainer.innerHTML = '';
+            activityLog.innerHTML = '';
+            
+            // Agrupar por tanda
+            const porTanda = {
+                'mañana': [],
+                'mediodía': [],
+                'tarde': []
+            };
+            
+            datosProgreso.forEach(item => {
+                if (porTanda[item.tanda]) {
+                    porTanda[item.tanda].push(item);
+                }
+            });
+            
+            // Mostrar cada tanda
+            Object.entries(porTanda).forEach(([tanda, items]) => {
+                const container = tanda === 'mañana' ? mañanaContainer : 
+                                 tanda === 'mediodía' ? mediodiaContainer : tardeContainer;
+                
+                if (items.length === 0) {
+                    container.innerHTML = '<div class="text-gray-500 text-sm">Sin actividad aún</div>';
+                } else {
+                    items.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'completado p-3 rounded-lg';
+                        div.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <div class="font-semibold">${item.producto}</div>
+                                    <div class="text-sm text-gray-600">${new Date(item.completado_at).toLocaleTimeString('es-ES')}</div>
+                                </div>
+                                <div class="text-green-600">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            });
+            
+            // Mostrar log de actividad
+            datosProgreso.slice(0, 10).forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center space-x-3 p-3 bg-gray-50 rounded-lg';
+                div.innerHTML = `
+                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div class="flex-1">
+                        <span class="font-semibold">${item.producto}</span> 
+                        <span class="text-gray-600">(${item.tanda})</span>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        ${new Date(item.completado_at).toLocaleTimeString('es-ES')}
+                    </div>
+                `;
+                activityLog.appendChild(div);
+            });
+            
+            // Actualizar estadísticas
+            const totalCompletado = datosProgreso.length;
+            const ultimaActividad = datosProgreso.length > 0 ? 
+                new Date(datosProgreso[0].completado_at).toLocaleTimeString('es-ES') : '--:--';
+            
+            document.getElementById('totalCompletado').textContent = totalCompletado;
+            document.getElementById('ultimaActividad').textContent = ultimaActividad;
+            
+            // Calcular porcentaje aproximado (esto dependerá del día de la semana)
+            const porcentaje = Math.min(100, Math.round((totalCompletado / 50) * 100)); // Estimación
+            document.getElementById('porcentajeTotal').textContent = porcentaje + '%';
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            actualizarFechaHora();
+            cargarProgreso();
+            
+            // Actualizar cada 30 segundos
+            setInterval(cargarProgreso, 30000);
+            setInterval(actualizarFechaHora, 60000);
+        });
+    </script>
+</body>
+</html> 

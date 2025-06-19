@@ -48,6 +48,7 @@ let employees = [];
 let scheduleData = {}; 
 let currentModalEmployee = null;
 let currentModalDay = null;
+let employeesOnVacation = new Set(); // IDs de empleados de vacaciones
 
 // Configuración de autenticación
 const ADMIN_PASSWORD = 'fornverge2025'; // Contraseña del panel
@@ -70,6 +71,7 @@ async function initApp() {
     
     setupWeekSelector();
     updateWeekDisplay();
+    loadVacationState(); // Cargar estado de vacaciones
     
     await loadEmployees();
     await loadCurrentSchedules();
@@ -108,11 +110,24 @@ function setupEventListeners() {
     document.getElementById('nextWeek').addEventListener('click', goToNextWeek);
     document.getElementById('weekSelector').addEventListener('change', onWeekSelectChange);
     
+    // Cambio de vistas
+    document.getElementById('dayViewBtn').addEventListener('click', () => switchView('day'));
+    document.getElementById('weekViewBtn').addEventListener('click', () => switchView('week'));
+    
+    // Gestión de vacaciones
+    document.getElementById('vacationsBtn').addEventListener('click', openVacationModal);
+    document.getElementById('closeVacationModal').addEventListener('click', closeVacationModal);
+    document.getElementById('cancelVacationModal').addEventListener('click', closeVacationModal);
+    
     // Logout
     document.getElementById('logoutButton').addEventListener('click', logout);
     
     document.getElementById('shiftModal').addEventListener('click', (e) => {
         if (e.target.id === 'shiftModal') closeModal();
+    });
+    
+    document.getElementById('vacationModal').addEventListener('click', (e) => {
+        if (e.target.id === 'vacationModal') closeVacationModal();
     });
 }
 
@@ -174,6 +189,23 @@ async function loadCurrentSchedules() {
         console.log('📊 Datos recibidos:', data?.length || 0, 'registros');
         console.log('🔍 Muestra de datos:', data?.slice(0, 2));
 
+        // LIMPIAR scheduleData antes de cargar
+        employees.forEach(emp => {
+            DAYS.forEach(day => {
+                scheduleData[emp.id][day.key] = [];
+            });
+        });
+
+        // Log específico para Gaby antes del procesamiento
+        const gabyEmployee = employees.find(emp => emp.name === 'GABY');
+        if (gabyEmployee) {
+            const gabySchedules = data.filter(s => s.employee_id === gabyEmployee.id);
+            console.log('🔍 GABY - Registros en BD:', gabySchedules.length);
+            gabySchedules.forEach((s, i) => {
+                console.log(`  [${i+1}] ${s.day_of_week}: ${s.start_time || 'NULL'}-${s.end_time || 'NULL'} (libre: ${s.is_free_day}, seq: ${s.shift_sequence})`);
+            });
+        }
+
         data.forEach(schedule => {
             const empId = schedule.employee_id;
             const day = schedule.day_of_week;
@@ -183,28 +215,50 @@ async function loadCurrentSchedules() {
                     scheduleData[empId][day].push({
                         id: schedule.id,
                         type: 'free',
-                        start: null,
-                        end: null,
-                        hours: 0,
                         isFree: true,
                         description: 'Día libre'
                     });
+                    
+                    // Log específico para Gaby cuando es día libre
+                    if (gabyEmployee && empId === gabyEmployee.id) {
+                        console.log(`🔍 GABY - Añadiendo día libre en ${day}`);
+                    }
                 } else {
-                    const type = getShiftType(schedule.start_time, schedule.end_time);
-                    scheduleData[empId][day].push({
+                    const shiftType = getShiftType(schedule.start_time, schedule.end_time);
+                    const newShift = {
                         id: schedule.id,
-                        type: type,
                         start: schedule.start_time,
                         end: schedule.end_time,
                         hours: schedule.hours || 0,
+                        type: shiftType,
                         isFree: false,
-                        description: schedule.shift_description || getShiftDescription(type)
-                    });
+                        description: schedule.shift_description || getShiftDescription(shiftType)
+                    };
+                    
+                    scheduleData[empId][day].push(newShift);
+                    
+                    // Log específico para Gaby cuando es turno de trabajo
+                    if (gabyEmployee && empId === gabyEmployee.id) {
+                        console.log(`🔍 GABY - Añadiendo turno en ${day}: ${newShift.start}-${newShift.end} (${newShift.hours}h)`);
+                    }
                 }
             }
         });
 
-        console.log('✅ Horarios cargados y procesados');
+        // Log específico para Gaby después del procesamiento
+        if (gabyEmployee) {
+            console.log('🔍 GABY - Estado final en scheduleData:');
+            DAYS.forEach(day => {
+                const shifts = scheduleData[gabyEmployee.id][day.key] || [];
+                console.log(`  ${day.key}: ${shifts.length} turnos`);
+                shifts.forEach((s, i) => {
+                    console.log(`    [${i+1}] ${s.isFree ? 'DÍA LIBRE' : `${s.start}-${s.end} (${s.hours}h)`}`);
+                });
+            });
+        }
+
+        console.log('✅ Horarios cargados en scheduleData');
+        updateStats();
 
     } catch (error) {
         console.error('❌ Error:', error);
@@ -227,7 +281,10 @@ function updateStats() {
     let totalHours = 0;
     let freeDays = 0;
 
-    employees.forEach(emp => {
+    // Solo contar estadísticas de empleados activos (no de vacaciones)
+    const activeEmployees = getActiveEmployees();
+    
+    activeEmployees.forEach(emp => {
         DAYS.forEach(day => {
             const shifts = scheduleData[emp.id][day.key] || [];
             shifts.forEach(shift => {
@@ -245,7 +302,8 @@ function updateStats() {
         totalShifts, 
         totalHours, 
         freeDays, 
-        employees: employees.length,
+        activeEmployees: activeEmployees.length,
+        onVacation: employeesOnVacation.size,
         scheduleData: Object.keys(scheduleData).length 
     });
 
@@ -259,15 +317,34 @@ function updateStats() {
 
     console.log('📊 Elementos DOM encontrados:', Object.keys(elements).filter(key => elements[key]));
 
-    if (elements.totalEmployees) elements.totalEmployees.textContent = employees.length;
+    // Mostrar empleados activos y en vacaciones
+    const onVacationCount = employeesOnVacation.size;
+    const employeeText = onVacationCount > 0 ? 
+        `${activeEmployees.length} (${onVacationCount} 🏖️)` : 
+        activeEmployees.length.toString();
+
+    if (elements.totalEmployees) elements.totalEmployees.textContent = employeeText;
     if (elements.totalShifts) elements.totalShifts.textContent = totalShifts;
     if (elements.totalHours) elements.totalHours.textContent = totalHours;
     if (elements.freeDays) elements.freeDays.textContent = freeDays;
 }
 
 function renderEmployees() {
-    renderDaysView();
+    // Determinar qué vista está activa y renderizar la correcta
+    const weekFullView = document.getElementById('weekFullView');
+    const isWeekViewActive = weekFullView && weekFullView.classList.contains('active');
+    
+    if (isWeekViewActive) {
+        renderWeekFullView();
+    } else {
+        renderDaysView();
+    }
     updateStats();
+}
+
+// Función helper para filtrar empleados que no están de vacaciones
+function getActiveEmployees() {
+    return employees.filter(emp => !employeesOnVacation.has(emp.id));
 }
 
 function getTotalShifts(empId) {
@@ -435,8 +512,7 @@ function addFreeDay() {
         description: 'Día libre'
     }];
     
-    renderDaysView();
-    updateStats();
+    renderEmployees(); // Esto ahora detecta y renderiza la vista correcta
     
     // CAPTURAR las variables ANTES de cerrar el modal
     const empId = currentModalEmployee;
@@ -552,8 +628,7 @@ function addShiftFromModal() {
         scheduleData[currentModalEmployee][currentModalDay].push(newShift);
     }
     
-    renderDaysView();
-    updateStats();
+    renderEmployees(); // Esto ahora detecta y renderiza la vista correcta
     
     // CAPTURAR las variables ANTES de cerrar el modal
     const empId = currentModalEmployee;
@@ -584,9 +659,8 @@ function removeShift(empId, day, index) {
     // Remover del estado local
     scheduleData[empId][day].splice(index, 1);
     
-    // Re-renderizar la vista
-    renderDaysView();
-    updateStats();
+    // Re-renderizar la vista correcta
+    renderEmployees();
     
     // Eliminar específicamente de Supabase (más seguro)
     console.log('💾 Eliminando turno específico de Supabase...');
@@ -619,6 +693,9 @@ async function removeSpecificShiftFromDB(empId, day, shiftData) {
         }
         
         updateStatus('Turno eliminado ✅');
+        
+        // Actualizar la vista después de eliminar
+        renderEmployees();
         
     } catch (error) {
         console.error('❌ Error:', error);
@@ -688,6 +765,9 @@ async function rebuildDaySchedule(empId, day) {
         }
         
         console.log('✅ Día reconstruido exitosamente');
+        
+        // Actualizar la vista después de reconstruir
+        renderEmployees();
         
     } catch (error) {
         console.error('❌ Error reconstruyendo día:', error);
@@ -835,20 +915,36 @@ function createDayScheduleCard(day) {
     const card = document.createElement('div');
     card.className = 'day-schedule-card p-6';
     
-    // Obtener empleados que trabajan este día y los que están libres
+    // Obtener empleados que trabajan este día y los que están libres (solo activos)
     const workingEmployees = [];
     const freeEmployees = [];
     
-    employees.forEach(employee => {
+    getActiveEmployees().forEach(employee => {
         const shifts = scheduleData[employee.id][day.key] || [];
         
-        if (shifts.length === 0 || shifts.some(shift => shift.isFree)) {
+        if (shifts.length === 0) {
+            // No tiene registros - empleado libre
             freeEmployees.push(employee);
         } else {
-            workingEmployees.push({
-                ...employee,
-                shifts: shifts
-            });
+            // Separar turnos de trabajo de días libres
+            const workShifts = shifts.filter(shift => !shift.isFree);
+            const freeShifts = shifts.filter(shift => shift.isFree);
+            
+            if (workShifts.length > 0) {
+                // Tiene turnos de trabajo - es empleado trabajando
+                workingEmployees.push({
+                    ...employee,
+                    shifts: workShifts
+                });
+                
+                // Log de advertencia si también tiene días libres (problema de datos)
+                if (freeShifts.length > 0) {
+                    console.warn(`⚠️ ${employee.name} tiene TANTO turnos de trabajo COMO días libres en ${day.key} - datos inconsistentes`);
+                }
+            } else {
+                // Solo tiene días libres - empleado libre
+                freeEmployees.push(employee);
+            }
         }
     });
     
@@ -919,7 +1015,7 @@ function createDayScheduleCard(day) {
         <!-- Botón para agregar empleado a cualquier turno -->
         <div class="border-t pt-4">
             <div class="flex flex-wrap gap-2">
-                ${employees.map(emp => `
+                ${getActiveEmployees().map(emp => `
                     <button 
                         onclick="openShiftModal('${emp.id}', '${day.key}', '${emp.name}', '${day.fullName}')"
                         class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded-lg transition-all border border-blue-200 hover:border-blue-300"
@@ -938,6 +1034,7 @@ function createDayScheduleCard(day) {
 function createEmployeeShiftDisplayWithActions(emp, day) {
     const shifts = emp.shifts;
     const isMultipleShifts = shifts.length > 1;
+    const employeeColor = getEmployeeColor(emp.id);
     
     if (isMultipleShifts) {
         // Horario partido: mostrar todos los turnos con acciones
@@ -947,13 +1044,13 @@ function createEmployeeShiftDisplayWithActions(emp, day) {
             .join(' + ');
             
         return `
-            <div class="day-card day-special">
+            <div class="day-card" style="border-left: 4px solid ${employeeColor.border}; background: linear-gradient(45deg, ${employeeColor.background}, #ffffff);">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
                         <span class="text-xl">🔄</span>
                         <div>
                             <div class="font-semibold">${emp.name}</div>
-                            <div class="text-xs text-red-600 font-medium">⚡ ${shifts.length} turnos</div>
+                            <div class="text-xs font-medium" style="color: ${employeeColor.border};">⚡ ${shifts.length} turnos</div>
                         </div>
                     </div>
                     <div class="text-right">
@@ -964,7 +1061,8 @@ function createEmployeeShiftDisplayWithActions(emp, day) {
                 <div class="flex justify-end space-x-1 mt-3">
                     <button 
                         onclick="openShiftModal('${emp.id}', '${day.key}', '${emp.name}', '${day.fullName}')"
-                        class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-2 py-1 rounded transition-all"
+                        class="text-white text-xs px-2 py-1 rounded transition-all"
+                        style="background: ${employeeColor.border};"
                     >
                         <i class="fas fa-plus"></i> Agregar
                     </button>
@@ -985,15 +1083,10 @@ function createEmployeeShiftDisplayWithActions(emp, day) {
         const startTime = shift.start?.slice(0,5) || '';
         const endTime = shift.end?.slice(0,5) || '';
         
-        const isSpecialTime = startTime !== '07:00' && startTime !== '14:00';
-        const cardClass = isSpecialTime ? 'day-special' : 
-                         startTime === '07:00' ? 'day-morning' : 'day-afternoon';
-        
-        const icon = isSpecialTime ? '⚡' : 
-                    startTime === '07:00' ? '🌅' : '🌆';
+        const icon = getShiftTypeIcon(shift.type);
         
         return `
-            <div class="day-card ${cardClass}">
+            <div class="day-card" style="border-left: 4px solid ${employeeColor.border}; background: linear-gradient(45deg, ${employeeColor.background}, #ffffff);">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
                         <span class="text-xl">${icon}</span>
@@ -1010,7 +1103,8 @@ function createEmployeeShiftDisplayWithActions(emp, day) {
                 <div class="flex justify-end space-x-1 mt-3">
                     <button 
                         onclick="openShiftModal('${emp.id}', '${day.key}', '${emp.name}', '${day.fullName}')"
-                        class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-2 py-1 rounded transition-all"
+                        class="text-white text-xs px-2 py-1 rounded transition-all"
+                        style="background: ${employeeColor.border};"
                     >
                         <i class="fas fa-plus"></i> Agregar
                     </button>
@@ -1496,5 +1590,1053 @@ const style = document.createElement('style');
 style.textContent = shakeCSS;
 document.head.appendChild(style);
 
+// === FUNCIONES DE VISTA DE SEMANA COMPLETA ===
+
+function switchView(viewType) {
+    const dayViewBtn = document.getElementById('dayViewBtn');
+    const weekViewBtn = document.getElementById('weekViewBtn');
+    const mainView = document.getElementById('mainView');
+    const weekFullView = document.getElementById('weekFullView');
+    
+    if (viewType === 'week') {
+        // Cambiar a vista de semana completa
+        dayViewBtn.classList.remove('active');
+        weekViewBtn.classList.add('active');
+        mainView.style.display = 'none';
+        weekFullView.classList.add('active');
+        renderWeekFullView();
+    } else {
+        // Cambiar a vista por días
+        weekViewBtn.classList.remove('active');
+        dayViewBtn.classList.add('active');
+        weekFullView.classList.remove('active');
+        mainView.style.display = 'block';
+        renderDaysView();
+    }
+}
+
+function renderWeekFullView() {
+    // Renderizar la leyenda de empleados
+    renderEmployeeLegend();
+    
+    const container = document.getElementById('weekGridContainer');
+    container.innerHTML = '';
+    
+    // Crear columna para cada día de la semana
+    DAYS.forEach(day => {
+        const dayColumn = createWeekDayColumn(day);
+        container.appendChild(dayColumn);
+    });
+    
+    // Renderizar el resumen detallado
+    renderWeekSummary();
+}
+
+function renderEmployeeLegend() {
+    const container = document.getElementById('employeeLegend');
+    container.innerHTML = '';
+    
+    const activeEmployees = getActiveEmployees();
+    
+    if (activeEmployees.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.style.display = 'block';
+    
+    const title = document.createElement('div');
+    title.className = 'employee-legend-title';
+    title.innerHTML = '<i class="fas fa-palette mr-2"></i>Código de colores por empleado';
+    
+    const grid = document.createElement('div');
+    grid.className = 'employee-legend-grid';
+    
+    activeEmployees.forEach(employee => {
+        const color = getEmployeeColor(employee.id);
+        const totalHours = getTotalHours(employee.id);
+        
+        const item = document.createElement('div');
+        item.className = 'employee-legend-item';
+        item.style.cssText = `
+            background: linear-gradient(45deg, ${color.background}, #ffffff);
+            border: 1px solid ${color.border};
+        `;
+        
+        item.innerHTML = `
+            <div class="employee-legend-color" style="background: ${color.border}; border-color: ${color.border};"></div>
+            <div class="employee-legend-info">
+                <div class="employee-legend-name">${employee.name}</div>
+                <div class="employee-legend-hours">${totalHours}h semanales</div>
+            </div>
+        `;
+        
+        grid.appendChild(item);
+    });
+    
+    container.appendChild(title);
+    container.appendChild(grid);
+}
+
+function renderWeekSummary() {
+    const container = document.getElementById('weekSummary');
+    container.innerHTML = '';
+    
+    const activeEmployees = getActiveEmployees();
+    
+    if (activeEmployees.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.style.display = 'block';
+    
+    const title = document.createElement('div');
+    title.className = 'week-summary-title';
+    title.innerHTML = '<i class="fas fa-chart-bar mr-2"></i>Resumen Semanal de Horas';
+    
+    const grid = document.createElement('div');
+    grid.className = 'week-summary-grid';
+    
+    activeEmployees.forEach(employee => {
+        const color = getEmployeeColor(employee.id);
+        const stats = getEmployeeWeekStats(employee.id);
+        
+        const card = document.createElement('div');
+        card.className = 'employee-summary-card';
+        card.style.cssText = `
+            background: linear-gradient(45deg, ${color.background}, #ffffff);
+            border-color: ${color.border};
+        `;
+        
+        card.innerHTML = `
+            <div class="employee-summary-header">
+                <div class="employee-summary-name">${employee.name}</div>
+                <div class="employee-summary-total" style="color: ${color.border};">${stats.totalHours}h</div>
+            </div>
+            <div class="employee-summary-details">
+                <div class="summary-detail-item">
+                    <span class="summary-detail-label">Turnos:</span>
+                    <span class="summary-detail-value">${stats.totalShifts}</span>
+                </div>
+                <div class="summary-detail-item">
+                    <span class="summary-detail-label">Días libres:</span>
+                    <span class="summary-detail-value">${stats.freeDays}</span>
+                </div>
+                <div class="summary-detail-item">
+                    <span class="summary-detail-label">🌅 Mañanas:</span>
+                    <span class="summary-detail-value">${stats.morningShifts}</span>
+                </div>
+                <div class="summary-detail-item">
+                    <span class="summary-detail-label">🌆 Tardes:</span>
+                    <span class="summary-detail-value">${stats.afternoonShifts}</span>
+                </div>
+                <div class="summary-detail-item">
+                    <span class="summary-detail-label">⚡ Refuerzos:</span>
+                    <span class="summary-detail-value">${stats.refuerzoShifts}</span>
+                </div>
+                <div class="summary-detail-item">
+                    <span class="summary-detail-label">Promedio/día:</span>
+                    <span class="summary-detail-value">${stats.averageHours}h</span>
+                </div>
+            </div>
+        `;
+        
+        grid.appendChild(card);
+    });
+    
+    container.appendChild(title);
+    container.appendChild(grid);
+}
+
+function getEmployeeWeekStats(employeeId) {
+    let totalHours = 0;
+    let totalShifts = 0;
+    let freeDays = 0;
+    let morningShifts = 0;
+    let afternoonShifts = 0;
+    let refuerzoShifts = 0;
+    let customShifts = 0;
+    
+    DAYS.forEach(day => {
+        const shifts = scheduleData[employeeId][day.key] || [];
+        
+        if (shifts.length === 0) {
+            freeDays++;
+        } else {
+            shifts.forEach(shift => {
+                if (shift.isFree) {
+                    freeDays++;
+                } else {
+                    totalShifts++;
+                    totalHours += shift.hours || 0;
+                    
+                    switch(shift.type) {
+                        case 'morning':
+                            morningShifts++;
+                            break;
+                        case 'afternoon':
+                            afternoonShifts++;
+                            break;
+                        case 'refuerzo':
+                            refuerzoShifts++;
+                            break;
+                        default:
+                            customShifts++;
+                            break;
+                    }
+                }
+            });
+        }
+    });
+    
+    const workingDays = DAYS.length - freeDays;
+    const averageHours = workingDays > 0 ? (totalHours / workingDays).toFixed(1) : '0.0';
+    
+    return {
+        totalHours,
+        totalShifts,
+        freeDays,
+        morningShifts,
+        afternoonShifts,
+        refuerzoShifts,
+        customShifts,
+        averageHours
+    };
+}
+
+function createWeekDayColumn(day) {
+    const column = document.createElement('div');
+    column.className = 'week-day-column';
+    
+    // Header del día
+    const header = document.createElement('div');
+    header.className = 'week-day-header';
+    header.innerHTML = `
+        <div>${day.name}</div>
+    `;
+    
+    // Contenido del día
+    const content = document.createElement('div');
+    content.className = 'week-day-content';
+    
+    // Separar empleados que trabajan de los que están libres (CON LÓGICA MEJORADA)
+    const workingShifts = [];
+    const freeEmployees = [];
+    
+    getActiveEmployees().forEach(employee => {
+        const shifts = scheduleData[employee.id][day.key] || [];
+        
+        if (shifts.length === 0) {
+            // No tiene registros - empleado libre
+            freeEmployees.push(employee);
+        } else {
+            // Separar turnos de trabajo de días libres
+            const workShifts = shifts.filter(shift => !shift.isFree);
+            const freeShifts = shifts.filter(shift => shift.isFree);
+            
+            if (workShifts.length > 0) {
+                // Tiene turnos de trabajo - agregar SOLO los turnos de trabajo
+                workShifts.forEach(shift => {
+                    workingShifts.push({
+                        employee: employee,
+                        shift: shift
+                    });
+                });
+                
+                // Log de advertencia si también tiene días libres (problema de datos)
+                if (freeShifts.length > 0) {
+                    console.warn(`⚠️ VISTA SEMANAL: ${employee.name} tiene TANTO turnos de trabajo COMO días libres en ${day.key} - priorizando turnos de trabajo`);
+                }
+            } else {
+                // Solo tiene días libres - empleado libre
+                freeEmployees.push(employee);
+            }
+        }
+    });
+    
+    // Ordenar turnos de trabajo por hora de inicio
+    workingShifts.sort((a, b) => {
+        if (!a.shift.start || !b.shift.start) return 0;
+        return a.shift.start.localeCompare(b.shift.start);
+    });
+    
+    // Renderizar primero los turnos de trabajo
+    workingShifts.forEach(({ employee, shift }) => {
+        const shiftElement = createWeekShiftElement(employee, day, shift);
+        content.appendChild(shiftElement);
+    });
+    
+    // Separador visual si hay empleados libres
+    if (freeEmployees.length > 0 && workingShifts.length > 0) {
+        const separator = document.createElement('div');
+        separator.style.cssText = 'height: 8px; border-bottom: 1px dashed #d1d5db; margin: 8px 0;';
+        content.appendChild(separator);
+    }
+    
+    // Renderizar empleados libres al final (solo empleados que REALMENTE están libres)
+    freeEmployees.forEach(employee => {
+        const freeElement = createWeekShiftElement(employee, day, { isFree: true });
+        content.appendChild(freeElement);
+    });
+    
+    // Botón para agregar solo si hay empleados realmente sin nada asignado
+    const employeesWithoutAnyShift = getActiveEmployees().filter(emp => {
+        const shifts = scheduleData[emp.id][day.key] || [];
+        return shifts.length === 0;
+    });
+    
+    if (employeesWithoutAnyShift.length > 0) {
+        const addButton = document.createElement('div');
+        addButton.className = 'week-add-btn';
+        addButton.innerHTML = `
+            <i class="fas fa-plus mb-1"></i><br>
+            <div style="font-size: 10px;">Agregar turno</div>
+            <div style="font-size: 9px; opacity: 0.7;">(${employeesWithoutAnyShift.length} sin asignar)</div>
+        `;
+        addButton.onclick = () => showAddEmployeeMenu(day, employeesWithoutAnyShift);
+        content.appendChild(addButton);
+    }
+    
+    column.appendChild(header);
+    column.appendChild(content);
+    
+    return column;
+}
+
+function createWeekShiftElement(employee, day, shift) {
+    const element = document.createElement('div');
+    
+    if (shift.isFree) {
+        element.className = 'week-shift-compact free';
+        element.innerHTML = `
+            <div class="week-employee-name">${employee.name}</div>
+            <div class="week-shift-time">Día libre</div>
+        `;
+    } else {
+        const employeeColor = getEmployeeColor(employee.id);
+        element.className = `week-shift-compact employee-color`;
+        element.style.cssText = `
+            border-left: 3px solid ${employeeColor.border};
+            background: linear-gradient(45deg, ${employeeColor.background}, #ffffff);
+        `;
+        
+        element.innerHTML = `
+            <div class="week-employee-name">${employee.name}</div>
+            <div class="week-shift-time">${shift.start?.slice(0,5)} - ${shift.end?.slice(0,5)}</div>
+            <div class="week-shift-delete" onclick="removeWeekShift(event, '${employee.id}', '${day.key}', ${JSON.stringify(shift).replace(/"/g, '&quot;')})">
+                <i class="fas fa-times"></i>
+            </div>
+        `;
+    }
+    
+    // Agregar funcionalidad de click para editar
+    element.onclick = (e) => {
+        e.stopPropagation();
+        openShiftModal(employee.id, day.key, employee.name, day.fullName);
+    };
+    
+    return element;
+}
+
+// Sistema de colores por empleado en lugar de por tipo de turno
+function getEmployeeColor(employeeId) {
+    const colors = [
+        { border: '#10b981', background: '#d1fae5' }, // Verde esmeralda
+        { border: '#3b82f6', background: '#dbeafe' }, // Azul
+        { border: '#f59e0b', background: '#fef3c7' }, // Ámbar
+        { border: '#ef4444', background: '#fecaca' }, // Rojo
+        { border: '#8b5cf6', background: '#ede9fe' }, // Violeta
+        { border: '#06b6d4', background: '#cffafe' }, // Cian
+        { border: '#f97316', background: '#fed7aa' }, // Naranja
+        { border: '#84cc16', background: '#ecfccb' }, // Lima
+        { border: '#ec4899', background: '#fce7f3' }, // Rosa
+        { border: '#6366f1', background: '#e0e7ff' }  // Índigo
+    ];
+    
+    // Crear un índice estable basado en el ID del empleado
+    const employeeIndex = employees.findIndex(emp => emp.id === employeeId);
+    const colorIndex = employeeIndex >= 0 ? employeeIndex % colors.length : 0;
+    
+    return colors[colorIndex];
+}
+
+function getShiftTypeIcon(type) {
+    switch(type) {
+        case 'morning': return '🌅';
+        case 'afternoon': return '🌆';
+        case 'refuerzo': return '⚡';
+        case 'custom': return '🎯';
+        default: return '';
+    }
+}
+
+function getShiftTypeClass(type) {
+    switch(type) {
+        case 'morning': return 'morning';
+        case 'afternoon': return 'afternoon';
+        case 'refuerzo': return 'refuerzo';
+        case 'custom': return 'custom';
+        default: return 'custom';
+    }
+}
+
+function showAddEmployeeMenu(day, availableEmployees) {
+    // Crear un menú simple para seleccionar empleado
+    const employeeNames = availableEmployees.map(emp => emp.name).join(', ');
+    const selectedEmployee = availableEmployees[0]; // Por simplicidad, tomar el primero
+    
+    if (selectedEmployee) {
+        openShiftModal(selectedEmployee.id, day.key, selectedEmployee.name, day.fullName);
+    }
+}
+
+function removeWeekShift(event, empId, dayKey, shiftData) {
+    event.stopPropagation();
+    
+    console.log('🗑️ Eliminando turno desde vista de semana:', { empId, dayKey, shiftData });
+    
+    // Buscar el índice del turno en scheduleData
+    const shifts = scheduleData[empId][dayKey] || [];
+    let shiftIndex = -1;
+    
+    // Mejorar la búsqueda del turno
+    if (shiftData.isFree) {
+        // Para días libres, buscar por tipo
+        shiftIndex = shifts.findIndex(shift => shift.isFree === true);
+    } else {
+        // Para turnos normales, buscar por horarios exactos
+        shiftIndex = shifts.findIndex(shift => {
+            return !shift.isFree && 
+                   shift.start === shiftData.start && 
+                   shift.end === shiftData.end;
+        });
+        
+        // Si no se encuentra, intentar búsqueda más flexible
+        if (shiftIndex === -1) {
+            shiftIndex = shifts.findIndex(shift => {
+                return !shift.isFree && 
+                       shift.start?.slice(0,5) === shiftData.start?.slice(0,5) && 
+                       shift.end?.slice(0,5) === shiftData.end?.slice(0,5);
+            });
+        }
+    }
+    
+    if (shiftIndex === -1) {
+        console.error('❌ No se encontró el turno para eliminar');
+        console.log('🔍 Turnos disponibles:', shifts);
+        console.log('🔍 Buscando:', shiftData);
+        return;
+    }
+    
+    console.log(`🎯 Encontrado turno en índice ${shiftIndex}`);
+    
+    // Eliminar usando la función existente
+    removeShift(empId, dayKey, shiftIndex);
+    
+    // Forzar actualización de la vista semanal
+    setTimeout(() => {
+        if (document.getElementById('weekViewBtn').classList.contains('active')) {
+            renderWeekFullView();
+        }
+    }, 100);
+}
+
+// === FUNCIONES DE GESTIÓN DE VACACIONES ===
+
+function loadVacationState() {
+    try {
+        const savedVacations = localStorage.getItem('fornverge_vacations');
+        if (savedVacations) {
+            const vacationArray = JSON.parse(savedVacations);
+            employeesOnVacation = new Set(vacationArray);
+            console.log('✅ Estado de vacaciones cargado:', employeesOnVacation);
+        }
+    } catch (error) {
+        console.error('❌ Error cargando estado de vacaciones:', error);
+        employeesOnVacation = new Set();
+    }
+}
+
+function saveVacationState() {
+    try {
+        const vacationArray = Array.from(employeesOnVacation);
+        localStorage.setItem('fornverge_vacations', JSON.stringify(vacationArray));
+        console.log('💾 Estado de vacaciones guardado:', vacationArray);
+    } catch (error) {
+        console.error('❌ Error guardando estado de vacaciones:', error);
+    }
+}
+
+function openVacationModal() {
+    renderVacationList();
+    document.getElementById('vacationModal').classList.add('show');
+}
+
+function closeVacationModal() {
+    document.getElementById('vacationModal').classList.remove('show');
+}
+
+function renderVacationList() {
+    const container = document.getElementById('employeeVacationList');
+    container.innerHTML = '';
+    
+    employees.forEach(employee => {
+        const isOnVacation = employeesOnVacation.has(employee.id);
+        
+        const item = document.createElement('div');
+        item.className = `vacation-employee-item ${isOnVacation ? 'on-vacation' : ''}`;
+        
+        item.innerHTML = `
+            <div class="vacation-employee-info">
+                <span class="text-2xl">${isOnVacation ? '🏖️' : '👤'}</span>
+                <span class="vacation-employee-name">${employee.name}</span>
+                <span class="vacation-status ${isOnVacation ? 'active' : 'inactive'} ml-2">
+                    ${isOnVacation ? 'De vacaciones' : 'Disponible'}
+                </span>
+            </div>
+            <button 
+                class="vacation-toggle ${isOnVacation ? 'on-vacation' : ''}"
+                onclick="toggleEmployeeVacation('${employee.id}')"
+            >
+                ${isOnVacation ? '🏖️ Quitar vacaciones' : '✈️ Poner de vacaciones'}
+            </button>
+        `;
+        
+        container.appendChild(item);
+    });
+}
+
+function toggleEmployeeVacation(employeeId) {
+    if (employeesOnVacation.has(employeeId)) {
+        // Quitar de vacaciones
+        employeesOnVacation.delete(employeeId);
+        console.log(`✅ ${getEmployeeName(employeeId)} ya no está de vacaciones`);
+    } else {
+        // Poner de vacaciones
+        employeesOnVacation.add(employeeId);
+        console.log(`🏖️ ${getEmployeeName(employeeId)} está ahora de vacaciones`);
+    }
+    
+    // Guardar estado y actualizar interfaz
+    saveVacationState();
+    renderVacationList();
+    renderEmployees(); // Actualizar las vistas de horarios
+    
+    // Mostrar notificación
+    const employee = employees.find(emp => emp.id === employeeId);
+    const isNowOnVacation = employeesOnVacation.has(employeeId);
+    showVacationNotification(employee.name, isNowOnVacation);
+}
+
+function getEmployeeName(employeeId) {
+    const employee = employees.find(emp => emp.id === employeeId);
+    return employee ? employee.name : 'Empleado desconocido';
+}
+
+function showVacationNotification(employeeName, isOnVacation) {
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-orange-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 transform translate-x-full opacity-0 transition-all duration-500';
+    
+    const icon = isOnVacation ? '🏖️' : '👤';
+    const action = isOnVacation ? 'puesto de vacaciones' : 'quitado de vacaciones';
+    
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <span class="text-2xl mr-3">${icon}</span>
+            <div>
+                <div class="font-semibold">${employeeName}</div>
+                <div class="text-sm opacity-90">Ha sido ${action}</div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animar entrada
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full', 'opacity-0');
+    }, 100);
+    
+    // Animar salida después de 3 segundos
+    setTimeout(() => {
+        notification.classList.add('translate-x-full', 'opacity-0');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 500);
+    }, 3000);
+}
+
 // Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', initApp); 
+document.addEventListener('DOMContentLoaded', initApp);
+
+// === FUNCIONES DISPONIBLES EN CONSOLA PARA DEBUGGING ===
+// Usar en consola del navegador:
+// window.runDiagnostic() - Para diagnosticar problemas generales
+// window.cleanDuplicates() - Para limpiar duplicados generales
+// window.debugGaby() - Para diagnosticar problemas específicos de Gaby
+// window.fixGaby() - Para limpiar completamente los horarios de Gaby
+// window.detectInconsistentData() - Para detectar datos inconsistentes
+// window.cleanInconsistentData() - Para limpiar datos inconsistentes automáticamente
+// window.forceUpdateWeekView() - Para forzar actualización de vista semanal
+
+window.runDiagnostic = runDiagnostic;
+window.cleanDuplicates = cleanDuplicates;
+window.debugGaby = debugGaby;
+window.fixGaby = fixGaby;
+window.detectInconsistentData = detectInconsistentData;
+window.cleanInconsistentData = cleanInconsistentData;
+window.forceUpdateWeekView = forceUpdateWeekView;
+
+// === FUNCIÓN DE DIAGNÓSTICO PARA DETECTAR PROBLEMAS ===
+
+async function runDiagnostic() {
+    console.log('🔍 === DIAGNÓSTICO DEL SISTEMA ===');
+    
+    try {
+        // 1. Verificar duplicados en BD
+        const { data: allSchedules, error } = await supabase
+            .from('schedules')
+            .select('*')
+            .eq('week_start', currentWeekStart);
+            
+        if (error) {
+            console.error('❌ Error obteniendo datos:', error);
+            return;
+        }
+        
+        console.log(`📊 Total registros en BD para semana ${currentWeekStart}: ${allSchedules.length}`);
+        
+        // Agrupar por empleado y día
+        const byEmployeeDay = {};
+        allSchedules.forEach(schedule => {
+            const key = `${schedule.employee_id}_${schedule.day_of_week}`;
+            if (!byEmployeeDay[key]) byEmployeeDay[key] = [];
+            byEmployeeDay[key].push(schedule);
+        });
+        
+        // Verificar duplicados
+        let duplicatesFound = 0;
+        Object.keys(byEmployeeDay).forEach(key => {
+            const records = byEmployeeDay[key];
+            if (records.length > 1) {
+                duplicatesFound++;
+                const [empId, day] = key.split('_');
+                const empName = employees.find(e => e.id === empId)?.name || 'Desconocido';
+                
+                console.log(`⚠️  DUPLICADO: ${empName} - ${day} (${records.length} registros)`);
+                records.forEach((r, i) => {
+                    console.log(`   [${i+1}] ${r.start_time || 'libre'}-${r.end_time || 'libre'} (libre: ${r.is_free_day}, seq: ${r.shift_sequence})`);
+                });
+            }
+        });
+        
+        if (duplicatesFound === 0) {
+            console.log('✅ No se encontraron duplicados en la BD');
+        } else {
+            console.log(`🚨 Se encontraron ${duplicatesFound} casos de duplicados`);
+        }
+        
+        // 2. Verificar consistencia entre BD y scheduleData
+        console.log('\n🔄 Verificando consistencia BD vs ScheduleData...');
+        let inconsistencies = 0;
+        
+        employees.forEach(emp => {
+            DAYS.forEach(day => {
+                const memoryShifts = scheduleData[emp.id][day.key] || [];
+                const dbShifts = allSchedules.filter(s => 
+                    s.employee_id === emp.id && s.day_of_week === day.key
+                );
+                
+                if (memoryShifts.length !== dbShifts.length) {
+                    inconsistencies++;
+                    console.log(`⚠️  INCONSISTENCIA: ${emp.name} - ${day.name}`);
+                    console.log(`   Memoria: ${memoryShifts.length} turnos`);
+                    console.log(`   BD: ${dbShifts.length} turnos`);
+                }
+            });
+        });
+        
+        if (inconsistencies === 0) {
+            console.log('✅ BD y memoria están sincronizados');
+        } else {
+            console.log(`🚨 Se encontraron ${inconsistencies} inconsistencias`);
+        }
+        
+        console.log('🔍 === FIN DIAGNÓSTICO ===\n');
+        
+    } catch (error) {
+        console.error('❌ Error en diagnóstico:', error);
+    }
+}
+
+// === FUNCIÓN PARA LIMPIAR DUPLICADOS EN BD ===
+
+async function cleanDuplicates() {
+    console.log('🧹 === LIMPIEZA DE DUPLICADOS ===');
+    
+    try {
+        const { data: allSchedules, error } = await supabase
+            .from('schedules')
+            .select('*')
+            .eq('week_start', currentWeekStart)
+            .order('created_at');
+            
+        if (error) {
+            console.error('❌ Error obteniendo datos:', error);
+            return;
+        }
+        
+        // Agrupar por empleado y día
+        const byEmployeeDay = {};
+        allSchedules.forEach(schedule => {
+            const key = `${schedule.employee_id}_${schedule.day_of_week}`;
+            if (!byEmployeeDay[key]) byEmployeeDay[key] = [];
+            byEmployeeDay[key].push(schedule);
+        });
+        
+        let duplicatesRemoved = 0;
+        
+        // Procesar cada grupo
+        for (const key of Object.keys(byEmployeeDay)) {
+            const records = byEmployeeDay[key];
+            
+            if (records.length > 1) {
+                const [empId, day] = key.split('_');
+                const empName = employees.find(e => e.id === empId)?.name || 'Desconocido';
+                
+                console.log(`🔧 Limpiando duplicados: ${empName} - ${day} (${records.length} registros)`);
+                
+                // Mantener solo el más reciente (último en el array ordenado por created_at)
+                const toKeep = records[records.length - 1];
+                const toDelete = records.slice(0, -1);
+                
+                console.log(`✅ Manteniendo registro: ${toKeep.start_time || 'libre'}-${toKeep.end_time || 'libre'} (ID: ${toKeep.id.substring(0,8)})`);
+                
+                // Eliminar los duplicados
+                for (const record of toDelete) {
+                    console.log(`🗑️  Eliminando: ${record.start_time || 'libre'}-${record.end_time || 'libre'} (ID: ${record.id.substring(0,8)})`);
+                    
+                    const { error: deleteError } = await supabase
+                        .from('schedules')
+                        .delete()
+                        .eq('id', record.id);
+                        
+                    if (deleteError) {
+                        console.error('❌ Error eliminando:', deleteError);
+                    } else {
+                        duplicatesRemoved++;
+                    }
+                }
+            }
+        }
+        
+        console.log(`✅ Limpieza completada. ${duplicatesRemoved} duplicados eliminados.`);
+        
+        // Recargar datos después de la limpieza
+        if (duplicatesRemoved > 0) {
+            console.log('🔄 Recargando datos...');
+            await loadCurrentSchedules();
+            renderEmployees();
+            if (document.getElementById('weekViewBtn').classList.contains('active')) {
+                renderWeekFullView();
+            }
+        }
+        
+        console.log('🧹 === FIN LIMPIEZA ===\n');
+        
+    } catch (error) {
+        console.error('❌ Error en limpieza:', error);
+    }
+}
+
+// === FUNCIÓN ESPECÍFICA PARA DIAGNOSTICAR PROBLEMAS CON GABY ===
+
+async function debugGaby() {
+    console.log('🔍 === DIAGNÓSTICO ESPECÍFICO DE GABY ===');
+    
+    try {
+        // 1. Encontrar a Gaby
+        const gabyEmployee = employees.find(emp => emp.name === 'GABY');
+        if (!gabyEmployee) {
+            console.log('❌ Gaby no encontrada en employees');
+            return;
+        }
+        
+        console.log('✅ Gaby encontrada:', gabyEmployee);
+        
+        // 2. Verificar datos en BD
+        const { data: gabySchedules, error } = await supabase
+            .from('schedules')
+            .select('*')
+            .eq('employee_id', gabyEmployee.id)
+            .eq('week_start', currentWeekStart)
+            .order('created_at');
+            
+        if (error) {
+            console.error('❌ Error obteniendo horarios de Gaby:', error);
+            return;
+        }
+        
+        console.log(`📊 Gaby en BD (${currentWeekStart}): ${gabySchedules.length} registros`);
+        gabySchedules.forEach((s, i) => {
+            console.log(`  [${i+1}] ${s.day_of_week}: ${s.start_time || 'NULL'}-${s.end_time || 'NULL'} (libre: ${s.is_free_day}, seq: ${s.shift_sequence}, created: ${s.created_at})`);
+        });
+        
+        // 3. Verificar datos en memoria (scheduleData)
+        console.log('🧠 Gaby en memoria (scheduleData):');
+        DAYS.forEach(day => {
+            const shifts = scheduleData[gabyEmployee.id]?.[day.key] || [];
+            console.log(`  ${day.key}: ${shifts.length} turnos`);
+            shifts.forEach((s, i) => {
+                console.log(`    [${i+1}] ${s.isFree ? 'DÍA LIBRE' : `${s.start}-${s.end} (${s.hours}h, type: ${s.type})`}`);
+            });
+        });
+        
+        // 4. Verificar si está de vacaciones
+        const isOnVacation = employeesOnVacation.has(gabyEmployee.id);
+        console.log(`🏖️ ¿Está de vacaciones?: ${isOnVacation}`);
+        
+        // 5. Verificar vista activa
+        const weekViewActive = document.getElementById('weekViewBtn').classList.contains('active');
+        const dayViewActive = document.getElementById('dayViewBtn').classList.contains('active');
+        console.log(`👁️ Vista activa: ${weekViewActive ? 'SEMANA' : dayViewActive ? 'DÍAS' : 'DESCONOCIDA'}`);
+        
+        // 6. Buscar inconsistencias
+        console.log('🔍 Buscando inconsistencias...');
+        let inconsistencias = [];
+        
+        DAYS.forEach(day => {
+            const memoryShifts = scheduleData[gabyEmployee.id]?.[day.key] || [];
+            const dbShifts = gabySchedules.filter(s => s.day_of_week === day.key);
+            
+            if (memoryShifts.length !== dbShifts.length) {
+                inconsistencias.push(`${day.key}: BD(${dbShifts.length}) vs Memoria(${memoryShifts.length})`);
+            }
+            
+            // Verificar si hay turnos normales mezclados con días libres
+            if (memoryShifts.length > 1) {
+                const hasFree = memoryShifts.some(s => s.isFree);
+                const hasWork = memoryShifts.some(s => !s.isFree);
+                if (hasFree && hasWork) {
+                    inconsistencias.push(`${day.key}: MEZCLA de día libre Y turno de trabajo`);
+                }
+            }
+        });
+        
+        if (inconsistencias.length > 0) {
+            console.log('🚨 INCONSISTENCIAS ENCONTRADAS:');
+            inconsistencias.forEach(inc => console.log(`  - ${inc}`));
+        } else {
+            console.log('✅ No se encontraron inconsistencias obvias');
+        }
+        
+        console.log('🔍 === FIN DIAGNÓSTICO DE GABY ===\n');
+        
+    } catch (error) {
+        console.error('❌ Error en diagnóstico de Gaby:', error);
+    }
+}
+
+// === FUNCIÓN PARA LIMPIAR PROBLEMAS ESPECÍFICOS DE GABY ===
+
+async function fixGaby() {
+    console.log('🔧 === ARREGLANDO PROBLEMAS DE GABY ===');
+    
+    try {
+        // 1. Encontrar a Gaby
+        const gabyEmployee = employees.find(emp => emp.name === 'GABY');
+        if (!gabyEmployee) {
+            console.log('❌ Gaby no encontrada');
+            return;
+        }
+        
+        console.log('✅ Limpiando horarios de Gaby...');
+        
+        // 2. Eliminar TODOS los registros de Gaby para esta semana
+        const { error: deleteError } = await supabase
+            .from('schedules')
+            .delete()
+            .eq('employee_id', gabyEmployee.id)
+            .eq('week_start', currentWeekStart);
+            
+        if (deleteError) {
+            console.error('❌ Error eliminando registros:', deleteError);
+            return;
+        }
+        
+        console.log('✅ Registros de BD eliminados');
+        
+        // 3. Limpiar datos en memoria
+        DAYS.forEach(day => {
+            scheduleData[gabyEmployee.id][day.key] = [];
+        });
+        
+        console.log('✅ Datos en memoria limpiados');
+        
+        // 4. Recargar desde BD (debería estar vacío)
+        await loadCurrentSchedules();
+        
+        // 5. Actualizar vistas
+        renderEmployees();
+        if (document.getElementById('weekViewBtn').classList.contains('active')) {
+            renderWeekFullView();
+        }
+        
+        console.log('🔧 === GABY LIMPIADA - Ahora puedes agregar horarios nuevos ===\n');
+        
+    } catch (error) {
+        console.error('❌ Error limpiando Gaby:', error);
+    }
+}
+
+// === FUNCIÓN PARA DETECTAR DATOS INCONSISTENTES ===
+
+function detectInconsistentData() {
+    console.log('🔍 === DETECTANDO DATOS INCONSISTENTES ===');
+    
+    let inconsistencies = [];
+    
+    employees.forEach(employee => {
+        DAYS.forEach(day => {
+            const shifts = scheduleData[employee.id][day.key] || [];
+            
+            if (shifts.length > 1) {
+                const workShifts = shifts.filter(shift => !shift.isFree);
+                const freeShifts = shifts.filter(shift => shift.isFree);
+                
+                if (workShifts.length > 0 && freeShifts.length > 0) {
+                    inconsistencies.push({
+                        employee: employee.name,
+                        day: day.key,
+                        workShifts: workShifts.length,
+                        freeShifts: freeShifts.length,
+                        details: {
+                            work: workShifts.map(s => `${s.start}-${s.end}`),
+                            free: freeShifts.map(s => 'Día libre')
+                        }
+                    });
+                }
+            }
+        });
+    });
+    
+    if (inconsistencies.length > 0) {
+        console.log(`🚨 Se encontraron ${inconsistencies.length} inconsistencias:`);
+        inconsistencies.forEach((inc, i) => {
+            console.log(`${i+1}. ${inc.employee} - ${inc.day}:`);
+            console.log(`   - Turnos de trabajo: ${inc.details.work.join(', ')}`);
+            console.log(`   - Días libres: ${inc.details.free.join(', ')}`);
+        });
+        
+        console.log('\n💡 Usa window.cleanInconsistentData() para limpiar automáticamente');
+    } else {
+        console.log('✅ No se encontraron datos inconsistentes');
+    }
+    
+    console.log('🔍 === FIN DETECCIÓN ===\n');
+    
+    return inconsistencies;
+}
+
+// === FUNCIÓN PARA LIMPIAR DATOS INCONSISTENTES ===
+
+async function cleanInconsistentData() {
+    console.log('🧹 === LIMPIANDO DATOS INCONSISTENTES ===');
+    
+    const inconsistencies = detectInconsistentData();
+    
+    if (inconsistencies.length === 0) {
+        console.log('✅ No hay nada que limpiar');
+        return;
+    }
+    
+    let cleaned = 0;
+    
+    for (const inc of inconsistencies) {
+        console.log(`🔧 Limpiando ${inc.employee} - ${inc.day}...`);
+        
+        try {
+            const employee = employees.find(emp => emp.name === inc.employee);
+            if (!employee) continue;
+            
+            // Eliminar todos los registros de este empleado en este día
+            const { error: deleteError } = await supabase
+                .from('schedules')
+                .delete()
+                .eq('employee_id', employee.id)
+                .eq('week_start', currentWeekStart)
+                .eq('day_of_week', inc.day);
+                
+            if (deleteError) {
+                console.error(`❌ Error eliminando ${inc.employee} - ${inc.day}:`, deleteError);
+                continue;
+            }
+            
+            // Mantener solo los turnos de trabajo en memoria
+            const shifts = scheduleData[employee.id][inc.day] || [];
+            const workShifts = shifts.filter(shift => !shift.isFree);
+            scheduleData[employee.id][inc.day] = workShifts;
+            
+            // Re-insertar solo los turnos de trabajo en BD
+            if (workShifts.length > 0) {
+                const newSchedules = workShifts.map((shift, index) => ({
+                    employee_id: employee.id,
+                    week_start: currentWeekStart,
+                    day_of_week: inc.day,
+                    start_time: shift.start,
+                    end_time: shift.end,
+                    hours: shift.hours || 0,
+                    is_free_day: false,
+                    shift_sequence: index + 1,
+                    shift_description: shift.description || getShiftDescription(shift.type),
+                    colleagues: []
+                }));
+                
+                const { error: insertError } = await supabase
+                    .from('schedules')
+                    .insert(newSchedules);
+                    
+                if (insertError) {
+                    console.error(`❌ Error insertando ${inc.employee} - ${inc.day}:`, insertError);
+                    continue;
+                }
+            }
+            
+            cleaned++;
+            console.log(`✅ ${inc.employee} - ${inc.day} limpiado`);
+            
+        } catch (error) {
+            console.error(`❌ Error procesando ${inc.employee} - ${inc.day}:`, error);
+        }
+    }
+    
+    console.log(`✅ Limpieza completada. ${cleaned} casos limpiados.`);
+    
+    // Recargar datos y actualizar vista
+    if (cleaned > 0) {
+        console.log('🔄 Recargando datos...');
+        await loadCurrentSchedules();
+        renderEmployees();
+        if (document.getElementById('weekViewBtn').classList.contains('active')) {
+            renderWeekFullView();
+        }
+    }
+    
+    console.log('🧹 === FIN LIMPIEZA ===\n');
+}
+
+// === FUNCIÓN PARA FORZAR ACTUALIZACIÓN DE VISTA SEMANAL ===
+
+function forceUpdateWeekView() {
+    console.log('🔄 Forzando actualización de vista semanal...');
+    
+    if (document.getElementById('weekViewBtn').classList.contains('active')) {
+        renderWeekFullView();
+        console.log('✅ Vista semanal actualizada');
+    } else {
+        console.log('ℹ️ Vista semanal no está activa');
+    }
+}

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forn Verge - Descongelación Diaria</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8B4513">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1>🥖 Forn Verge</h1>
+                <div class="date-info">
+                    <div id="current-date"></div>
+                    <div id="current-time"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Estado de conexión -->
+        <div id="connection-status" class="status-bar offline">
+            <span id="status-text">🔴 Sin conexión</span>
+        </div>
+
+        <!-- Selector de tanda actual -->
+        <div class="tanda-selector">
+            <h2>Tanda Actual: <span id="current-tanda">Calculando...</span></h2>
+            <div class="tanda-info">
+                <div class="tanda-option" data-tanda="mañana">
+                    <span class="tanda-emoji">🌅</span>
+                    <span class="tanda-text">Mañana (6:00-12:00)</span>
+                </div>
+                <div class="tanda-option" data-tanda="mediodia">
+                    <span class="tanda-emoji">☀️</span>
+                    <span class="tanda-text">Mediodía (12:00-17:00)</span>
+                </div>
+                <div class="tanda-option" data-tanda="tarde">
+                    <span class="tanda-emoji">🌆</span>
+                    <span class="tanda-text">Tarde (17:00-21:00)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumen rápido -->
+        <div class="summary-card">
+            <div class="summary-item">
+                <span class="summary-label">Productos por descongelar:</span>
+                <span id="total-pending" class="summary-value">-</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Listos para horno:</span>
+                <span id="total-ready" class="summary-value">-</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">En horno:</span>
+                <span id="total-baking" class="summary-value">-</span>
+            </div>
+        </div>
+
+        <!-- Lista de productos -->
+        <div class="products-container">
+            <div id="products-loading" class="loading-message">
+                <div class="spinner"></div>
+                <p>Cargando productos del día...</p>
+            </div>
+            
+            <div id="products-list" class="products-list" style="display: none;">
+                <!-- Los productos se cargarán dinámicamente aquí -->
+            </div>
+
+            <div id="no-products" class="no-products" style="display: none;">
+                <h3>😴 No hay productos para descongelar</h3>
+                <p>En esta tanda no hay productos programados para descongelar.</p>
+            </div>
+        </div>
+
+        <!-- Botón de actualización manual -->
+        <div class="action-buttons">
+            <button id="refresh-btn" class="btn btn-primary">
+                <span class="btn-icon">🔄</span>
+                Actualizar datos
+            </button>
+            <button id="sync-btn" class="btn btn-secondary" style="display: none;">
+                <span class="btn-icon">☁️</span>
+                Sincronizar cambios
+            </button>
+        </div>
+
+        <!-- Modal para confirmar acciones -->
+        <div id="confirm-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h3 id="modal-title">Confirmar acción</h3>
+                <p id="modal-message">¿Estás segura de esta acción?</p>
+                <div class="modal-buttons">
+                    <button id="modal-cancel" class="btn btn-secondary">Cancelar</button>
+                    <button id="modal-confirm" class="btn btn-primary">Confirmar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>Última actualización: <span id="last-update">-</span></p>
+            <p>Sistema de gestión Forn Verge v1.0</p>
+        </footer>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html> 

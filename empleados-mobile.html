@@ -870,6 +870,42 @@
             return colleagues;
         }
 
+        // Nueva función para obtener compañeros por turno específico
+        function findColleaguesForShift(dayKey, myShift) {
+            const colleagues = [];
+            
+            // Lista de todas las empleadas (formato título)
+            const allEmployees = ['Andrea', 'Bryan', 'Gaby', 'María', 'Raquel', 'Xisca'];
+            
+            // Normalizar nombre del empleado actual
+            const currentEmpName = currentEmployee.name.charAt(0).toUpperCase() + currentEmployee.name.slice(1).toLowerCase();
+            
+            for (const empName of allEmployees) {
+                // Saltar a sí misma
+                if (empName === currentEmpName) {
+                    continue;
+                }
+                
+                // Verificar si tiene horarios para este día
+                if (allEmployeesSchedules[empName] && allEmployeesSchedules[empName][dayKey]) {
+                    const empDayData = allEmployeesSchedules[empName][dayKey];
+                    
+                    // Solo considerar si no está libre
+                    if (!empDayData.is_free_day && empDayData.shifts.length > 0) {
+                        // Verificar si algún turno del compañero se solapa con MI turno específico
+                        for (const empShift of empDayData.shifts) {
+                            if (schedulesOverlap(myShift, empShift)) {
+                                colleagues.push(empName);
+                                break; // Una vez que coincide en un turno, no necesitamos verificar más
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return colleagues;
+        }
+
         // ================================
         // AUTENTICACIÓN
         // ================================
@@ -1252,16 +1288,31 @@
                     const colleaguesWorking = findColleaguesForDay(day.key);
                     
                     // Formato dinámico basado en número de turnos
-                    let timeDisplay, hoursDisplay;
+                    let timeDisplay, hoursDisplay, colleaguesDisplay;
                     
                     if (isSplitShift) {
-                        timeDisplay = schedule.shifts
-                            .map(shift => `${shift.start_time.slice(0,5)}-${shift.end_time.slice(0,5)}`)
-                            .join(' + ');
+                        // Para turnos partidos, mostrar detalles de cada turno con sus compañeros
+                        const shiftDetails = schedule.shifts.map((shift, index) => {
+                            const shiftColleagues = findColleaguesForShift(day.key, shift);
+                            const colleaguesText = shiftColleagues.length > 0 
+                                ? shiftColleagues.join(', ')
+                                : 'Solo/a';
+                            
+                            return {
+                                time: `${shift.start_time.slice(0,5)}-${shift.end_time.slice(0,5)}`,
+                                colleagues: colleaguesText
+                            };
+                        });
+                        
+                        timeDisplay = shiftDetails.map(detail => detail.time).join(' + ');
                         hoursDisplay = `${schedule.shifts.length} turnos`;
+                        colleaguesDisplay = shiftDetails;
                     } else {
                         timeDisplay = `${startTime} - ${endTime}`;
                         hoursDisplay = `Turno completo`;
+                        colleaguesDisplay = colleaguesWorking.length > 0 
+                            ? colleaguesWorking.join(', ')
+                            : 'Trabajando solo/a';
                     }
                     
                     card.className = `schedule-card ${cardClass} p-5 slide-up`;
@@ -1285,24 +1336,49 @@
                         </div>
                         
                         <div class="bg-white/10 rounded-xl p-3 mb-3">
-                            <div class="flex items-center justify-center">
-                                <div class="text-center">
-                                    <div class="text-lg font-bold mb-1">${timeDisplay}</div>
-                                    <div class="text-xs opacity-75">
-                                        <i class="fas fa-clock mr-1"></i>Horario de trabajo
+                            ${isSplitShift ? `
+                                <div class="space-y-3">
+                                    ${colleaguesDisplay.map((detail, index) => `
+                                        <div class="flex justify-between items-center ${index > 0 ? 'border-t border-white/20 pt-3' : ''}">
+                                            <div>
+                                                <div class="font-bold text-sm">${detail.time}</div>
+                                                <div class="text-xs opacity-75">Turno ${index + 1}</div>
+                                            </div>
+                                            <div class="text-right text-xs">
+                                                <div class="opacity-75">
+                                                    <i class="fas fa-users mr-1"></i>
+                                                    Con: ${detail.colleagues}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : `
+                                <div class="flex items-center justify-center">
+                                    <div class="text-center">
+                                        <div class="text-lg font-bold mb-1">${timeDisplay}</div>
+                                        <div class="text-xs opacity-75">
+                                            <i class="fas fa-clock mr-1"></i>Horario de trabajo
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            `}
                         </div>
                         
                         <div class="flex items-center justify-between text-xs">
-                            <div class="flex items-center opacity-75">
-                                <i class="fas fa-users mr-1"></i>
-                                <span>${colleaguesWorking.length > 0 
-                                    ? `Con: ${colleaguesWorking.slice(0, 2).join(', ')}${colleaguesWorking.length > 2 ? ' +' + (colleaguesWorking.length - 2) : ''}` 
-                                    : 'Trabajando solo/a'}</span>
-                            </div>
-                            ${isSplitShift ? '<div class="bg-white/20 px-2 py-1 rounded-full text-xs"><i class="fas fa-arrows-split-up-and-left mr-1"></i>' + schedule.shifts.length + ' turnos</div>' : ''}
+                            ${isSplitShift ? `
+                                <div class="bg-white/20 px-2 py-1 rounded-full text-xs">
+                                    <i class="fas fa-arrows-split-up-and-left mr-1"></i>${schedule.shifts.length} turnos
+                                </div>
+                                <div class="text-right opacity-75">
+                                    <i class="fas fa-info-circle mr-1"></i>Horario partido
+                                </div>
+                            ` : `
+                                <div class="flex items-center opacity-75">
+                                    <i class="fas fa-users mr-1"></i>
+                                    <span>Con: ${colleaguesDisplay}</span>
+                                </div>
+                            `}
                         </div>
                     `;
                 }

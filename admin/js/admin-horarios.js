@@ -158,7 +158,7 @@ function hideLoading() {
 }
 
 function setupEventListeners() {
-    document.getElementById('saveAll').addEventListener('click', saveAllSchedules);
+    // saveAll button no existe en el header simplificado - guardado automático activado
     document.getElementById('closeModal').addEventListener('click', closeModal);
     document.getElementById('cancelModal').addEventListener('click', closeModal);
     document.getElementById('addShift').addEventListener('click', addShiftFromModal);
@@ -970,13 +970,10 @@ function getWeekLabelShort(weekStart) {
 }
 
 function updateWeekDisplay() {
-    const weekDisplay = document.getElementById('weekDisplay');
     const currentWeekText = document.getElementById('currentWeekText');
-    const weekLabel = getWeekLabel(currentWeekStart);
+    const weekLabel = getWeekLabelShort(currentWeekStart); // Usar la versión corta para el header compacto
     
-    weekDisplay.textContent = `Forn Verge - Semana ${weekLabel}`;
-    
-    // Actualizar también el indicador principal
+    // Solo actualizar el elemento que existe
     if (currentWeekText) {
         currentWeekText.textContent = weekLabel;
     }

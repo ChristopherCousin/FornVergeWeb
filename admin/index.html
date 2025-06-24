@@ -62,66 +62,54 @@
         </div>
     </div>
 
-    <!-- Header -->
-    <header class="header-gradient text-white p-4 shadow-lg" id="mainHeader" style="display: none;">
+    <!-- Header SIMPLIFICADO -->
+    <header class="header-gradient text-white p-3 shadow-lg" id="mainHeader" style="display: none;">
         <div class="max-w-7xl mx-auto">
             <div class="flex justify-between items-center">
+                <!-- Logo y título compacto -->
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                        <i class="fas fa-calendar-alt text-lg"></i>
+                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-calendar-alt"></i>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold">Gestión de Horarios</h1>
-                        <p class="text-blue-200 text-sm" id="weekDisplay">Forn Verge - Cargando semana...</p>
+                        <h1 class="text-lg font-bold">Gestión Horarios</h1>
+                        <p class="text-blue-200 text-xs">Forn Verge</p>
                     </div>
                 </div>
                 
-                <!-- Navegación de Semanas Mejorada -->
-                <div class="flex items-center space-x-4">
-                    <!-- Indicador de Semana Actual -->
-                    <div class="week-display-card">
-                        <div class="flex items-center space-x-4">
-                            <div class="week-info">
-                                <div class="week-label">📅 Semana Actual</div>
-                                <div id="currentWeekText" class="week-dates">9-15 Febrero 2025</div>
-                            </div>
-                            
-                            <div class="week-navigation">
-                                <button id="prevWeek" class="week-nav-btn">
-                                    <i class="fas fa-chevron-left"></i>
-                                </button>
-                                
-                                <div class="week-selector-container">
-                                    <select id="weekSelector" class="week-selector">
-                                        <!-- Se carga dinámicamente -->
-                                    </select>
-                                    <i class="fas fa-calendar-week week-selector-icon"></i>
-                                </div>
-                                
-                                <button id="nextWeek" class="week-nav-btn">
-                                    <i class="fas fa-chevron-right"></i>
-                                </button>
-                            </div>
+                <!-- Navegación de semana SIMPLE -->
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-2">
+                        <button id="prevWeek" class="text-white hover:text-blue-200 transition">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        
+                        <div class="text-center min-w-32">
+                            <div class="text-xs text-blue-200">Semana</div>
+                            <div id="currentWeekText" class="text-sm font-semibold">9-15 Feb</div>
                         </div>
-                    </div>
-                    
-                    <!-- Botón de Vacaciones -->
-                    <div class="view-controls">
-                        <button id="vacationsBtn" class="view-btn vacation-btn">
-                            <i class="fas fa-umbrella-beach mr-1"></i>
-                            <span>Vacaciones</span>
+                        
+                        <button id="nextWeek" class="text-white hover:text-blue-200 transition">
+                            <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
                     
-                    <div class="text-right">
-                        <p class="text-sm text-blue-200">Estado</p>
-                        <p class="text-sm font-semibold" id="status">Listo</p>
-                    </div>
-                    <button id="saveAll" class="save-btn">
-                        <i class="fas fa-cloud-upload-alt mr-2"></i>Guardado Automático
+                    <!-- Selector oculto para funcionalidad -->
+                    <select id="weekSelector" class="hidden">
+                        <!-- Se carga dinámicamente -->
+                    </select>
+                    
+                    <!-- Botones de acción compactos -->
+                    <button id="vacationsBtn" class="bg-orange-500/20 hover:bg-orange-500/30 px-3 py-2 rounded-lg transition text-sm">
+                        <i class="fas fa-umbrella-beach mr-1"></i>Vacaciones
                     </button>
-                    <button id="logoutButton" class="logout-btn ml-3">
-                        <i class="fas fa-sign-out-alt mr-2"></i>Salir
+                    
+                    <div class="text-right hidden sm:block">
+                        <div id="status" class="text-xs text-blue-200">Listo</div>
+                    </div>
+                    
+                    <button id="logoutButton" class="bg-red-500/20 hover:bg-red-500/30 px-3 py-2 rounded-lg transition text-sm">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Salir
                     </button>
                 </div>
             </div>

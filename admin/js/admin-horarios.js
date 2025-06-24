@@ -149,12 +149,12 @@ function updateStatus(status) {
 
 function showLoading() {
     document.getElementById('loadingState').classList.remove('hidden');
-    document.getElementById('mainView').classList.add('hidden');
+    document.getElementById('weekFullView').classList.add('hidden');
 }
 
 function hideLoading() {
     document.getElementById('loadingState').classList.add('hidden');
-    document.getElementById('mainView').classList.remove('hidden');
+    document.getElementById('weekFullView').classList.remove('hidden');
 }
 
 function setupEventListeners() {
@@ -168,9 +168,7 @@ function setupEventListeners() {
     document.getElementById('nextWeek').addEventListener('click', goToNextWeek);
     document.getElementById('weekSelector').addEventListener('change', onWeekSelectChange);
     
-    // Cambio de vistas
-    document.getElementById('dayViewBtn').addEventListener('click', () => switchView('day'));
-    document.getElementById('weekViewBtn').addEventListener('click', () => switchView('week'));
+    // Vista única de semana - sin cambios de vista
     
     // Gestión de vacaciones
     document.getElementById('vacationsBtn').addEventListener('click', openVacationModal);
@@ -341,15 +339,8 @@ function updateStats() {
 }
 
 function renderEmployees() {
-    // Determinar qué vista está activa y renderizar la correcta
-    const weekFullView = document.getElementById('weekFullView');
-    const isWeekViewActive = weekFullView && weekFullView.classList.contains('active');
-    
-    if (isWeekViewActive) {
-        renderWeekFullView();
-    } else {
-        renderDaysView();
-    }
+    // Solo renderizar vista de semana
+    renderWeekFullView();
     updateStats();
 }
 
@@ -376,58 +367,7 @@ function getTotalHours(empId) {
     return total;
 }
 
-function renderDayColumn(employee, day) {
-    const shifts = scheduleData[employee.id][day.key] || [];
-    const totalHours = shifts.reduce((sum, shift) => sum + (shift.hours || 0), 0);
-    
-    return `
-        <div class="day-column">
-            <h4 class="text-sm font-bold text-gray-700 mb-2 text-center">${day.name}</h4>
-            <p class="text-xs text-center mb-3 ${totalHours > 0 ? 'text-blue-600 font-semibold' : 'text-gray-400'}">${totalHours}h</p>
-            
-            <div class="shifts-container mb-3">
-                ${shifts.map((shift, index) => renderShiftEntry(employee.id, day.key, shift, index)).join('')}
-                ${shifts.length === 0 ? '<p class="text-gray-400 text-xs text-center py-6">Sin turnos</p>' : ''}
-            </div>
-            
-            <button 
-                class="add-shift-btn"
-                onclick="openShiftModal('${employee.id}', '${day.key}', '${employee.name}', '${day.fullName}')"
-            >
-                <i class="fas fa-plus mr-1"></i>Agregar
-            </button>
-        </div>
-    `;
-}
-
-function renderShiftEntry(empId, day, shift, index) {
-    if (shift.isFree) {
-        return `
-            <div class="shift-entry shift-free">
-                <div class="font-medium text-sm">🆓 Libre</div>
-                <div class="text-xs text-gray-500">Descanso</div>
-                <div class="delete-btn" onclick="removeShift('${empId}', '${day}', ${index})">
-                    <i class="fas fa-times"></i>
-                </div>
-            </div>
-        `;
-    } else {
-        const typeClass = `shift-${shift.type}`;
-        const icon = shift.type === 'morning' ? '🌅' : 
-                   shift.type === 'afternoon' ? '🌆' : 
-                   shift.type === 'refuerzo' ? '🔧' : '🎯';
-        
-        return `
-            <div class="shift-entry ${typeClass}">
-                <div class="font-semibold text-sm">${icon} ${shift.start?.slice(0,5)} - ${shift.end?.slice(0,5)}</div>
-                <div class="text-xs opacity-80">${shift.hours}h • ${shift.description || shift.type}</div>
-                <div class="delete-btn" onclick="removeShift('${empId}', '${day}', ${index})">
-                    <i class="fas fa-times"></i>
-                </div>
-            </div>
-        `;
-    }
-}
+// Funciones de vista por días eliminadas - solo vista de semana
 
 function openShiftModal(empId, day, empName, dayName) {
     currentModalEmployee = empId;
@@ -936,224 +876,9 @@ function showSaveSuccess() {
 // VISTA POR DÍAS
 // ================================
 
-function renderDaysView() {
-    const container = document.getElementById('dailyScheduleContainer');
-    container.innerHTML = '';
-    
-    DAYS.forEach(day => {
-        const dayCard = createDayScheduleCard(day);
-        container.appendChild(dayCard);
-    });
-}
+// Función renderDaysView eliminada - solo vista de semana
 
-function createDayScheduleCard(day) {
-    const card = document.createElement('div');
-    card.className = 'day-schedule-card p-6';
-    
-    // Obtener empleados que trabajan este día y los que están libres (solo activos)
-    const workingEmployees = [];
-    const freeEmployees = [];
-    
-    getActiveEmployees().forEach(employee => {
-        const shifts = scheduleData[employee.id][day.key] || [];
-        
-        if (shifts.length === 0) {
-            // No tiene registros - empleado libre
-            freeEmployees.push(employee);
-        } else {
-            // Separar turnos de trabajo de días libres
-            const workShifts = shifts.filter(shift => !shift.isFree);
-            const freeShifts = shifts.filter(shift => shift.isFree);
-            
-            if (workShifts.length > 0) {
-                // Tiene turnos de trabajo - es empleado trabajando
-                workingEmployees.push({
-                    ...employee,
-                    shifts: workShifts
-                });
-                
-                // Log de advertencia si también tiene días libres (problema de datos)
-                if (freeShifts.length > 0) {
-                    console.warn(`⚠️ ${employee.name} tiene TANTO turnos de trabajo COMO días libres en ${day.key} - datos inconsistentes`);
-                }
-            } else {
-                // Solo tiene días libres - empleado libre
-                freeEmployees.push(employee);
-            }
-        }
-    });
-    
-    // Ordenar por hora de inicio del primer turno
-    workingEmployees.sort((a, b) => {
-        const aFirstShift = a.shifts[0];
-        const bFirstShift = b.shifts[0];
-        if (!aFirstShift.start || !bFirstShift.start) return 0;
-        return aFirstShift.start.localeCompare(bFirstShift.start);
-    });
-    
-    const totalHoursDay = workingEmployees.reduce((total, emp) => {
-        return total + emp.shifts.reduce((empTotal, shift) => empTotal + (shift.hours || 0), 0);
-    }, 0);
-    
-    card.innerHTML = `
-        <!-- Header del día -->
-        <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center space-x-3">
-                <div class="text-4xl">${getDayEmoji(day.key)}</div>
-                <div>
-                    <h3 class="text-2xl font-bold text-gray-800">${day.name}</h3>
-                    <div class="text-sm text-gray-500">${getDayDate(day.key)}</div>
-                </div>
-            </div>
-            <div class="text-right">
-                <div class="text-2xl font-bold text-green-600">${workingEmployees.length}</div>
-                <div class="text-sm text-gray-500">trabajando</div>
-                <div class="text-lg font-bold text-blue-600">${totalHoursDay}h total</div>
-            </div>
-        </div>
-        
-        <!-- Empleados trabajando -->
-        ${workingEmployees.length > 0 ? `
-            <div class="mb-6">
-                <h4 class="font-semibold text-gray-700 mb-3">👩‍💼 Trabajando (${workingEmployees.length})</h4>
-                <div class="space-y-3">
-                    ${workingEmployees.map(emp => {
-                        return createEmployeeShiftDisplayWithActions(emp, day);
-                    }).join('')}
-                </div>
-            </div>
-        ` : ''}
-        
-        <!-- Empleados libres con botón para agregar turno -->
-        ${freeEmployees.length > 0 ? `
-            <div class="mb-6">
-                <h4 class="font-semibold text-gray-500 mb-3">😴 Libres (${freeEmployees.length})</h4>
-                <div class="grid grid-cols-1 gap-2">
-                    ${freeEmployees.map(emp => `
-                        <div class="day-card day-free flex items-center justify-between">
-                            <div class="flex items-center space-x-2">
-                                <span class="text-sm">👤</span>
-                                <span class="text-sm font-medium">${emp.name}</span>
-                            </div>
-                            <button 
-                                onclick="openShiftModal('${emp.id}', '${day.key}', '${emp.name}', '${day.fullName}')"
-                                class="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded-full transition-all hover:scale-105"
-                            >
-                                <i class="fas fa-plus mr-1"></i>Agregar
-                            </button>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        ` : ''}
-        
-        <!-- Botón para agregar empleado a cualquier turno -->
-        <div class="border-t pt-4">
-            <div class="flex flex-wrap gap-2">
-                ${getActiveEmployees().map(emp => `
-                    <button 
-                        onclick="openShiftModal('${emp.id}', '${day.key}', '${emp.name}', '${day.fullName}')"
-                        class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded-lg transition-all border border-blue-200 hover:border-blue-300"
-                    >
-                        <i class="fas fa-plus mr-1"></i>${emp.name}
-                    </button>
-                `).join('')}
-            </div>
-            <p class="text-xs text-gray-500 mt-2">💡 Haz clic en cualquier empleado para gestionar sus horarios de ${day.name}</p>
-        </div>
-    `;
-    
-    return card;
-}
-
-function createEmployeeShiftDisplayWithActions(emp, day) {
-    const shifts = emp.shifts;
-    const isMultipleShifts = shifts.length > 1;
-    const employeeColor = getEmployeeColor(emp.id);
-    
-    if (isMultipleShifts) {
-        // Horario partido: mostrar todos los turnos con acciones
-        const totalHours = shifts.reduce((total, shift) => total + (shift.hours || 0), 0);
-        const timeDisplay = shifts
-            .map(shift => `${shift.start?.slice(0,5)}-${shift.end?.slice(0,5)}`)
-            .join(' + ');
-            
-        return `
-            <div class="day-card" style="border-left: 4px solid ${employeeColor.border}; background: linear-gradient(45deg, ${employeeColor.background}, #ffffff);">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <span class="text-xl">🔄</span>
-                        <div>
-                            <div class="font-semibold">${emp.name}</div>
-                            <div class="text-xs font-medium" style="color: ${employeeColor.border};">⚡ ${shifts.length} turnos</div>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <div class="font-bold text-sm">${timeDisplay}</div>
-                        <div class="text-xs opacity-80">${totalHours}h total</div>
-                    </div>
-                </div>
-                <div class="flex justify-end space-x-1 mt-3">
-                    <button 
-                        onclick="openShiftModal('${emp.id}', '${day.key}', '${emp.name}', '${day.fullName}')"
-                        class="text-white text-xs px-2 py-1 rounded transition-all"
-                        style="background: ${employeeColor.border};"
-                    >
-                        <i class="fas fa-plus"></i> Agregar
-                    </button>
-                    ${shifts.map((shift, index) => `
-                        <button 
-                            onclick="removeShift('${emp.id}', '${day.key}', ${index})"
-                            class="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded transition-all"
-                        >
-                            <i class="fas fa-times"></i>
-                        </button>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    } else {
-        // Un solo turno con acciones
-        const shift = shifts[0];
-        const startTime = shift.start?.slice(0,5) || '';
-        const endTime = shift.end?.slice(0,5) || '';
-        
-        const icon = getShiftTypeIcon(shift.type);
-        
-        return `
-            <div class="day-card" style="border-left: 4px solid ${employeeColor.border}; background: linear-gradient(45deg, ${employeeColor.background}, #ffffff);">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <span class="text-xl">${icon}</span>
-                        <div>
-                            <div class="font-semibold">${emp.name}</div>
-                            <div class="text-xs opacity-75">${shift.description || shift.type}</div>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <div class="font-bold">${startTime} - ${endTime}</div>
-                        <div class="text-xs opacity-80">${shift.hours}h</div>
-                    </div>
-                </div>
-                <div class="flex justify-end space-x-1 mt-3">
-                    <button 
-                        onclick="openShiftModal('${emp.id}', '${day.key}', '${emp.name}', '${day.fullName}')"
-                        class="text-white text-xs px-2 py-1 rounded transition-all"
-                        style="background: ${employeeColor.border};"
-                    >
-                        <i class="fas fa-plus"></i> Agregar
-                    </button>
-                    <button 
-                        onclick="removeShift('${emp.id}', '${day.key}', 0)"
-                        class="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded transition-all"
-                    >
-                        <i class="fas fa-times"></i> Quitar
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-}
+// Funciones de vista por días eliminadas completamente
 
 function getDayEmoji(dayKey) {
     const emojis = {
@@ -1627,41 +1352,13 @@ document.head.appendChild(style);
 
 // === FUNCIONES DE VISTA DE SEMANA COMPLETA ===
 
-function switchView(viewType) {
-    const dayViewBtn = document.getElementById('dayViewBtn');
-    const weekViewBtn = document.getElementById('weekViewBtn');
-    const mainView = document.getElementById('mainView');
-    const weekFullView = document.getElementById('weekFullView');
-    
-    // Limpiar clases activas
-    dayViewBtn.classList.remove('active');
-    weekViewBtn.classList.remove('active');
-    
-    if (viewType === 'day') {
-        dayViewBtn.classList.add('active');
-        mainView.classList.remove('hidden');
-        weekFullView.classList.remove('active');
-        weekFullView.classList.add('hidden');
-        
-        renderDaysView();
-        updateStatus('Vista por días 📅');
-    } else if (viewType === 'week') {
-        weekViewBtn.classList.add('active');
-        weekFullView.classList.remove('hidden');
-        weekFullView.classList.add('active');
-        mainView.classList.add('hidden');
-        
-        renderWeekFullView();
-        updateStatus('Vista de semana completa 📋');
-    }
-    
-    // Actualizar estadísticas
-    updateStats();
-}
+// Solo vista de semana - funciones de cambio de vista eliminadas
 
-// Función para inicializar con vista de semana por defecto
 function initDefaultView() {
-    switchView('week'); // Cambiar de 'day' a 'week' como vista predeterminada
+    // Solo inicializar vista de semana
+    renderWeekFullView();
+    updateStatus('Vista de semana completa 📋');
+    updateStats();
 }
 
 function renderWeekFullView() {
@@ -1923,23 +1620,7 @@ function createWeekDayColumn(day) {
         content.appendChild(freeElement);
     });
     
-    // Botón para agregar solo si hay empleados realmente sin nada asignado
-    const employeesWithoutAnyShift = getActiveEmployees().filter(emp => {
-        const shifts = scheduleData[emp.id][day.key] || [];
-        return shifts.length === 0;
-    });
-    
-    if (employeesWithoutAnyShift.length > 0) {
-        const addButton = document.createElement('div');
-        addButton.className = 'week-add-btn';
-        addButton.innerHTML = `
-            <i class="fas fa-plus mb-1"></i><br>
-            <div style="font-size: 10px;">Agregar turno</div>
-            <div style="font-size: 9px; opacity: 0.7;">(${employeesWithoutAnyShift.length} sin asignar)</div>
-        `;
-        addButton.onclick = () => showAddEmployeeMenu(day, employeesWithoutAnyShift);
-        content.appendChild(addButton);
-    }
+    // No necesitamos botón extra - los empleados libres ya son clickeables
     
     column.appendChild(header);
     column.appendChild(content);
@@ -1955,6 +1636,7 @@ function createWeekShiftElement(employee, day, shift) {
         element.innerHTML = `
             <div class="week-employee-name">${employee.name}</div>
             <div class="week-shift-time">Día libre</div>
+            <div style="font-size: 8px; opacity: 0.7; margin-top: 2px;">👆 Toca para asignar</div>
         `;
     } else {
         const employeeColor = getEmployeeColor(employee.id);
@@ -2024,15 +1706,7 @@ function getShiftTypeClass(type) {
     }
 }
 
-function showAddEmployeeMenu(day, availableEmployees) {
-    // Crear un menú simple para seleccionar empleado
-    const employeeNames = availableEmployees.map(emp => emp.name).join(', ');
-    const selectedEmployee = availableEmployees[0]; // Por simplicidad, tomar el primero
-    
-    if (selectedEmployee) {
-        openShiftModal(selectedEmployee.id, day.key, selectedEmployee.name, day.fullName);
-    }
-}
+// Función showAddEmployeeMenu eliminada - ya no necesaria
 
 function removeWeekShift(event, empId, dayKey, shiftData) {
     event.stopPropagation();
@@ -2079,9 +1753,7 @@ function removeWeekShift(event, empId, dayKey, shiftData) {
     
     // Forzar actualización de la vista semanal
     setTimeout(() => {
-        if (document.getElementById('weekViewBtn').classList.contains('active')) {
-            renderWeekFullView();
-        }
+        renderWeekFullView();
     }, 100);
 }
 
@@ -2383,9 +2055,7 @@ async function cleanDuplicates() {
             console.log('🔄 Recargando datos...');
             await loadCurrentSchedules();
             renderEmployees();
-            if (document.getElementById('weekViewBtn').classList.contains('active')) {
-                renderWeekFullView();
-            }
+            renderWeekFullView();
         }
         
         console.log('🧹 === FIN LIMPIEZA ===\n');
@@ -2442,10 +2112,8 @@ async function debugGaby() {
         const isOnVacation = employeesOnVacation.has(gabyEmployee.id);
         console.log(`🏖️ ¿Está de vacaciones?: ${isOnVacation}`);
         
-        // 5. Verificar vista activa
-        const weekViewActive = document.getElementById('weekViewBtn').classList.contains('active');
-        const dayViewActive = document.getElementById('dayViewBtn').classList.contains('active');
-        console.log(`👁️ Vista activa: ${weekViewActive ? 'SEMANA' : dayViewActive ? 'DÍAS' : 'DESCONOCIDA'}`);
+        // 5. Vista siempre es de semana
+        console.log(`👁️ Vista activa: SEMANA (única vista disponible)`);
         
         // 6. Buscar inconsistencias
         console.log('🔍 Buscando inconsistencias...');
@@ -2524,9 +2192,7 @@ async function fixGaby() {
         
         // 5. Actualizar vistas
         renderEmployees();
-        if (document.getElementById('weekViewBtn').classList.contains('active')) {
-            renderWeekFullView();
-        }
+        renderWeekFullView();
         
         console.log('🔧 === GABY LIMPIADA - Ahora puedes agregar horarios nuevos ===\n');
         
@@ -2658,15 +2324,13 @@ async function cleanInconsistentData() {
     
     console.log(`✅ Limpieza completada. ${cleaned} casos limpiados.`);
     
-    // Recargar datos y actualizar vista
-    if (cleaned > 0) {
-        console.log('🔄 Recargando datos...');
-        await loadCurrentSchedules();
-        renderEmployees();
-        if (document.getElementById('weekViewBtn').classList.contains('active')) {
+            // Recargar datos y actualizar vista
+        if (cleaned > 0) {
+            console.log('🔄 Recargando datos...');
+            await loadCurrentSchedules();
+            renderEmployees();
             renderWeekFullView();
         }
-    }
     
     console.log('🧹 === FIN LIMPIEZA ===\n');
 }
@@ -2675,11 +2339,6 @@ async function cleanInconsistentData() {
 
 function forceUpdateWeekView() {
     console.log('🔄 Forzando actualización de vista semanal...');
-    
-    if (document.getElementById('weekViewBtn').classList.contains('active')) {
-        renderWeekFullView();
-        console.log('✅ Vista semanal actualizada');
-    } else {
-        console.log('ℹ️ Vista semanal no está activa');
-    }
+    renderWeekFullView();
+    console.log('✅ Vista semanal actualizada');
 }

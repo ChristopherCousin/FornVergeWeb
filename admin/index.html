@@ -105,16 +105,8 @@
                         </div>
                     </div>
                     
-                    <!-- Botones de Vista -->
+                    <!-- Botón de Vacaciones -->
                     <div class="view-controls">
-                        <button id="dayViewBtn" class="view-btn">
-                            <i class="fas fa-calendar-day mr-1"></i>
-                            <span>Por Días</span>
-                        </button>
-                        <button id="weekViewBtn" class="view-btn active">
-                            <i class="fas fa-calendar-week mr-1"></i>
-                            <span>Semana Completa</span>
-                        </button>
                         <button id="vacationsBtn" class="view-btn vacation-btn">
                             <i class="fas fa-umbrella-beach mr-1"></i>
                             <span>Vacaciones</span>
@@ -146,17 +138,10 @@
             </div>
         </div>
 
-        <!-- Vista Principal: Vista de Semana Completa (NUEVA PRINCIPAL) -->
+        <!-- Vista de Semana Completa -->
         <div id="weekFullView" class="week-full-view active">
             <div class="week-grid" id="weekGridContainer">
                 <!-- Se genera dinámicamente la vista de semana completa -->
-            </div>
-        </div>
-
-        <!-- Vista Secundaria: Por Días con Gestión -->
-        <div id="mainView" class="hidden">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" id="dailyScheduleContainer">
-                <!-- Se genera dinámicamente por días -->
             </div>
         </div>
 
@@ -205,25 +190,26 @@
     <!-- Modal para agregar turnos -->
     <div id="shiftModal" class="modal">
         <div class="modal-content">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold text-gray-800">
+            <!-- Header compacto -->
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-800">
                     <i class="fas fa-plus-circle mr-2 text-blue-600"></i>Agregar Turno
                 </h3>
-                <button id="closeModal" class="text-gray-500 hover:text-gray-700 transition">
-                    <i class="fas fa-times text-xl"></i>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-700 transition text-xl touch-action-manipulation">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
             
-            <div class="space-y-6">
-                <div class="bg-blue-50 p-4 rounded-lg">
-                    <label class="block text-sm font-medium text-blue-700 mb-1">Empleado y Día</label>
-                    <p id="modalEmployeeDay" class="text-xl font-semibold text-blue-800"></p>
+            <div class="space-y-4">
+                <!-- Info empleado más compacta -->
+                <div class="bg-blue-50 p-3 rounded-lg">
+                    <p id="modalEmployeeDay" class="text-lg font-semibold text-blue-800"></p>
                 </div>
                 
-                <!-- Templates Rápidos -->
+                <!-- Templates en 2 columnas para móvil -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-3">⚡ Templates Rápidos</label>
-                    <div class="grid grid-cols-3 gap-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">⚡ Templates Rápidos</label>
+                    <div class="grid grid-cols-2 gap-2">
                         <button class="template-btn" onclick="setTemplate('07:00', '14:00', 'morning')">
                             <span class="text-lg">🌅</span>
                             <span class="font-medium">Mañana</span>
@@ -257,52 +243,53 @@
                     </div>
                 </div>
                 
-                <!-- Campos normales (un solo turno) -->
-                <div id="singleShiftFields" class="grid grid-cols-2 gap-4">
+                <!-- Campos normales optimizados para móvil -->
+                <div id="singleShiftFields" class="space-y-3">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">🕐 Hora Inicio</label>
-                        <input type="time" id="startTime" class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-blue-500 focus:outline-none transition" value="07:00">
+                        <input type="time" id="startTime" class="w-full border-2 border-gray-300 rounded-lg p-4 text-lg focus:border-blue-500 focus:outline-none transition touch-action-manipulation" value="07:00">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">🕕 Hora Fin</label>
-                        <input type="time" id="endTime" class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-blue-500 focus:outline-none transition" value="14:00">
+                        <input type="time" id="endTime" class="w-full border-2 border-gray-300 rounded-lg p-4 text-lg focus:border-blue-500 focus:outline-none transition touch-action-manipulation" value="14:00">
                     </div>
                 </div>
 
-                <!-- Campos para horario partido (dos turnos) -->
-                <div id="splitShiftFields" class="space-y-4 hidden">
-                    <div class="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-400">
-                        <h4 class="font-semibold text-orange-800 mb-3">🌅 Primer Turno</h4>
-                        <div class="grid grid-cols-2 gap-3">
+                <!-- Campos para horario partido optimizados -->
+                <div id="splitShiftFields" class="space-y-3 hidden">
+                    <div class="bg-orange-50 p-3 rounded-lg border-l-4 border-orange-400">
+                        <h4 class="font-semibold text-orange-800 mb-2 text-sm">🌅 Primer Turno</h4>
+                        <div class="space-y-2">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Inicio</label>
-                                <input type="time" id="startTime1" class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-orange-500 focus:outline-none transition" value="07:00">
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Inicio</label>
+                                <input type="time" id="startTime1" class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg focus:border-orange-500 focus:outline-none transition touch-action-manipulation" value="07:00">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Fin</label>
-                                <input type="time" id="endTime1" class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-orange-500 focus:outline-none transition" value="13:00">
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Fin</label>
+                                <input type="time" id="endTime1" class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg focus:border-orange-500 focus:outline-none transition touch-action-manipulation" value="13:00">
                             </div>
                         </div>
                     </div>
                     
-                    <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
-                        <h4 class="font-semibold text-blue-800 mb-3">🌆 Segundo Turno</h4>
-                        <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-400">
+                        <h4 class="font-semibold text-blue-800 mb-2 text-sm">🌆 Segundo Turno</h4>
+                        <div class="space-y-2">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Inicio</label>
-                                <input type="time" id="startTime2" class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:outline-none transition" value="16:00">
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Inicio</label>
+                                <input type="time" id="startTime2" class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg focus:border-blue-500 focus:outline-none transition touch-action-manipulation" value="16:00">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Fin</label>
-                                <input type="time" id="endTime2" class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:outline-none transition" value="21:00">
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Fin</label>
+                                <input type="time" id="endTime2" class="w-full border-2 border-gray-300 rounded-lg p-3 text-lg focus:border-blue-500 focus:outline-none transition touch-action-manipulation" value="21:00">
                             </div>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Selector de tipo más grande -->
                 <div id="shiftTypeSelector">
                     <label class="block text-sm font-medium text-gray-700 mb-2">🎯 Tipo de Turno</label>
-                    <select id="shiftType" class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-blue-500 focus:outline-none transition">
+                    <select id="shiftType" class="w-full border-2 border-gray-300 rounded-lg p-4 text-lg focus:border-blue-500 focus:outline-none transition touch-action-manipulation">
                         <option value="morning">🌅 Mañana</option>
                         <option value="afternoon">🌆 Tarde</option>
                         <option value="custom">🎯 Personalizado</option>
@@ -310,11 +297,14 @@
                     </select>
                 </div>
                 
-                <div class="flex space-x-3 pt-4">
-                    <button id="addShift" class="add-shift-btn flex-1 py-3">
+                <!-- Botones optimizados para móvil -->
+                <div class="space-y-3 pt-4">
+                    <button id="addShift" class="add-shift-btn w-full py-4 text-lg font-semibold touch-action-manipulation">
                         <i class="fas fa-plus mr-2"></i>Agregar Turno
                     </button>
-                    <button id="cancelModal" class="bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 transition font-medium">Cancelar</button>
+                    <button id="cancelModal" class="w-full bg-gray-300 text-gray-700 py-4 text-lg font-medium rounded-lg hover:bg-gray-400 transition touch-action-manipulation">
+                        Cancelar
+                    </button>
                 </div>
             </div>
         </div>

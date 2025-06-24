@@ -23,187 +23,97 @@ body {
     box-sizing: border-box;
 }
 
-/* Ajustes para móvil */
+/* Header simplificado para móvil */
 @media (max-width: 768px) {
     .header-gradient {
-        padding: 8px 0;
+        padding: 6px 0;
     }
     
     .max-w-7xl {
         padding: 0 4px;
     }
     
-    /* Ocultar textos largos en móvil */
-    .flex.justify-between.items-center {
-        flex-direction: column;
-        gap: 8px;
-        align-items: stretch;
-    }
-    
-    /* Título más compacto */
-    .flex.items-center.space-x-3 {
-        justify-content: center;
-        margin-bottom: 4px;
-    }
-    
-    .flex.items-center.space-x-3 h1 {
-        font-size: 18px;
-    }
-    
-    .flex.items-center.space-x-3 p {
-        font-size: 12px;
-    }
-    
-    /* Navegación en una sola línea compacta */
-    .flex.items-center.space-x-4 {
-        display: flex;
+    /* Header en una sola línea */
+    header .flex.justify-between.items-center {
         flex-direction: row;
-        flex-wrap: wrap;
-        gap: 4px;
-        justify-content: center;
+        gap: 6px;
         align-items: center;
     }
     
-    /* Week display más compacto */
-    .week-display-card {
-        flex: 1;
-        min-width: 0;
-        padding: 6px 8px;
-        border-radius: 8px;
+    /* Logo y título compacto */
+    header .w-8 {
+        width: 24px !important;
+        height: 24px !important;
     }
     
-    .week-info {
-        text-align: center;
-        margin-bottom: 4px;
+    header h1 {
+        font-size: 14px !important;
     }
     
-    .week-dates {
-        font-size: 12px;
+    header .text-xs {
+        font-size: 9px !important;
     }
     
-    .week-label {
-        font-size: 9px;
-    }
-    
-    .week-navigation {
+    /* Navegación compacta */
+    header .flex.items-center.space-x-3 {
         gap: 4px;
-        justify-content: center;
     }
     
-    .week-nav-btn {
-        width: 32px;
-        height: 32px;
-        font-size: 12px;
+    header .min-w-32 {
+        min-width: 60px;
     }
     
-    .week-selector {
-        font-size: 11px;
-        padding: 4px 6px;
-        padding-right: 24px;
-        min-width: 80px;
+    header .text-sm {
+        font-size: 10px !important;
     }
     
-    .week-selector-icon {
-        right: 6px;
-        font-size: 10px;
+    /* Botones compactos */
+    header button {
+        padding: 4px 6px !important;
+        font-size: 9px !important;
     }
     
-    /* Controles de vista más compactos */
-    .view-controls {
-        gap: 2px;
-        padding: 2px;
-        flex-shrink: 0;
-    }
-    
-    .vacation-btn {
-        padding: 4px 8px;
-        font-size: 10px;
-        min-height: 32px;
-        white-space: nowrap;
-    }
-    
-    /* Botones más pequeños */
-    .save-btn, .logout-btn {
-        padding: 4px 8px;
-        font-size: 10px;
-        min-height: 32px;
-        white-space: nowrap;
-    }
-    
-    .text-right {
-        text-align: center;
-        font-size: 10px;
+    /* Ocultar estado en móvil */
+    header .hidden.sm\\:block {
+        display: none !important;
     }
 }
 
 @media (max-width: 480px) {
     .header-gradient {
-        padding: 6px 0;
+        padding: 4px 0;
     }
     
     .max-w-7xl {
         padding: 0 2px;
     }
     
-    /* Header aún más compacto */
-    .flex.items-center.space-x-3 h1 {
-        font-size: 16px;
+    /* Header ultra compacto */
+    header h1 {
+        font-size: 12px !important;
     }
     
-    .flex.items-center.space-x-3 p {
-        font-size: 10px;
+    header .text-xs {
+        font-size: 8px !important;
     }
     
-    .week-display-card {
-        padding: 4px 6px;
+    header .text-sm {
+        font-size: 9px !important;
     }
     
-    .week-dates {
-        font-size: 11px;
+    header .min-w-32 {
+        min-width: 50px;
     }
     
-    .week-nav-btn {
-        width: 28px;
-        height: 28px;
-        font-size: 10px;
+    header button {
+        padding: 3px 4px !important;
+        font-size: 8px !important;
     }
     
-    .week-selector {
-        font-size: 10px;
-        padding: 3px 4px;
-        padding-right: 20px;
-        min-width: 70px;
-    }
-    
-    .vacation-btn {
-        padding: 3px 6px;
-        font-size: 9px;
-        min-height: 28px;
-    }
-    
-    .save-btn, .logout-btn {
-        padding: 3px 6px;
-        font-size: 9px;
-        min-height: 28px;
-    }
-    
-    /* Stats más compactas */
-    .grid-cols-4 {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 4px;
-    }
-    
-    .stats-card {
-        padding: 6px 8px;
-        font-size: 11px;
-    }
-    
-    .stats-card .text-lg {
-        font-size: 14px;
-    }
-    
-    .stats-card .text-xs {
-        font-size: 9px;
+    /* Logo aún más pequeño */
+    header .w-8 {
+        width: 20px !important;
+        height: 20px !important;
     }
 }
 

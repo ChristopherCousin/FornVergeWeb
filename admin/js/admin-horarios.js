@@ -185,6 +185,14 @@ function setupEventListeners() {
     document.getElementById('vacationModal').addEventListener('click', (e) => {
         if (e.target.id === 'vacationModal') closeVacationModal();
     });
+    
+    // ✅ DETECTAR CAMBIOS DE ORIENTACIÓN Y REDIMENSIONAMIENTO
+    window.addEventListener('resize', debounce(forceGridReflow, 300));
+    window.addEventListener('orientationchange', () => {
+        setTimeout(forceGridReflow, 500); // Delay para orientación
+    });
+    
+    console.log('✅ Event listeners configurados con detección de resize');
 }
 
 async function loadEmployees() {
@@ -1365,11 +1373,52 @@ function renderWeekFullView() {
     const container = document.getElementById('weekGridContainer');
     container.innerHTML = '';
     
+    // ✅ FORZAR RESTABLECIMIENTO DE CLASES CSS MÓVIL
+    container.className = 'week-grid';
+    
+    // ✅ FORZAR ESTILOS CRÍTICOS PARA EVITAR SCROLL LATERAL
+    container.style.cssText = `
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 2px;
+        width: 100%;
+        max-width: 100vw;
+        margin: 0;
+        padding: 4px;
+        overflow: hidden;
+        box-sizing: border-box;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    `;
+    
+    // ✅ FORZAR ESTILOS MÓVIL SI ES NECESARIO
+    if (window.innerWidth <= 768) {
+        container.style.cssText += `
+            width: calc(100vw - 4px) !important;
+            max-width: calc(100vw - 4px) !important;
+            padding: 1px !important;
+            gap: 1px !important;
+        `;
+    }
+    
+    // ✅ FORZAR ESTILOS ULTRA MÓVIL SI ES NECESARIO
+    if (window.innerWidth <= 400) {
+        container.style.cssText += `
+            width: calc(100vw - 2px) !important;
+            max-width: calc(100vw - 2px) !important;
+            padding: 0 !important;
+            gap: 0 !important;
+        `;
+    }
+    
     // Crear columna para cada día de la semana
     DAYS.forEach(day => {
         const dayColumn = createWeekDayColumn(day);
         container.appendChild(dayColumn);
     });
+    
+    console.log('✅ Grid regenerado con estilos forzados para móvil');
 }
 
 function renderEmployeeLegend() {
@@ -1549,12 +1598,66 @@ function createWeekDayColumn(day) {
     const column = document.createElement('div');
     column.className = 'week-day-column';
     
+    // ✅ FORZAR ESTILOS MÓVIL EN LAS COLUMNAS
+    column.style.cssText = `
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
+        box-sizing: border-box;
+        background: linear-gradient(145deg, #f8fafc, #f1f5f9);
+        border-radius: 6px;
+        padding: 4px 2px;
+        min-height: 300px;
+        border: 1px solid #e2e8f0;
+        position: relative;
+    `;
+    
+    // ✅ AJUSTAR SEGÚN TAMAÑO DE PANTALLA
+    if (window.innerWidth <= 768) {
+        column.style.cssText += `
+            padding: 1px !important;
+            min-height: 240px !important;
+        `;
+    }
+    
+    if (window.innerWidth <= 400) {
+        column.style.cssText += `
+            padding: 1px 0 !important;
+            min-height: 220px !important;
+            border-radius: 2px !important;
+            border-width: 1px !important;
+        `;
+    }
+    
     // Header del día
     const header = document.createElement('div');
     header.className = 'week-day-header';
     header.innerHTML = `
         <div>${day.name}</div>
     `;
+    
+    // ✅ FORZAR ESTILOS DEL HEADER
+    if (window.innerWidth <= 768) {
+        header.style.cssText = `
+            font-size: 7px !important;
+            padding: 2px 1px !important;
+            line-height: 1 !important;
+            word-wrap: break-word !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            margin-bottom: 2px !important;
+        `;
+    }
+    
+    if (window.innerWidth <= 400) {
+        header.style.cssText += `
+            font-size: 6px !important;
+            padding: 1px !important;
+            margin-bottom: 1px !important;
+            border-radius: 2px !important;
+        `;
+    }
     
     // Contenido del día
     const content = document.createElement('div');
@@ -2338,7 +2441,27 @@ async function cleanInconsistentData() {
 // === FUNCIÓN PARA FORZAR ACTUALIZACIÓN DE VISTA SEMANAL ===
 
 function forceUpdateWeekView() {
-    console.log('🔄 Forzando actualización de vista semanal...');
     renderWeekFullView();
-    console.log('✅ Vista semanal actualizada');
+}
+
+// ✅ FUNCIÓN PARA FORZAR REDIBUJADO DEL GRID
+function forceGridReflow() {
+    const container = document.getElementById('weekGridContainer');
+    if (container && container.children.length > 0) {
+        console.log('🔄 Forzando redibujado del grid por cambio de tamaño');
+        renderWeekFullView();
+    }
+}
+
+// ✅ FUNCIÓN DEBOUNCE PARA EVITAR MÚLTIPLES LLAMADAS
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }

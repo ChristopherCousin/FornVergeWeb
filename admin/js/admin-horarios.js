@@ -81,6 +81,9 @@ async function initApp() {
     renderEmployees();
     setupEventListeners();
     
+    // Inicializar con vista de semana por defecto
+    initDefaultView();
+    
     hideLoading();
     updateStatus('Listo ✨');
 }
@@ -422,25 +425,49 @@ function openShiftModal(empId, day, empName, dayName) {
     currentModalEmployee = empId;
     currentModalDay = day;
     
-    // Resetear a modo normal
-    document.getElementById('singleShiftFields').classList.remove('hidden');
-    document.getElementById('splitShiftFields').classList.add('hidden');
-    document.getElementById('shiftTypeSelector').classList.remove('hidden');
-    document.getElementById('addShift').innerHTML = '<i class="fas fa-plus mr-2"></i>Agregar Turno';
+    // Mostrar información del empleado y día
+    document.getElementById('modalEmployeeDay').textContent = `${empName} - ${dayName}`;
     
-    // Resetear campos a valores por defecto
+    // Limpiar campos
     document.getElementById('startTime').value = '07:00';
     document.getElementById('endTime').value = '14:00';
+    document.getElementById('startTime1').value = '07:00';
+    document.getElementById('endTime1').value = '13:00';
+    document.getElementById('startTime2').value = '16:00';
+    document.getElementById('endTime2').value = '21:00';
     document.getElementById('shiftType').value = 'morning';
     
-    document.getElementById('modalEmployeeDay').textContent = `${empName} - ${dayName}`;
-    document.getElementById('shiftModal').classList.add('show');
+    // Ocultar campos de turno partido
+    document.getElementById('singleShiftFields').classList.remove('hidden');
+    document.getElementById('splitShiftFields').classList.add('hidden');
+    
+    // Mostrar modal con mejor UX móvil
+    const modal = document.getElementById('shiftModal');
+    modal.classList.add('show');
+    
+    // Mejorar foco para móvil - no enfocar automáticamente en móvil
+    if (window.innerWidth > 768) {
+        setTimeout(() => {
+            document.getElementById('startTime').focus();
+        }, 100);
+    }
+    
+    // Prevenir scroll del body cuando el modal está abierto
+    document.body.style.overflow = 'hidden';
+    
+    updateStatus(`Agregando turno para ${empName} 📝`);
 }
 
 function closeModal() {
     document.getElementById('shiftModal').classList.remove('show');
+    
+    // Restaurar scroll del body
+    document.body.style.overflow = '';
+    
     currentModalEmployee = null;
     currentModalDay = null;
+    
+    updateStatus('Listo ✨');
 }
 
 function setTemplate(start, end, type) {
@@ -1598,27 +1625,38 @@ function switchView(viewType) {
     const mainView = document.getElementById('mainView');
     const weekFullView = document.getElementById('weekFullView');
     
-    if (viewType === 'week') {
-        // Cambiar a vista de semana completa
-        dayViewBtn.classList.remove('active');
-        weekViewBtn.classList.add('active');
-        mainView.style.display = 'none';
-        weekFullView.classList.add('active');
-        renderWeekFullView();
-    } else {
-        // Cambiar a vista por días
-        weekViewBtn.classList.remove('active');
+    // Limpiar clases activas
+    dayViewBtn.classList.remove('active');
+    weekViewBtn.classList.remove('active');
+    
+    if (viewType === 'day') {
         dayViewBtn.classList.add('active');
+        mainView.classList.remove('hidden');
         weekFullView.classList.remove('active');
-        mainView.style.display = 'block';
+        weekFullView.classList.add('hidden');
+        
         renderDaysView();
+        updateStatus('Vista por días 📅');
+    } else if (viewType === 'week') {
+        weekViewBtn.classList.add('active');
+        weekFullView.classList.remove('hidden');
+        weekFullView.classList.add('active');
+        mainView.classList.add('hidden');
+        
+        renderWeekFullView();
+        updateStatus('Vista de semana completa 📋');
     }
+    
+    // Actualizar estadísticas
+    updateStats();
+}
+
+// Función para inicializar con vista de semana por defecto
+function initDefaultView() {
+    switchView('week'); // Cambiar de 'day' a 'week' como vista predeterminada
 }
 
 function renderWeekFullView() {
-    // Renderizar la leyenda de empleados
-    renderEmployeeLegend();
-    
     const container = document.getElementById('weekGridContainer');
     container.innerHTML = '';
     
@@ -1627,9 +1665,6 @@ function renderWeekFullView() {
         const dayColumn = createWeekDayColumn(day);
         container.appendChild(dayColumn);
     });
-    
-    // Renderizar el resumen detallado
-    renderWeekSummary();
 }
 
 function renderEmployeeLegend() {

@@ -107,11 +107,11 @@
                     
                     <!-- Botones de Vista -->
                     <div class="view-controls">
-                        <button id="dayViewBtn" class="view-btn active">
+                        <button id="dayViewBtn" class="view-btn">
                             <i class="fas fa-calendar-day mr-1"></i>
                             <span>Por Días</span>
                         </button>
-                        <button id="weekViewBtn" class="view-btn">
+                        <button id="weekViewBtn" class="view-btn active">
                             <i class="fas fa-calendar-week mr-1"></i>
                             <span>Semana Completa</span>
                         </button>
@@ -167,27 +167,17 @@
             </div>
         </div>
 
-        <!-- Vista Principal: Por Días con Gestión -->
-        <div id="mainView">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" id="dailyScheduleContainer">
-                <!-- Se genera dinámicamente por días -->
-            </div>
-        </div>
-
-        <!-- Vista de Semana Completa -->
-        <div id="weekFullView" class="week-full-view">
-            <!-- Leyenda de colores por empleado -->
-            <div id="employeeLegend" class="employee-legend mb-4">
-                <!-- Se genera dinámicamente -->
-            </div>
-            
+        <!-- Vista Principal: Vista de Semana Completa (NUEVA PRINCIPAL) -->
+        <div id="weekFullView" class="week-full-view active">
             <div class="week-grid" id="weekGridContainer">
                 <!-- Se genera dinámicamente la vista de semana completa -->
             </div>
-            
-            <!-- Resumen detallado de horas -->
-            <div id="weekSummary" class="week-summary mt-4">
-                <!-- Se genera dinámicamente -->
+        </div>
+
+        <!-- Vista Secundaria: Por Días con Gestión -->
+        <div id="mainView" class="hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" id="dailyScheduleContainer">
+                <!-- Se genera dinámicamente por días -->
             </div>
         </div>
 

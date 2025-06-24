@@ -290,6 +290,88 @@ body {
     color: #b8860b;
 }
 
+.product-status.completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.product-card.completed {
+    border-left-color: var(--success-color);
+    background: linear-gradient(90deg, #f0fff4 0%, white 100%);
+    opacity: 0.9;
+}
+
+.completed-message {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--success-color);
+    font-weight: 500;
+    justify-content: center;
+    padding: 0.5rem;
+    background: #d4edda;
+    border-radius: 6px;
+}
+
+/* ===== NUEVO DISEÑO SIMPLIFICADO ===== */
+.product-card.simple {
+    border-left: 4px solid var(--primary-color);
+    background: white;
+}
+
+.product-schedule {
+    margin-top: 1rem;
+}
+
+.schedule-status {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding: 0.7rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.schedule-status:contains("Esperando") {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.schedule-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.timeline-step {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.7rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 3px solid #dee2e6;
+}
+
+.step-icon {
+    font-size: 1.2rem;
+    width: 2rem;
+    text-align: center;
+}
+
+.step-time {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    min-width: 4rem;
+}
+
+.step-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    flex: 1;
+}
+
 .status-emoji {
     font-size: 1.2rem;
 }
@@ -309,6 +391,34 @@ body {
     font-size: 0.8rem;
     color: #856404;
     font-weight: 500;
+}
+
+/* ===== TOAST NOTIFICATIONS ===== */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    z-index: 2000;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+    max-width: 300px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.toast.show {
+    transform: translateX(0);
+}
+
+.toast-success {
+    background: var(--success-color);
+}
+
+.toast-error {
+    background: var(--danger-color);
 }
 
 .product-actions {
@@ -544,4 +654,39 @@ body {
 
 .mt-1 { margin-top: 0.5rem; }
 .mb-1 { margin-bottom: 0.5rem; }
-.p-1 { padding: 0.5rem; } 
+.p-1 { padding: 0.5rem; }
+
+/* Resumen de acciones urgentes */
+.action-summary {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.action-summary .summary-item {
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    flex: 1;
+    text-align: center;
+}
+
+.action-summary .summary-item.urgent {
+    background: #fff3cd;
+    border-color: #ffeaa7;
+    color: #856404;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 193, 7, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+    }
+} 

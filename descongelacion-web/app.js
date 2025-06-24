@@ -51,19 +51,24 @@ class DescongelacionApp {
 
     setupUI() {
         // Actualizar fecha y hora cada segundo
+        this.updateDateTime();
         setInterval(() => {
             this.updateDateTime();
-            this.updateCurrentTanda();
-            this.updateTimers();
+            this.updateSchedules(); // Actualizar horarios y resumen cada segundo
+            this.updateSummary();   // Actualizar contadores urgentes
         }, 1000);
 
-        // Configurar selector de tandas
-        document.querySelectorAll('.tanda-option').forEach(option => {
-            option.addEventListener('click', () => {
-                const tanda = option.dataset.tanda;
-                this.selectTanda(tanda);
-            });
-        });
+        // Detectar cambios de tanda automáticamente
+        this.updateCurrentTanda();
+        setInterval(() => {
+            this.updateCurrentTanda();
+        }, 60000); // Verificar cada minuto
+
+        // Configurar event listeners
+        this.setupEventListeners();
+        
+        // Configurar actualización automática
+        this.setupAutoRefresh();
     }
 
     updateDateTime() {
@@ -173,19 +178,14 @@ class DescongelacionApp {
         container.innerHTML = this.currentProducts.map(product => 
             this.createProductCard(product)
         ).join('');
-
-        // Configurar event listeners para los botones
-        this.setupProductEventListeners();
     }
 
     createProductCard(product) {
         const emoji = PRODUCT_EMOJIS[product.producto] || '🥖';
-        const estado = this.getProductStatus(product);
-        const timerInfo = this.getTimerInfo(product);
-        const recommendation = getDefrostRecommendation(this.currentTanda, product.producto);
+        const schedule = this.getProductSchedule(product);
         
         return `
-            <div class="product-card ${estado.class}" data-product-id="${product.id}">
+            <div class="product-card simple" data-product-id="${product.id}">
                 <div class="product-header">
                     <div class="product-info">
                         <h3>${emoji} ${product.producto}</h3>
@@ -195,256 +195,117 @@ class DescongelacionApp {
                     </div>
                 </div>
                 
-                <div class="product-status ${estado.class}">
-                    <span class="status-emoji">${estado.emoji}</span>
-                    <span>${estado.description}</span>
-                </div>
-                
-                ${estado.class === 'pending' ? `<div class="defrost-recommendation">${recommendation}</div>` : ''}
-                ${timerInfo ? `<div class="timer-info">${timerInfo}</div>` : ''}
-                
-                <div class="product-actions">
-                    ${this.createActionButtons(product, estado)}
+                <div class="product-schedule">
+                    ${schedule}
                 </div>
             </div>
         `;
     }
 
-    getProductStatus(product) {
-        // Aquí deberías obtener el estado real desde la base de datos
-        // Por ahora, simulamos el estado basado en si tiene timestamps
+    getProductSchedule(product) {
+        const calc = calculateDefrostStartTime(this.currentTanda, product.producto);
+        if (!calc) return 'No se pudo calcular el horario';
         
-        if (product.baking_started_at) {
-            return {
-                class: 'baking',
-                emoji: '🔥',
-                description: 'En horno'
-            };
-        }
+        const defrostTime = `${calc.start_hour.toString().padStart(2, '0')}:${calc.start_minutes.toString().padStart(2, '0')}`;
+        const ovenTime = `${calc.oven_hour.toString().padStart(2, '0')}:${calc.oven_minutes.toString().padStart(2, '0')}`;
+        const readyTime = `${calc.ready_hour.toString().padStart(2, '0')}:${calc.ready_minutes.toString().padStart(2, '0')}`;
         
-        if (product.defrost_completed_at) {
-            return {
-                class: 'ready',
-                emoji: '✅',
-                description: 'Listo para horno'
-            };
-        }
-        
-        if (product.defrost_started_at) {
-            return {
-                class: 'defrosting',
-                emoji: '🧊➡️',
-                description: 'Descongelando'
-            };
-        }
-        
-        return {
-            class: 'pending',
-            emoji: '⏳',
-            description: 'Pendiente de descongelar'
-        };
-    }
-
-    getTimerInfo(product) {
         const now = new Date();
+        const currentTime = now.getHours() * 60 + now.getMinutes();
+        const defrostStart = calc.start_hour * 60 + calc.start_minutes;
+        const ovenStart = calc.oven_hour * 60 + calc.oven_minutes;
+        const readyMoment = calc.ready_hour * 60 + calc.ready_minutes;
         
-        if (product.baking_started_at) {
-            const bakingTime = TIME_CONFIG.tiempos_horneado[product.producto] || 20;
-            const remaining = calculateTimeRemaining(product.baking_started_at, bakingTime);
-            
-            if (remaining) {
-                return `⏱️ Horneado: ${remaining.minutes}:${remaining.seconds.toString().padStart(2, '0')} restantes`;
-            } else {
-                return '🎯 ¡Horneado completado!';
-            }
-        }
-        
-        if (product.defrost_started_at) {
-            const defrostTime = TIME_CONFIG.tiempos_descongelacion[product.producto] || 120;
-            const remaining = calculateTimeRemaining(product.defrost_started_at, defrostTime);
-            
-            if (remaining) {
-                return `❄️ Descongelación: ${remaining.minutes}:${remaining.seconds.toString().padStart(2, '0')} restantes`;
-            } else {
-                return '✅ ¡Descongelación completada!';
-            }
+        let status = '';
+        if (currentTime < defrostStart) {
+            status = '⏳ Esperando';
+        } else if (currentTime < ovenStart) {
+            status = '🧊 Descongelar ahora';
+        } else if (currentTime < readyMoment) {
+            status = '🔥 Al horno ahora';
+        } else {
+            status = '🎯 ¡Listo!';
         }
         
-        return null;
-    }
-
-    createActionButtons(product, estado) {
-        switch (estado.class) {
-            case 'pending':
-                return `
-                    <button class="btn btn-primary btn-sm" onclick="app.startDefrost(${product.id})">
-                        <span class="btn-icon">🧊</span>
-                        Comenzar descongelación
-                    </button>
-                `;
-                
-            case 'defrosting':
-                return `
-                    <button class="btn btn-secondary btn-sm" onclick="app.completeDefrost(${product.id})">
-                        <span class="btn-icon">✅</span>
-                        Marcar descongelado
-                    </button>
-                `;
-                
-            case 'ready':
-                return `
-                    <button class="btn btn-warning btn-sm" onclick="app.startBaking(${product.id})">
-                        <span class="btn-icon">🔥</span>
-                        Meter al horno
-                    </button>
-                `;
-                
-            case 'baking':
-                return `
-                    <button class="btn btn-success btn-sm" onclick="app.completeBaking(${product.id})">
-                        <span class="btn-icon">🎯</span>
-                        Marcar horneado
-                    </button>
-                `;
-                
-            default:
-                return '';
-        }
-    }
-
-    setupProductEventListeners() {
-        // Los event listeners se configuran inline en los botones
-        // para simplificar la gestión de eventos dinámicos
-    }
-
-    async startDefrost(productId) {
-        if (!await this.confirmAction('¿Comenzar descongelación?', 'Se iniciará el temporizador de descongelación.')) {
-            return;
-        }
-
-        try {
-            const { error } = await this.supabase
-                .from('cantidades_calculadas')
-                .update({ 
-                    defrost_started_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', productId);
-
-            if (error) throw error;
-
-            await this.loadProducts();
-            this.showSuccess('Descongelación iniciada');
-            
-        } catch (error) {
-            console.error('Error iniciando descongelación:', error);
-            this.showError('Error al iniciar descongelación');
-        }
-    }
-
-    async completeDefrost(productId) {
-        if (!await this.confirmAction('¿Marcar como descongelado?', 'El producto estará listo para el horno.')) {
-            return;
-        }
-
-        try {
-            const { error } = await this.supabase
-                .from('cantidades_calculadas')
-                .update({ 
-                    defrost_completed_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', productId);
-
-            if (error) throw error;
-
-            await this.loadProducts();
-            this.showSuccess('Producto listo para horno');
-            
-        } catch (error) {
-            console.error('Error completando descongelación:', error);
-            this.showError('Error al completar descongelación');
-        }
-    }
-
-    async startBaking(productId) {
-        if (!await this.confirmAction('¿Meter al horno?', 'Se iniciará el temporizador de horneado.')) {
-            return;
-        }
-
-        try {
-            const { error } = await this.supabase
-                .from('cantidades_calculadas')
-                .update({ 
-                    baking_started_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', productId);
-
-            if (error) throw error;
-
-            await this.loadProducts();
-            this.showSuccess('Horneado iniciado');
-            
-        } catch (error) {
-            console.error('Error iniciando horneado:', error);
-            this.showError('Error al iniciar horneado');
-        }
-    }
-
-    async completeBaking(productId) {
-        if (!await this.confirmAction('¿Marcar como horneado?', 'El producto estará completamente terminado.')) {
-            return;
-        }
-
-        try {
-            const { error } = await this.supabase
-                .from('cantidades_calculadas')
-                .update({ 
-                    baking_completed_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', productId);
-
-            if (error) throw error;
-
-            await this.loadProducts();
-            this.showSuccess('¡Producto completado!');
-            
-        } catch (error) {
-            console.error('Error completando horneado:', error);
-            this.showError('Error al completar horneado');
-        }
+        return `
+            <div class="schedule-status">${status}</div>
+            <div class="schedule-timeline">
+                <div class="timeline-step">
+                    <span class="step-icon">🧊</span>
+                    <span class="step-time">${defrostTime}</span>
+                    <span class="step-label">Sacar del congelador</span>
+                </div>
+                <div class="timeline-step">
+                    <span class="step-icon">🔥</span>
+                    <span class="step-time">${ovenTime}</span>
+                    <span class="step-label">Meter al horno</span>
+                </div>
+                <div class="timeline-step">
+                    <span class="step-icon">🎯</span>
+                    <span class="step-time">${readyTime}</span>
+                    <span class="step-label">Listo para vender</span>
+                </div>
+            </div>
+        `;
     }
 
     updateSummary() {
-        const stats = this.currentProducts.reduce((acc, product) => {
-            const status = this.getProductStatus(product);
-            switch (status.class) {
-                case 'pending': acc.pending++; break;
-                case 'defrosting': acc.defrosting++; break;
-                case 'ready': acc.ready++; break;
-                case 'baking': acc.baking++; break;
+        // Contar productos por estado actual
+        let needDefrost = 0;
+        let needOven = 0;
+        let total = this.currentProducts.length;
+        
+        const now = new Date();
+        const currentTime = now.getHours() * 60 + now.getMinutes();
+        
+        this.currentProducts.forEach(product => {
+            const calc = calculateDefrostStartTime(this.currentTanda, product.producto);
+            if (calc) {
+                const defrostStart = calc.start_hour * 60 + calc.start_minutes;
+                const ovenStart = calc.oven_hour * 60 + calc.oven_minutes;
+                const readyMoment = calc.ready_hour * 60 + calc.ready_minutes;
+                
+                if (currentTime >= defrostStart && currentTime < ovenStart) {
+                    needDefrost++;
+                } else if (currentTime >= ovenStart && currentTime < readyMoment) {
+                    needOven++;
+                }
             }
-            return acc;
-        }, { pending: 0, defrosting: 0, ready: 0, baking: 0 });
-
-        document.getElementById('total-pending').textContent = stats.pending + stats.defrosting;
-        document.getElementById('total-ready').textContent = stats.ready;
-        document.getElementById('total-baking').textContent = stats.baking;
+        });
+        
+        // Actualizar contadores en la UI
+        const totalElement = document.getElementById('total-products');
+        if (totalElement) {
+            totalElement.textContent = total;
+        }
+        
+        // Actualizar información de productos por descongelar
+        const defrostElement = document.querySelector('.action-summary');
+        if (defrostElement) {
+            defrostElement.innerHTML = `
+                <div class="summary-item ${needDefrost > 0 ? 'urgent' : ''}">
+                    🧊 Por descongelar: <strong>${needDefrost}</strong>
+                </div>
+                <div class="summary-item ${needOven > 0 ? 'urgent' : ''}">
+                    🔥 Al horno: <strong>${needOven}</strong>
+                </div>
+            `;
+        }
+        
+        console.log(`📊 Resumen: ${needDefrost} para descongelar, ${needOven} al horno, ${total} total`);
     }
 
-    updateTimers() {
-        // Actualizar temporizadores en tiempo real
+    updateSchedules() {
+        // Actualizar horarios en tiempo real
         if (!this.currentProducts || this.currentProducts.length === 0) return;
         
         this.currentProducts.forEach(product => {
             const productCard = document.querySelector(`[data-product-id="${product.id}"]`);
             if (productCard) {
-                const timerElement = productCard.querySelector('.timer-info');
-                if (timerElement) {
-                    const timerInfo = this.getTimerInfo(product);
-                    timerElement.textContent = timerInfo || '';
+                const scheduleElement = productCard.querySelector('.product-schedule');
+                if (scheduleElement) {
+                    const schedule = this.getProductSchedule(product);
+                    scheduleElement.innerHTML = schedule;
                 }
             }
         });
@@ -504,12 +365,29 @@ class DescongelacionApp {
 
     showSuccess(message) {
         console.log('✅', message);
-        // Aquí podrías mostrar una notificación toast
+        this.showToast(message, 'success');
     }
 
     showError(message) {
         console.error('❌', message);
-        // Aquí podrías mostrar una notificación de error
+        this.showToast(message, 'error');
+    }
+
+    showToast(message, type) {
+        // Crear toast dinámicamente
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        // Mostrar con animación
+        setTimeout(() => toast.classList.add('show'), 100);
+        
+        // Ocultar y eliminar después de 3 segundos
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => document.body.removeChild(toast), 300);
+        }, 3000);
     }
 }
 

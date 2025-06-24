@@ -14,40 +14,43 @@ const TIME_CONFIG = {
             end: 12, 
             emoji: '🌅', 
             name: 'Mañana',
+            work_start: 6,  // Empleados entran a las 6:00
             ready_time: 7,  // Todo listo a las 7:00 (apertura al público)
-            description: 'Apertura 7:00 - Todo debe estar listo a las 7:00'
+            description: 'Entran 6:00, Apertura 7:00'
         },
         mediodia: { 
             start: 12, 
             end: 17, 
             emoji: '☀️', 
             name: 'Mediodía',
+            work_start: 12, // Empleados entran a las 12:00
             ready_time: 12, // Todo listo a las 12:00
-            description: 'Cambio turno 12:00 - Todo debe estar listo a las 12:00'
+            description: 'Cambio turno 12:00'
         },
         tarde: { 
             start: 17, 
             end: 21, 
             emoji: '🌆', 
             name: 'Tarde',
+            work_start: 17, // Empleados entran a las 17:00
             ready_time: 17, // Todo listo a las 17:00
-            description: 'Cambio turno 17:00 - Todo debe estar listo a las 17:00'
+            description: 'Cambio turno 17:00'
         }
     },
     
-    // Tiempos de descongelación por producto (en minutos) - VERANO
+    // Tiempos de descongelación por producto (en minutos) - PROFESIONAL Y SANIDAD
     tiempos_descongelacion: {
-        'Barra Clásica': 40,
-        'Mini Croissant': 50,
-        'Croissant': 60,
-        'Napolitana Choco.': 55,
-        'Mini Croissant Choco Dúo': 50,
-        'Empanada Pollo y Cebolla': 70,
-        'Empanada Carne': 75,
-        'Empanada Guisantes': 70,
-        'Ensaimada Crema': 65,
-        'Ensaimada Normal': 60,
-        'Napolitana Jamón/Queso': 55
+        'Barra Clásica': 90,                    // Pan necesita tiempo para estructura
+        'Mini Croissant': 75,                   // Masa hojaldrada requiere tiempo
+        'Croissant': 90,                        // Croissant grande necesita más tiempo
+        'Napolitana Choco.': 80,                // Con relleno requiere descongelado completo
+        'Mini Croissant Choco Dúo': 75,        // Pequeño pero con chocolate
+        'Empanada Pollo y Cebolla': 120,        // CARNE - SANIDAD CRÍTICA
+        'Empanada Carne': 120,                  // CARNE - SANIDAD CRÍTICA  
+        'Empanada Guisantes': 90,               // Verdura, menos tiempo pero seguro
+        'Ensaimada Crema': 100,                 // Crema láctea - sanidad importante
+        'Ensaimada Normal': 80,                 // Masa dulce, tiempo medio
+        'Napolitana Jamón/Queso': 100          // Jamón y queso - proteína animal
     },
     
     // Tiempos de horneado por producto (en minutos)
@@ -201,49 +204,38 @@ function calculateDefrostStartTime(tanda, producto) {
     const tandaInfo = TIME_CONFIG.tandas[tanda];
     if (!tandaInfo) return null;
     
-    const defrostMinutes = TIME_CONFIG.tiempos_descongelacion[producto] || 60;
+    let defrostMinutes = TIME_CONFIG.tiempos_descongelacion[producto] || 60;
     const bakingMinutes = TIME_CONFIG.tiempos_horneado[producto] || 15;
-    const readyHour = tandaInfo.ready_time;
+    const workStartHour = tandaInfo.work_start; // SIEMPRE 6:00 para mañana
     
-    // CALCULAR HACIA ATRÁS:
-    // 1. Hora objetivo (cliente lo quiere)
-    const targetTime = readyHour * 60; // convertir a minutos desde 00:00
+    // ⚠️ TIEMPOS DE VERANO REDUCIDOS ⚠️ (hace más calor, descongela más rápido)
+    if (tanda === 'mañana') {
+        if (producto === 'Barra Clásica') {
+            defrostMinutes = 45;   // 45 min en verano
+        }
+        else if (producto.includes('Empanada') && (producto.includes('Pollo') || producto.includes('Carne'))) {
+            defrostMinutes = 75;   // 75 min mínimo por sanidad, pero menos que invierno
+        }
+        else {
+            defrostMinutes = Math.round(defrostMinutes * 0.75); // 25% menos tiempo en verano
+        }
+    }
     
-    // 2. Hora de meter al horno (target - tiempo_horneado)
-    const ovenTime = targetTime - bakingMinutes;
+    const workStartTime = workStartHour * 60; // 6:00 AM = 360 minutos
     
-    // 3. Hora de sacar del congelador (horno - tiempo_descongelacion)
-    const defrostStart = ovenTime - defrostMinutes;
-    
-    // Convertir de vuelta a horas y minutos
-    const startHour = Math.floor(defrostStart / 60);
-    const startMinutes = defrostStart % 60;
-    const ovenHour = Math.floor(ovenTime / 60);
-    const ovenMinutes = ovenTime % 60;
+    // CALCULAR DESDE LAS 6:00 QUE LLEGAN
+    const defrostStart = workStartTime;
+    const ovenTime = defrostStart + defrostMinutes; 
+    const readyTime = ovenTime + bakingMinutes;     
     
     return {
-        start_hour: startHour,
-        start_minutes: startMinutes,
-        oven_hour: ovenHour,
-        oven_minutes: ovenMinutes,
-        ready_hour: readyHour,
-        ready_minutes: 0,
-        defrost_duration: defrostMinutes,
-        baking_duration: bakingMinutes,
-        total_process: defrostMinutes + bakingMinutes
+        start_hour: Math.floor(defrostStart / 60),
+        start_minutes: defrostStart % 60,
+        oven_hour: Math.floor(ovenTime / 60),
+        oven_minutes: ovenTime % 60,
+        ready_hour: Math.floor(readyTime / 60),
+        ready_minutes: readyTime % 60
     };
-}
-
-// ===== FUNCIÓN PARA OBTENER RECOMENDACIÓN DE INICIO =====
-function getDefrostRecommendation(tanda, producto) {
-    const calc = calculateDefrostStartTime(tanda, producto);
-    if (!calc) return 'No calculado';
-    
-    const startTime = `${calc.start_hour.toString().padStart(2, '0')}:${calc.start_minutes.toString().padStart(2, '0')}`;
-    const ovenTime = `${calc.oven_hour.toString().padStart(2, '0')}:${calc.oven_minutes.toString().padStart(2, '0')}`;
-    const readyTime = `${calc.ready_hour.toString().padStart(2, '0')}:${calc.ready_minutes.toString().padStart(2, '0')}`;
-    
-    return `🧊 ${startTime} → 🔥 ${ovenTime} → 🎯 ${readyTime}`;
 }
 
 // ===== FUNCIÓN PARA OBTENER EL DÍA DE LA SEMANA =====
@@ -277,6 +269,5 @@ window.formatDate = formatDate;
 window.formatTime = formatTime;
 window.calculateTimeRemaining = calculateTimeRemaining;
 window.calculateDefrostStartTime = calculateDefrostStartTime;
-window.getDefrostRecommendation = getDefrostRecommendation;
 window.getWeekdayNumber = getWeekdayNumber;
 window.validateConfig = validateConfig; 

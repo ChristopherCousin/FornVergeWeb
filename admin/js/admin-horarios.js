@@ -4,17 +4,65 @@
 const SUPABASE_URL = 'https://csxgkxjeifakwslamglc.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzeGdreGplaWZha3dzbGFtZ2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjM4NjIsImV4cCI6MjA2NDg5OTg2Mn0.iGDmQJGRjsldPGmXLO5PFiaLOk7P3Rpr0omF3b8SJkg';
 
-// Variables dinámicas para semanas
-let currentWeekStart = localStorage.getItem('fornverge_last_week') || '2025-06-16'; // Semana inicial (actualizada a junio)
+// Función para calcular automáticamente la semana actual
+function getCurrentWeek() {
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth(); // 0-based (5 = junio)
+    const currentDay = today.getDate();
+    
+    console.log(`📅 Fecha actual: ${currentDay}/${currentMonth + 1}/${currentYear}`);
+    
+    // Si estamos en junio de 2025
+    if (currentYear === 2025 && currentMonth === 5) { // 5 = junio
+        if (currentDay >= 16 && currentDay <= 22) {
+            return '2025-06-16'; // 16-22 Jun
+        } else if (currentDay >= 23 && currentDay <= 29) {
+            return '2025-06-23'; // 23-29 Jun
+        } else if (currentDay >= 30) {
+            return '2025-06-30'; // 30 Jun-6 Jul
+        } else {
+            return '2025-06-16'; // Fallback para días anteriores
+        }
+    }
+    // Si estamos en julio de 2025
+    else if (currentYear === 2025 && currentMonth === 6) { // 6 = julio
+        if (currentDay <= 6) {
+            return '2025-06-30'; // 30 Jun-6 Jul
+        } else if (currentDay >= 7 && currentDay <= 13) {
+            return '2025-07-07'; // 7-13 Jul
+        } else if (currentDay >= 14 && currentDay <= 20) {
+            return '2025-07-14'; // 14-20 Jul
+        } else if (currentDay >= 21 && currentDay <= 27) {
+            return '2025-07-21'; // 21-27 Jul
+        } else if (currentDay >= 28) {
+            return '2025-07-28'; // 28 Jul-3 Ago
+        }
+    }
+    // Si estamos en agosto de 2025
+    else if (currentYear === 2025 && currentMonth === 7) { // 7 = agosto
+        if (currentDay <= 3) {
+            return '2025-07-28'; // 28 Jul-3 Ago
+        } else if (currentDay >= 4 && currentDay <= 10) {
+            return '2025-08-04'; // 4-10 Ago
+        }
+    }
+    
+    // Fallback por defecto
+    return '2025-06-23';
+}
+
+// Variables dinámicas para semanas - CALCULADO AUTOMÁTICAMENTE
+let currentWeekStart = getCurrentWeek(); // Calcular semana actual dinámicamente
 const availableWeeks = [
-    '2025-06-09', // Semana 1: 9-15 Jun
-    '2025-06-16', // Semana 2: 16-22 Jun ← ACTUAL
-    '2025-06-23', // Semana 3: 23-29 Jun
-    '2025-06-30', // Semana 4: 30 Jun-6 Jul
-    '2025-07-07', // Semana 5: 7-13 Jul
-    '2025-07-14', // Semana 6: 14-20 Jul
-    '2025-07-21', // Semana 7: 21-27 Jul
-    '2025-07-28'  // Semana 8: 28 Jul-3 Ago
+    '2025-06-16', // Semana 1: 16-22 Jun (pasada)
+    '2025-06-23', // Semana 2: 23-29 Jun ← ACTUAL (incluye 24 Jun)
+    '2025-06-30', // Semana 3: 30 Jun-6 Jul
+    '2025-07-07', // Semana 4: 7-13 Jul
+    '2025-07-14', // Semana 5: 14-20 Jul
+    '2025-07-21', // Semana 6: 21-27 Jul
+    '2025-07-28', // Semana 7: 28 Jul-3 Ago
+    '2025-08-04'  // Semana 8: 4-10 Ago
 ];
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -56,6 +104,13 @@ let isAuthenticated = false;
 
 async function initApp() {
     console.log('🚀 Iniciando Gestión de Horarios...');
+    
+    // Calcular semana actual dinámicamente
+    currentWeekStart = getCurrentWeek();
+    console.log(`📅 Semana calculada automáticamente: ${currentWeekStart}`);
+    
+    // Regenerar días para la semana actual
+    DAYS = generateDaysForWeek(currentWeekStart);
     
     // Verificar autenticación al inicio
     checkAuthentication();
@@ -280,56 +335,9 @@ function getShiftType(startTime, endTime) {
 }
 
 function updateStats() {
-    let totalShifts = 0;
-    let totalHours = 0;
-    let freeDays = 0;
-
-    // Solo contar estadísticas de empleados activos (no de vacaciones)
+    // Stats eliminadas completamente - solo para debug interno
     const activeEmployees = getActiveEmployees();
-    
-    activeEmployees.forEach(emp => {
-        DAYS.forEach(day => {
-            const shifts = scheduleData[emp.id][day.key] || [];
-            shifts.forEach(shift => {
-                if (shift.isFree) {
-                    freeDays++;
-                } else {
-                    totalShifts++;
-                    totalHours += shift.hours || 0;
-                }
-            });
-        });
-    });
-
-    console.log('📊 Stats calculadas:', { 
-        totalShifts, 
-        totalHours, 
-        freeDays, 
-        activeEmployees: activeEmployees.length,
-        onVacation: employeesOnVacation.size,
-        scheduleData: Object.keys(scheduleData).length 
-    });
-
-    // Verificar que los elementos existen antes de actualizar
-    const elements = {
-        totalEmployees: document.getElementById('totalEmployees'),
-        totalShifts: document.getElementById('totalShifts'),
-        totalHours: document.getElementById('totalHours'),
-        freeDays: document.getElementById('freeDays')
-    };
-
-    console.log('📊 Elementos DOM encontrados:', Object.keys(elements).filter(key => elements[key]));
-
-    // Mostrar empleados activos y en vacaciones
-    const onVacationCount = employeesOnVacation.size;
-    const employeeText = onVacationCount > 0 ? 
-        `${activeEmployees.length} (${onVacationCount} 🏖️)` : 
-        activeEmployees.length.toString();
-
-    if (elements.totalEmployees) elements.totalEmployees.textContent = employeeText;
-    if (elements.totalShifts) elements.totalShifts.textContent = totalShifts;
-    if (elements.totalHours) elements.totalHours.textContent = totalHours;
-    if (elements.freeDays) elements.freeDays.textContent = freeDays;
+    console.log(`📊 ${activeEmployees.length} empleados activos en la semana`);
 }
 
 function renderEmployees() {

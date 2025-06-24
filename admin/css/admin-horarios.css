@@ -1689,13 +1689,23 @@ body {
     background-color: #f9fafb;
 }
 
-/* Contenedor principal sin overflow */
+/* Container principal optimizado */
+#mainContent {
+    max-width: 100vw;
+    padding: 12px 8px;
+    overflow-x: hidden;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Ajustes específicos del container padre */
 .max-w-7xl.mx-auto.p-4 {
     max-width: 100vw !important;
-    padding: 8px 4px !important;
+    padding: 12px 8px !important;
     margin: 0 auto !important;
     width: 100%;
     overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 /* Responsive crítico para móvil */
@@ -1707,7 +1717,7 @@ body {
     }
     
     .max-w-7xl.mx-auto.p-4 {
-        padding: 4px 2px !important;
+        padding: 8px 4px !important;
         width: 100vw;
         max-width: 100vw;
     }
@@ -1715,7 +1725,7 @@ body {
     #mainContent {
         width: 100vw;
         max-width: 100vw;
-        padding: 4px 2px;
+        padding: 8px 4px;
         overflow-x: hidden;
         box-sizing: border-box;
     }
@@ -1773,11 +1783,11 @@ body {
 
 @media (max-width: 480px) {
     .max-w-7xl.mx-auto.p-4 {
-        padding: 2px 1px !important;
+        padding: 4px 2px !important;
     }
     
     #mainContent {
-        padding: 2px 1px;
+        padding: 4px 2px;
     }
     
     .week-grid {

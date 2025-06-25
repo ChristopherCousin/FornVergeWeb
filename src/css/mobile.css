@@ -1,0 +1,599 @@
+/* ==========================================
+   FORN VERGE DE LLUC - MOBILE STYLES
+   Responsive design optimizado para móvil
+   ========================================== */
+
+/* ==========================================
+   NAVEGACIÓN MÓVIL
+   ========================================== */
+.mobile-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(42, 30, 20, 0.98);
+    backdrop-filter: blur(20px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-cubic);
+}
+
+.mobile-menu-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mobile-menu-close {
+    position: absolute;
+    top: var(--spacing-lg);
+    right: var(--spacing-lg);
+    background: none;
+    border: none;
+    color: var(--primary-gold);
+    font-size: 2rem;
+    cursor: pointer;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    transition: all var(--transition-normal);
+}
+
+.mobile-menu-close:hover {
+    background: rgba(212, 165, 116, 0.1);
+    transform: rotate(90deg);
+}
+
+.mobile-nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    text-align: center;
+    padding: var(--spacing-xl);
+}
+
+.mobile-nav-links a {
+    color: var(--light-gold);
+    text-decoration: none;
+    font-size: 1.5rem;
+    font-weight: 600;
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-normal);
+}
+
+.mobile-nav-links a:hover {
+    color: var(--primary-gold);
+    background: rgba(212, 165, 116, 0.1);
+    transform: translateX(10px);
+}
+
+/* ==========================================
+   RESPONSIVE BREAKPOINTS
+   ========================================== */
+
+/* Tablet Portrait */
+@media (max-width: 768px) {
+    
+    /* NAVEGACIÓN */
+    .navbar {
+        padding: 0.8rem 0;
+    }
+    
+    .navbar__nav {
+        display: none;
+    }
+    
+    .navbar__mobile-toggle {
+        display: block;
+    }
+    
+    /* HERO SECTION */
+    .hero {
+        padding: 100px var(--spacing-sm) 60px var(--spacing-sm);
+        min-height: 100vh;
+        align-items: flex-start;
+        justify-content: center;
+    }
+    
+    .hero__content {
+        margin-top: var(--spacing-lg);
+        width: 100%;
+        padding: 0 var(--spacing-xs);
+    }
+    
+    .hero__title {
+        font-size: clamp(2.5rem, 12vw, 4rem);
+        line-height: 1.1;
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .hero__subtitle {
+        font-size: clamp(1rem, 5vw, 1.4rem);
+        margin-bottom: var(--spacing-lg);
+        padding: 0 var(--spacing-sm);
+    }
+    
+    .hero__description {
+        font-size: 0.95rem;
+        max-width: 100%;
+        padding: 0 var(--spacing-sm);
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    /* INFO CARDS HERO */
+    .hero .grid-auto-fit {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+        max-width: 100%;
+        margin: 0 auto var(--spacing-lg) auto;
+    }
+    
+    .info-card {
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .info-card__icon {
+        font-size: 2.5rem;
+    }
+    
+    .info-card__title {
+        font-size: 1.1rem;
+    }
+    
+    /* BOTONES HERO */
+    .hero .flex {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .btn {
+        padding: 15px 30px;
+        font-size: 0.95rem;
+        width: 100%;
+        max-width: 280px;
+        margin: 0 auto;
+    }
+    
+    /* SCROLL INDICATOR */
+    .scroll-indicator {
+        bottom: var(--spacing-sm);
+    }
+    
+    /* SECCIONES GENERALES */
+    .section {
+        padding: var(--spacing-xl) 0;
+    }
+    
+    .section-title {
+        font-size: clamp(2rem, 8vw, 2.8rem);
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .section-title::after {
+        width: 60px;
+    }
+    
+    /* CONTENEDORES */
+    .container {
+        padding: 0 var(--spacing-sm);
+    }
+    
+    /* PRODUCTOS SECTION */
+    .grid-auto-fit {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+    
+    .card {
+        padding: var(--spacing-lg);
+    }
+    
+    .card__title {
+        font-size: 1.5rem;
+    }
+    
+    .card__description {
+        font-size: 0.95rem;
+    }
+    
+    /* HISTORIA SECTION */
+    .grid-cols-2 {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+    
+    .card-glass {
+        padding: var(--spacing-lg);
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-sm);
+    }
+    
+    /* CONTACTO SECTION */
+    .feature-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    /* FOOTER */
+    .grid-cols-3 {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+        text-align: center;
+    }
+    
+    /* SCROLL TOP BUTTON */
+    .scroll-top {
+        width: 50px;
+        height: 50px;
+        bottom: var(--spacing-sm);
+        right: var(--spacing-sm);
+    }
+    
+    .scroll-top i {
+        font-size: 1rem;
+    }
+}
+
+/* ==========================================
+   MOBILE PEQUEÑO (480px y menos)
+   ========================================== */
+@media (max-width: 480px) {
+    
+    /* HERO */
+    .hero {
+        padding: 90px var(--spacing-xs) 50px var(--spacing-xs);
+    }
+    
+    .hero__title {
+        font-size: clamp(2rem, 10vw, 3rem);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .hero__subtitle {
+        font-size: clamp(0.9rem, 4vw, 1.2rem);
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .hero__description {
+        font-size: 0.85rem;
+        padding: 0;
+        margin-bottom: var(--spacing-md);
+    }
+    
+    /* NAVBAR */
+    .navbar__container {
+        padding: 0 var(--spacing-sm);
+    }
+    
+    .navbar__title {
+        font-size: 1.2rem;
+    }
+    
+    .navbar__subtitle {
+        font-size: 0.8rem;
+    }
+    
+    /* INFO CARDS */
+    .info-card {
+        padding: var(--spacing-sm);
+    }
+    
+    /* SECCIONES */
+    .section {
+        padding: var(--spacing-lg) 0;
+    }
+    
+    .container {
+        padding: 0 var(--spacing-sm);
+    }
+    
+    /* CARDS */
+    .card {
+        padding: var(--spacing-md);
+    }
+    
+    .card__title {
+        font-size: 1.3rem;
+    }
+    
+    .card-glass {
+        padding: var(--spacing-md);
+    }
+    
+    /* BOTONES */
+    .btn {
+        padding: 12px 24px;
+        font-size: 0.9rem;
+        max-width: 100%;
+    }
+    
+    /* STATS */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-xs);
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+    }
+    
+    /* OFERTAS SECTION */
+    .card-glass {
+        max-width: 100%;
+        padding: var(--spacing-lg) var(--spacing-sm);
+    }
+    
+    /* QR CODE */
+    #qr-code {
+        width: 120px;
+        height: 120px;
+    }
+    
+    /* MOBILE MENU */
+    .mobile-nav-links {
+        padding: var(--spacing-lg);
+    }
+    
+    .mobile-nav-links a {
+        font-size: 1.3rem;
+        padding: var(--spacing-sm);
+    }
+}
+
+/* ==========================================
+   MOBILE LANDSCAPE
+   ========================================== */
+@media (max-height: 500px) and (orientation: landscape) {
+    
+    .hero {
+        min-height: auto;
+        padding: 80px var(--spacing-sm) 40px var(--spacing-sm);
+    }
+    
+    .hero__title {
+        font-size: clamp(2rem, 8vw, 3rem);
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .hero__subtitle {
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .hero__description {
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .info-card {
+        padding: var(--spacing-sm);
+    }
+    
+    .grid-auto-fit {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-sm);
+    }
+    
+    .scroll-indicator {
+        display: none;
+    }
+}
+
+/* ==========================================
+   INTERACCIONES TÁCTILES
+   ========================================== */
+@media (hover: none) and (pointer: coarse) {
+    
+    /* Mejorar área táctil */
+    .btn {
+        min-height: 44px;
+        padding: 16px 32px;
+    }
+    
+    .navbar__link {
+        padding: var(--spacing-sm);
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .mobile-nav-links a {
+        min-height: 44px;
+        padding: var(--spacing-md);
+    }
+    
+    .scroll-top {
+        width: 56px;
+        height: 56px;
+    }
+    
+    /* Remover hover states en dispositivos táctiles */
+    .card:hover,
+    .info-card:hover,
+    .btn:hover {
+        transform: none;
+    }
+    
+    /* Feedback táctil */
+    .btn:active {
+        transform: scale(0.98);
+    }
+    
+    .card:active {
+        transform: scale(0.99);
+    }
+}
+
+/* ==========================================
+   OPTIMIZACIONES ESPECÍFICAS MÓVIL
+   ========================================== */
+
+/* Ocultar elementos no críticos en móvil */
+@media (max-width: 768px) {
+    
+    /* Ocultar decoraciones innecesarias */
+    .card-premium::before {
+        display: none;
+    }
+    
+    .info-card::before {
+        display: none;
+    }
+    
+    /* Simplificar animaciones en móvil */
+    .hero::before {
+        animation: none;
+        opacity: 0.5;
+    }
+    
+    /* Optimizar espaciado */
+    .feature-list {
+        gap: var(--spacing-sm);
+    }
+    
+    .feature-item {
+        gap: var(--spacing-sm);
+    }
+}
+
+/* ==========================================
+   DETECCIÓN DE DISPOSITIVO MÓVIL
+   ========================================== */
+
+/* Detectar si es móvil para mostrar/ocultar elementos */
+@media (max-width: 768px) {
+    
+    .desktop-only {
+        display: none !important;
+    }
+    
+    .mobile-only {
+        display: block !important;
+    }
+}
+
+@media (min-width: 769px) {
+    
+    .mobile-only {
+        display: none !important;
+    }
+    
+    .desktop-only {
+        display: block !important;
+    }
+}
+
+/* ==========================================
+   MEJORAS DE RENDIMIENTO MÓVIL
+   ========================================== */
+
+/* Reducir complejidad visual en móviles lentos */
+@media (max-width: 480px) and (prefers-reduced-motion: reduce) {
+    
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+    
+    .backdrop-filter,
+    .card-glass {
+        backdrop-filter: none;
+        background: rgba(250, 247, 242, 0.95);
+    }
+}
+
+/* ==========================================
+   ORIENTACIÓN Y VIEWPORT
+   ========================================== */
+
+/* Ajustes para cambios de orientación */
+@media (orientation: landscape) and (max-height: 600px) {
+    
+    .hero {
+        padding: 60px var(--spacing-sm) 30px var(--spacing-sm);
+    }
+    
+    .section {
+        padding: var(--spacing-lg) 0;
+    }
+    
+    .navbar {
+        padding: 0.5rem 0;
+    }
+}
+
+/* ==========================================
+   ACCESIBILIDAD MÓVIL
+   ========================================== */
+
+/* Mayor contraste para pantallas pequeñas */
+@media (max-width: 480px) {
+    
+    .text-cream {
+        color: #F0E6D2;
+    }
+    
+    .navbar__subtitle {
+        color: #E8D5B7;
+    }
+    
+    /* Texto más legible en móvil */
+    body {
+        font-size: 16px;
+        line-height: 1.7;
+    }
+    
+    p {
+        font-size: 1rem;
+        line-height: 1.7;
+    }
+}
+
+/* ==========================================
+   GESTOS TÁCTILES AVANZADOS
+   ========================================== */
+
+/* Preparar para gestos de swipe (futuro) */
+.swipe-container {
+    touch-action: pan-x;
+    overflow-x: hidden;
+}
+
+.no-scroll {
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* ==========================================
+   NOTCH Y SAFE AREAS (iPhone X+)
+   ========================================== */
+@supports (padding-top: env(safe-area-inset-top)) {
+    
+    .navbar {
+        padding-top: calc(var(--spacing-sm) + env(safe-area-inset-top));
+    }
+    
+    .hero {
+        padding-top: calc(100px + env(safe-area-inset-top));
+    }
+    
+    .mobile-menu-overlay {
+        padding-top: env(safe-area-inset-top);
+    }
+    
+    .scroll-top {
+        bottom: calc(var(--spacing-sm) + env(safe-area-inset-bottom));
+        right: calc(var(--spacing-sm) + env(safe-area-inset-right));
+    }
+} 

@@ -192,6 +192,7 @@ INSERT INTO employees (name, emoji, employee_id, access_code, role) VALUES
 ('XISCA', '👩‍💼', 'xisca', 'eGlzY2EyMDI1', 'employee'),
 ('ANDREA', '👩‍💼', 'andrea', 'YW5kcmVhMjAyNQ==', 'employee'),
 ('GABY', '👩‍🍳', 'gaby', 'Z2FieTIwMjU=', 'employee'),
+('MERCEDES', '👩‍💼', 'mercedes', 'bWVyY2VkZXMyMDI1', 'employee'),
 ('ADMINISTRADOR', '👔', 'admin', 'YWRtaW5mb3JuMjAyNQ==', 'admin')
 ON CONFLICT (employee_id) DO NOTHING;
 

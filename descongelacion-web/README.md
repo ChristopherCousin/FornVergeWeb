@@ -1,25 +1,50 @@
-# 🥖 Forn Verge - Sistema de Descongelación
+# 🥖 Forn Verge - Sistema de Preparación y Descongelación v2.0
 
-Una aplicación web progresiva (PWA) para gestionar la descongelación y horneado de productos en la panadería Forn Verge.
+Una aplicación web progresiva (PWA) completamente renovada para gestionar la preparación y descongelación de productos en la panadería Forn Verge con un **nuevo flujo operativo ultra-práctico**.
 
-## 📱 Características
+## 🆕 **NUEVO FLUJO OPERATIVO v2.0**
 
-- **Responsive**: Funciona perfectamente en móviles, tablets y desktop
-- **PWA**: Se puede instalar como app nativa en el dispositivo
-- **Tiempo real**: Actualización automática de datos cada 5 minutos
-- **Offline**: Funciona sin conexión gracias al Service Worker
-- **Temporizadores**: Seguimiento automático de tiempos de descongelación y horneado
-- **Estados visuales**: Indicadores claros del estado de cada producto
-- **Fácil de usar**: Interfaz intuitiva pensada para empleadas de panadería
+### 📋 **MODO PREPARACIÓN** (16:00-20:00 del día anterior)
+- Revisar cantidades para el día siguiente
+- Organizar productos en bandejas separadas por tanda
+- Etiquetar claramente cada bandeja
+- Guardar organizadamente en congelador
 
-## 🚀 Instalación
+### ⚡ **MODO EJECUCIÓN** (6:00-21:00 del día del servicio)
+- Seguir timers automáticos simples
+- Sacar bandejas del congelador a la hora indicada
+- Meter al horno cuando esté descongelado
+- Marcar como terminado
 
-### 1. Configurar Base de Datos
+## 💡 **¿POR QUÉ ESTE CAMBIO?**
 
-Ejecuta este SQL en tu Supabase para añadir las columnas necesarias:
+El sistema anterior requería demasiadas decisiones durante el servicio. El nuevo sistema:
+
+✅ **Separa preparación de ejecución**  
+✅ **Reduce errores durante el servicio**  
+✅ **Simplifica el día a día**  
+✅ **Es más realista operativamente**  
+✅ **Facilita el entrenamiento de personal**
+
+## 📱 **Características Renovadas**
+
+- **Detección automática de modo**: La app sabe si estás en preparación o ejecución
+- **Preparación por tandas**: Organiza productos del día siguiente por franjas horarias
+- **Checklists intuitivos**: Marca productos como contados, etiquetados y guardados
+- **Ejecución simplificada**: Solo botones de "Sacar", "Hornear" y "Terminado"
+- **Tiempos optimizados**: Reducidos porque los productos están pre-organizados
+- **Diseño dual**: Interfaz púrpura para preparación, naranja para ejecución
+
+## 🚀 **Instalación**
+
+### 1. Actualizar Base de Datos
+
+Ejecuta este SQL en tu Supabase:
 
 ```sql
--- Ejecutar en Supabase SQL Editor
+-- Nuevas columnas para preparación y seguimiento
+ALTER TABLE cantidades_calculadas ADD COLUMN IF NOT EXISTS prepared BOOLEAN DEFAULT FALSE;
+ALTER TABLE cantidades_calculadas ADD COLUMN IF NOT EXISTS prepared_at TIMESTAMPTZ NULL;
 ALTER TABLE cantidades_calculadas ADD COLUMN IF NOT EXISTS defrost_started_at TIMESTAMPTZ NULL;
 ALTER TABLE cantidades_calculadas ADD COLUMN IF NOT EXISTS defrost_completed_at TIMESTAMPTZ NULL;
 ALTER TABLE cantidades_calculadas ADD COLUMN IF NOT EXISTS baking_started_at TIMESTAMPTZ NULL;
@@ -27,11 +52,31 @@ ALTER TABLE cantidades_calculadas ADD COLUMN IF NOT EXISTS baking_completed_at T
 ALTER TABLE cantidades_calculadas ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
 ALTER TABLE cantidades_calculadas ADD COLUMN IF NOT EXISTS employee_name VARCHAR(100) NULL;
 ALTER TABLE cantidades_calculadas ADD COLUMN IF NOT EXISTS notes TEXT NULL;
+
+-- Índices para optimización
+CREATE INDEX IF NOT EXISTS idx_cantidades_prepared ON cantidades_calculadas(prepared, prepared_at);
+CREATE INDEX IF NOT EXISTS idx_cantidades_estados ON cantidades_calculadas(defrost_started_at, baking_started_at);
+CREATE INDEX IF NOT EXISTS idx_cantidades_updated ON cantidades_calculadas(updated_at);
+
+-- Trigger para updated_at automático
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+DROP TRIGGER IF EXISTS update_cantidades_updated_at ON cantidades_calculadas;
+CREATE TRIGGER update_cantidades_updated_at
+    BEFORE UPDATE ON cantidades_calculadas
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
 ```
 
 ### 2. Configurar Credenciales
 
-Edita el archivo `config.js` y asegúrate de que las credenciales de Supabase son correctas:
+Edita el archivo `config.js`:
 
 ```javascript
 const SUPABASE_CONFIG = {
@@ -42,168 +87,173 @@ const SUPABASE_CONFIG = {
 
 ### 3. Subir a Servidor Web
 
-Sube todos los archivos de la carpeta `descongelacion-web/` a tu servidor web o hosting.
+Sube todos los archivos a tu servidor web con HTTPS.
 
-### 4. Configurar HTTPS
+## 📋 **Nuevo Flujo de Trabajo Diario**
 
-**Importante**: Para que funcione como PWA, necesitas HTTPS. GitHub Pages lo proporciona automáticamente.
+### **16:00-20:00 (Día Anterior) - MODO PREPARACIÓN**
 
-## 📋 Uso Diario
+1. **La app detecta automáticamente el modo preparación**
+2. **Seleccionar tanda a preparar** (Mañana, Mediodía o Tarde)
+3. **Ver lista de productos** para esa tanda del día siguiente
+4. **Para cada producto:**
+   - ☑️ Contar y separar unidades
+   - ☑️ Etiquetar bandeja con tanda y fecha
+   - ☑️ Guardar en congelador organizadamente
+5. **Marcar tanda como preparada** cuando esté completa
 
-### Para las Empleadas
+### **6:00-21:00 (Día del Servicio) - MODO EJECUCIÓN**
 
-1. **Acceder a la aplicación** desde el móvil
-2. **Instalar la app** (si aparece el botón "Instalar" en el navegador)
-3. **Ver la tanda actual** automáticamente detectada por la hora
-4. **Seguir el flujo**:
-   - ⏳ **Pendiente** → Clic en "Comenzar descongelación"
-   - 🧊➡️ **Descongelando** → Esperar tiempo (automático) → Clic en "Marcar descongelado"
-   - ✅ **Listo para horno** → Clic en "Meter al horno"
-   - 🔥 **En horno** → Esperar tiempo (automático) → Clic en "Marcar horneado"
+1. **La app detecta automáticamente el modo ejecución**
+2. **Ver todas las tandas del día** organizadas
+3. **Seguir indicaciones por tanda activa:**
+   - 📥 **"SACAR DEL CONGELADOR"** cuando sea el momento
+   - 🔥 **"METER AL HORNO"** cuando esté descongelado
+   - ✅ **"MARCAR TERMINADO"** cuando esté listo
 
-### Tiempos Automáticos
-
-- **Descongelación**: 90-150 minutos según producto
-- **Horneado**: 15-25 minutos según producto
-- Los temporizadores se actualizan en tiempo real
-
-### Estados de los Productos
+## 🎯 **Estados del Producto**
 
 | Estado | Emoji | Descripción | Acción |
 |--------|-------|-------------|--------|
-| Pendiente | ⏳ | Por descongelar | Comenzar descongelación |
-| Descongelando | 🧊➡️ | En proceso | Esperar o marcar manualmente |
-| Listo | ✅ | Descongelado | Meter al horno |
-| Horneando | 🔥 | En el horno | Esperar o marcar terminado |
+| Por preparar | 📝 | Bandeja no preparada aún | Preparar bandeja |
+| Preparado | 📦 | Bandeja lista en congelador | Esperar hora de sacar |
+| Por sacar | ⏰ | Hora de sacar del congelador | **SACAR AHORA** |
+| Descongelando | 🧊➡️ | Fuera del congelador | Esperar descongelación |
+| Listo para horno | ✅ | Descongelado completamente | **AL HORNO AHORA** |
+| Horneando | 🔥 | En el horno | Esperar cocción |
+| Completado | 🎯 | Listo para vender | ¡Terminado! |
 
-## 📱 Instalación como App
+## ⏰ **Tiempos Optimizados**
 
-### En Android/iOS:
-1. Abrir la web en Chrome/Safari
-2. Buscar el botón "Añadir a pantalla de inicio" o "Instalar"
-3. Confirmar instalación
-4. ¡Ya tienes la app en tu móvil!
+Los tiempos se han **reducido** porque los productos están pre-organizados:
+
+- **Barra Clásica**: 45 min (antes 90 min)
+- **Croissants**: 60-75 min (antes 90 min)
+- **Empanadas carne**: 90 min (antes 120 min, por sanidad)
+- **Bollería dulce**: 60-75 min (antes 80-100 min)
+
+## 🔄 **Ejemplo de Flujo Físico**
+
+### **Día Anterior (18:00)**
+```
+CONGELADOR ORGANIZADO:
+┌─ MAÑANA [25/12] ─┐  ┌─ MEDIODÍA [25/12] ┐  ┌─ TARDE [25/12] ─┐
+│ Barra: 15 uds    │  │ Empanada: 12 uds  │  │ Croissant: 8 uds │
+│ Croissant: 8 uds │  │ Napolitana: 6 uds │  │ Ensaimada: 4 uds │
+└─────────────────┘  └─────────────────┘  └────────────────┘
+```
+
+### **Día del Servicio**
+- **6:00** → Sacar bandeja "MAÑANA"
+- **6:45** → Meter barra al horno (45 min después)
+- **12:00** → Sacar bandeja "MEDIODÍA"
+- **13:30** → Meter empanadas al horno (90 min después)
+
+## 📱 **Instalación como PWA**
+
+### En Móvil:
+1. Abrir en Chrome/Safari
+2. "Añadir a pantalla de inicio"
+3. ¡Ya tienes la app instalada!
 
 ### En Desktop:
 1. Abrir en Chrome/Edge
-2. Buscar el icono de instalación en la barra de direcciones
-3. Hacer clic en "Instalar"
+2. Icono de instalación en barra de direcciones
+3. "Instalar"
 
-## 🔄 Integración con el Sistema Existente
+## 🎨 **Indicadores Visuales**
 
-### Flujo de Datos
+- **Header púrpura**: Modo Preparación
+- **Header naranja**: Modo Ejecución
+- **Tarjetas pulsantes**: Acciones urgentes
+- **Barras de color**: Estado de cada producto
+- **Emojis contextuales**: Identificación rápida
 
+## 🛠️ **Configuración Avanzada**
+
+### Modificar Horarios de Modo
+
+```javascript
+// En config.js
+modes: {
+    preparation: {
+        available_hours: [16, 17, 18, 19, 20] // 16:00-20:00
+    },
+    execution: {
+        available_hours: [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+    }
+}
 ```
-1. Script Python (extraer_ventas.py) → Analiza ventas de Agora
-2. Calcula cantidades recomendadas → Actualiza Supabase
-3. Aplicación Web → Lee de Supabase → Muestra a empleadas
-4. Empleadas marcan estados → Se guarda en Supabase
-5. Datos disponibles para métricas y seguimiento
-```
 
-### Actualización Automática
-
-- El script Python debe ejecutarse semanalmente para actualizar cantidades
-- La web se actualiza automáticamente cada 5 minutos
-- Los datos se sincronizan en tiempo real entre dispositivos
-
-## 🛠️ Configuración Avanzada
-
-### Modificar Tiempos de Descongelación
-
-Edita en `config.js`:
+### Ajustar Tiempos de Descongelación
 
 ```javascript
 tiempos_descongelacion: {
-    'Croissant': 120,      // 2 horas
-    'Empanada': 150,       // 2.5 horas
+    'Barra Clásica': 45,        // Reducido por pre-organización
+    'Empanada Carne': 90,       // Mínimo por sanidad
     // etc...
 }
 ```
 
-### Modificar Franjas Horarias
+## 🐛 **Solución de Problemas**
 
-```javascript
-tandas: {
-    mañana: { start: 6, end: 12 },
-    mediodia: { start: 12, end: 17 },
-    tarde: { start: 17, end: 21 }
-}
-```
+### La app no cambia de modo
+- Verificar que la hora del sistema es correcta
+- Comprobar configuración en `modes` en config.js
 
-### Cambiar Actualización Automática
+### No aparecen productos para preparar
+- Verificar que hay datos en la tabla para el día siguiente
+- Comprobar que se seleccionó una tanda
 
-```javascript
-auto_refresh_minutes: 5,  // Cambiar a los minutos deseados
-```
+### Los tiempos no son correctos
+- Verificar configuración de `tiempos_descongelacion`
+- Comprobar que los horarios de tandas son correctos
 
-## 🐛 Solución de Problemas
+## 📊 **Ventajas del Nuevo Sistema**
 
-### La app no carga datos
-- Verificar conexión a internet
-- Revisar credenciales de Supabase en `config.js`
-- Comprobar que las tablas existen en Supabase
+| Aspecto | Antes | Ahora |
+|---------|-------|-------|
+| **Decisiones durante servicio** | Muchas | Mínimas |
+| **Errores operativos** | Frecuentes | Muy reducidos |
+| **Entrenamiento personal** | Complejo | Simple |
+| **Estrés en servicio** | Alto | Bajo |
+| **Organización física** | Variable | Estandarizada |
+| **Control de stock** | Difícil | Fácil |
 
-### No aparecen productos
-- Verificar que se ejecutó el script Python recientemente
-- Comprobar que hay datos en la tabla `cantidades_calculadas`
-- Revisar que la tanda actual tiene productos configurados
+## 🔧 **Desarrollo**
 
-### La app no se puede instalar
-- Verificar que se accede por HTTPS
-- Comprobar que el `manifest.json` es válido
-- Probar desde Chrome/Safari móvil
-
-### Los temporizadores no funcionan
-- Verificar que las columnas de timestamp se añadieron a la BD
-- Comprobar que las acciones se guardan correctamente
-
-## 📊 Monitoreo
-
-### Logs en Consola del Navegador
-- Abrir DevTools (F12)
-- Ver la consola para mensajes de estado
-- Revisar errores de red o base de datos
-
-### Estados en Supabase
-- Acceder al panel de Supabase
-- Revisar tabla `cantidades_calculadas`
-- Verificar timestamps de estados
-
-## 🔧 Desarrollo
-
-### Estructura de Archivos
+### Estructura Renovada
 
 ```
 descongelacion-web/
-├── index.html          # Página principal
-├── styles.css          # Estilos y diseño
-├── app.js             # Lógica principal
-├── config.js          # Configuración
+├── index.html           # Interfaz dual modo
+├── styles.css          # Estilos preparación + ejecución  
+├── app.js             # Lógica dual renovada
+├── config.js          # Configuración tiempos optimizados
 ├── manifest.json      # PWA manifest
 ├── sw.js             # Service Worker
-├── actualizar_tabla_estados.sql  # SQL para BD
-└── README.md         # Este archivo
+└── README.md         # Esta documentación
 ```
 
-### Tecnologías Usadas
+### Tecnologías
 
-- **HTML5/CSS3**: Interfaz responsive
-- **JavaScript ES6+**: Lógica de aplicación
-- **Supabase**: Base de datos en tiempo real
-- **PWA**: Progressive Web App
+- **HTML5/CSS3**: Interfaz dual responsive
+- **JavaScript ES6+**: Lógica de modos automáticos
+- **Supabase**: Base de datos tiempo real
+- **PWA**: Instalación nativa
 - **Service Worker**: Funcionalidad offline
 
-## 📞 Soporte
+## 📞 **Soporte**
 
-Para problemas técnicos:
-1. Revisar la consola del navegador (F12)
-2. Verificar configuración en `config.js`
-3. Comprobar estado de Supabase
-4. Consultar logs del script Python
+Para problemas:
+1. Verificar configuración en `config.js`
+2. Comprobar credenciales de Supabase
+3. Revisar que se ejecutaron los SQL de actualización
+4. Verificar que la hora del sistema es correcta
 
 ---
 
-**Versión**: 1.0.0  
-**Compatibilidad**: Chrome 80+, Safari 13+, Firefox 75+  
-**Desarrollado para**: Forn Verge Panadería 
+**Versión**: 2.0.0  
+**Enfoque**: Preparación día anterior + Ejecución simple  
+**Resultado**: Operación más eficiente y menos errores  
+**Desarrollado para**: Forn Verge Panadería - Flujo optimizado 

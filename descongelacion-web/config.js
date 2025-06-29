@@ -16,7 +16,8 @@ const TIME_CONFIG = {
             name: 'Mañana',
             work_start: 6,  // Empleados entran a las 6:00
             ready_time: 7,  // Todo listo a las 7:00 (apertura al público)
-            description: 'Entran 6:00, Apertura 7:00'
+            description: 'Entran 6:00, Apertura 7:00',
+            preparation_time: '17:00' // Se prepara el día anterior a las 17:00
         },
         mediodia: { 
             start: 12, 
@@ -25,7 +26,8 @@ const TIME_CONFIG = {
             name: 'Mediodía',
             work_start: 12, // Empleados entran a las 12:00
             ready_time: 12, // Todo listo a las 12:00
-            description: 'Cambio turno 12:00'
+            description: 'Cambio turno 12:00',
+            preparation_time: '17:00' // Se prepara el día anterior a las 17:00
         },
         tarde: { 
             start: 17, 
@@ -34,23 +36,24 @@ const TIME_CONFIG = {
             name: 'Tarde',
             work_start: 17, // Empleados entran a las 17:00
             ready_time: 17, // Todo listo a las 17:00
-            description: 'Cambio turno 17:00'
+            description: 'Cambio turno 17:00',
+            preparation_time: '17:00' // Se prepara el día anterior a las 17:00
         }
     },
     
-    // Tiempos de descongelación por producto (en minutos) - PROFESIONAL Y SANIDAD
+    // Tiempos de descongelación por producto (en minutos) - AJUSTADOS PARA PREPARACIÓN
     tiempos_descongelacion: {
-        'Barra Clásica': 90,                    // Pan necesita tiempo para estructura
-        'Mini Croissant': 75,                   // Masa hojaldrada requiere tiempo
-        'Croissant': 90,                        // Croissant grande necesita más tiempo
-        'Napolitana Choco.': 80,                // Con relleno requiere descongelado completo
-        'Mini Croissant Choco Dúo': 75,        // Pequeño pero con chocolate
-        'Empanada Pollo y Cebolla': 120,        // CARNE - SANIDAD CRÍTICA
-        'Empanada Carne': 120,                  // CARNE - SANIDAD CRÍTICA  
-        'Empanada Guisantes': 90,               // Verdura, menos tiempo pero seguro
-        'Ensaimada Crema': 100,                 // Crema láctea - sanidad importante
-        'Ensaimada Normal': 80,                 // Masa dulce, tiempo medio
-        'Napolitana Jamón/Queso': 100          // Jamón y queso - proteína animal
+        'Barra Clásica': 45,                    // Reducido porque está pre-organizado
+        'Mini Croissant': 60,                   // Masa hojaldrada pre-separada
+        'Croissant': 75,                        // Croissant grande pre-organizado
+        'Napolitana Choco.': 60,                // Con relleno pre-separado
+        'Mini Croissant Choco Dúo': 60,        // Pequeño pero organizado
+        'Empanada Pollo y Cebolla': 90,         // CARNE - Tiempo reducido por pre-organización
+        'Empanada Carne': 90,                   // CARNE - Tiempo reducido pero seguro
+        'Empanada Guisantes': 60,               // Verdura pre-organizada
+        'Ensaimada Crema': 75,                  // Crema láctea pre-separada
+        'Ensaimada Normal': 60,                 // Masa dulce pre-organizada
+        'Napolitana Jamón/Queso': 75           // Jamón y queso pre-separado
     },
     
     // Tiempos de horneado por producto (en minutos)
@@ -72,36 +75,65 @@ const TIME_CONFIG = {
 // ===== CONFIGURACIÓN DE LA APLICACIÓN =====
 const APP_CONFIG = {
     // Actualización automática cada X minutos
-    auto_refresh_minutes: 5,
+    auto_refresh_minutes: 2,
     
     // Versión de la aplicación
-    version: '1.0.0',
+    version: '2.0.0',
     
     // Configuración de la PWA
-    app_name: 'Forn Verge - Descongelación',
+    app_name: 'Forn Verge - Preparación y Descongelación',
     
     // Configuración de notificaciones
     notifications: {
         enabled: true,
-        defrost_reminder: 30, // minutos antes de que termine la descongelación
-        baking_reminder: 5    // minutos antes de que termine el horneado
+        preparation_reminder: 60, // Recordatorio preparación día anterior
+        defrost_reminder: 10,     // minutos antes de sacar del congelador
+        baking_reminder: 5        // minutos antes de que termine el horneado
     },
     
-    // Estados de los productos
+    // Modos de operación
+    modes: {
+        preparation: {
+            name: 'Preparación',
+            emoji: '📋',
+            description: 'Preparar bandejas para mañana',
+            available_hours: [16, 17, 18, 19, 20] // Solo disponible en estas horas
+        },
+        execution: {
+            name: 'Ejecución',
+            emoji: '⚡',
+            description: 'Seguir tiempos del día',
+            available_hours: [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
+        }
+    },
+    
+    // Estados de los productos - NUEVO FLUJO
     estados: {
-        pending: { 
-            name: 'Pendiente', 
-            emoji: '⏳', 
+        pending_preparation: { 
+            name: 'Por preparar', 
+            emoji: '📝', 
+            color: '#6c757d',
+            description: 'Bandeja no preparada aún'
+        },
+        prepared: { 
+            name: 'Preparado', 
+            emoji: '📦', 
+            color: '#17a2b8',
+            description: 'Bandeja lista en congelador'
+        },
+        ready_to_defrost: { 
+            name: 'Por sacar', 
+            emoji: '⏰', 
             color: '#ffc107',
-            description: 'Por descongelar'
+            description: 'Hora de sacar del congelador'
         },
         defrosting: { 
             name: 'Descongelando', 
             emoji: '🧊➡️', 
             color: '#17a2b8',
-            description: 'En proceso de descongelación'
+            description: 'Fuera del congelador'
         },
-        ready: { 
+        ready_to_bake: { 
             name: 'Listo para horno', 
             emoji: '✅', 
             color: '#28a745',
@@ -117,7 +149,7 @@ const APP_CONFIG = {
             name: 'Completado', 
             emoji: '🎯', 
             color: '#6f42c1',
-            description: 'Proceso terminado'
+            description: 'Listo para vender'
         }
     }
 };
@@ -148,6 +180,20 @@ const PRODUCT_EMOJIS = {
     'Napolitana Jamón/Queso': '🧀🥐'
 };
 
+// ===== FUNCIÓN PARA DETECTAR MODO DE OPERACIÓN =====
+function getCurrentMode() {
+    const now = new Date();
+    const hour = now.getHours();
+    
+    // Modo preparación: 16:00-20:00 para preparar día siguiente
+    if (hour >= 16 && hour <= 20) {
+        return 'preparation';
+    }
+    
+    // Resto del tiempo: modo ejecución
+    return 'execution';
+}
+
 // ===== FUNCIÓN PARA OBTENER LA TANDA ACTUAL =====
 function getCurrentTanda() {
     const now = new Date();
@@ -164,6 +210,22 @@ function getCurrentTanda() {
     if (hour >= 21) return 'mañana'; // Para el día siguiente
     
     return null;
+}
+
+// ===== FUNCIÓN PARA OBTENER FECHA DEL DÍA OBJETIVO =====
+function getTargetDate(mode = null) {
+    const now = new Date();
+    const currentMode = mode || getCurrentMode();
+    
+    if (currentMode === 'preparation') {
+        // En modo preparación, trabajamos para mañana
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        return tomorrow;
+    } else {
+        // En modo ejecución, trabajamos para hoy
+        return now;
+    }
 }
 
 // ===== FUNCIÓN PARA FORMATEAR FECHAS =====
@@ -184,6 +246,14 @@ function formatTime(date) {
     }).format(date);
 }
 
+function formatShortDate(date) {
+    return new Intl.DateTimeFormat('es-ES', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short'
+    }).format(date);
+}
+
 // ===== FUNCIÓN PARA CALCULAR TIEMPO RESTANTE =====
 function calculateTimeRemaining(startTime, durationMinutes) {
     const now = new Date();
@@ -199,43 +269,53 @@ function calculateTimeRemaining(startTime, durationMinutes) {
     return { minutes, seconds, total: remaining };
 }
 
-// ===== FUNCIÓN PARA CALCULAR CUÁNDO EMPEZAR DESCONGELACIÓN =====
-function calculateDefrostStartTime(tanda, producto) {
+// ===== FUNCIÓN PARA CALCULAR CUÁNDO SACAR DEL CONGELADOR =====
+function calculateDefrostSchedule(tanda, producto) {
     const tandaInfo = TIME_CONFIG.tandas[tanda];
     if (!tandaInfo) return null;
     
-    let defrostMinutes = TIME_CONFIG.tiempos_descongelacion[producto] || 60;
+    const defrostMinutes = TIME_CONFIG.tiempos_descongelacion[producto] || 60;
     const bakingMinutes = TIME_CONFIG.tiempos_horneado[producto] || 15;
-    const workStartHour = tandaInfo.work_start; // SIEMPRE 6:00 para mañana
+    const readyTime = tandaInfo.ready_time * 60; // Convertir a minutos
     
-    // ⚠️ TIEMPOS DE VERANO REDUCIDOS ⚠️ (hace más calor, descongela más rápido)
-    if (tanda === 'mañana') {
-        if (producto === 'Barra Clásica') {
-            defrostMinutes = 45;   // 45 min en verano
-        }
-        else if (producto.includes('Empanada') && (producto.includes('Pollo') || producto.includes('Carne'))) {
-            defrostMinutes = 75;   // 75 min mínimo por sanidad, pero menos que invierno
-        }
-        else {
-            defrostMinutes = Math.round(defrostMinutes * 0.75); // 25% menos tiempo en verano
-        }
-    }
-    
-    const workStartTime = workStartHour * 60; // 6:00 AM = 360 minutos
-    
-    // CALCULAR DESDE LAS 6:00 QUE LLEGAN
-    const defrostStart = workStartTime;
-    const ovenTime = defrostStart + defrostMinutes; 
-    const readyTime = ovenTime + bakingMinutes;     
+    // Calcular hacia atrás desde hora objetivo
+    const bakeStartTime = readyTime - bakingMinutes;
+    const defrostStartTime = bakeStartTime - defrostMinutes;
     
     return {
-        start_hour: Math.floor(defrostStart / 60),
-        start_minutes: defrostStart % 60,
-        oven_hour: Math.floor(ovenTime / 60),
-        oven_minutes: ovenTime % 60,
+        defrost_hour: Math.floor(defrostStartTime / 60),
+        defrost_minutes: defrostStartTime % 60,
+        bake_hour: Math.floor(bakeStartTime / 60),
+        bake_minutes: bakeStartTime % 60,
         ready_hour: Math.floor(readyTime / 60),
         ready_minutes: readyTime % 60
     };
+}
+
+// ===== FUNCIÓN PARA VERIFICAR SI ES HORA DE SACAR =====
+function shouldDefrostNow(tanda, producto) {
+    const schedule = calculateDefrostSchedule(tanda, producto);
+    if (!schedule) return false;
+    
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const defrostMinutes = schedule.defrost_hour * 60 + schedule.defrost_minutes;
+    
+    // Permitir 15 minutos de ventana antes y después
+    return currentMinutes >= (defrostMinutes - 15) && currentMinutes <= (defrostMinutes + 15);
+}
+
+// ===== FUNCIÓN PARA VERIFICAR SI ES HORA DE HORNEAR =====
+function shouldBakeNow(tanda, producto) {
+    const schedule = calculateDefrostSchedule(tanda, producto);
+    if (!schedule) return false;
+    
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const bakeMinutes = schedule.bake_hour * 60 + schedule.bake_minutes;
+    
+    // Permitir 10 minutos de ventana antes y después
+    return currentMinutes >= (bakeMinutes - 10) && currentMinutes <= (bakeMinutes + 10);
 }
 
 // ===== FUNCIÓN PARA OBTENER EL DÍA DE LA SEMANA =====
@@ -250,12 +330,31 @@ function validateConfig() {
         return false;
     }
     
-    if (!SUPABASE_CONFIG.anon_key || SUPABASE_CONFIG.anon_key === 'TU_SUPABASE_ANON_KEY') {
-        console.error('❌ Clave anónima de Supabase no configurada');
+    if (!SUPABASE_CONFIG.anon_key || SUPABASE_CONFIG.anon_key === 'TU_CLAVE_PUBLICA') {
+        console.error('❌ Clave de Supabase no configurada');
         return false;
     }
     
     return true;
+}
+
+// ===== FUNCIONES DE UTILIDAD PARA PREPARACIÓN =====
+function getTomorrowWeekday() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return getWeekdayNumber(tomorrow);
+}
+
+function isPreparationTime() {
+    const now = new Date();
+    const hour = now.getHours();
+    return hour >= 16 && hour <= 20;
+}
+
+function getPreparationStatus(tanda, fecha) {
+    // Esta función se conectará con la base de datos para verificar
+    // si una tanda específica ya está preparada
+    return 'pending_preparation'; // Por defecto
 }
 
 // Exportar configuraciones para uso global
@@ -264,10 +363,15 @@ window.TIME_CONFIG = TIME_CONFIG;
 window.APP_CONFIG = APP_CONFIG;
 window.WEEKDAYS = WEEKDAYS;
 window.PRODUCT_EMOJIS = PRODUCT_EMOJIS;
+window.getCurrentMode = getCurrentMode;
 window.getCurrentTanda = getCurrentTanda;
+window.getTargetDate = getTargetDate;
 window.formatDate = formatDate;
 window.formatTime = formatTime;
+window.formatShortDate = formatShortDate;
 window.calculateTimeRemaining = calculateTimeRemaining;
-window.calculateDefrostStartTime = calculateDefrostStartTime;
+window.calculateDefrostSchedule = calculateDefrostSchedule;
+window.shouldDefrostNow = shouldDefrostNow;
+window.shouldBakeNow = shouldBakeNow;
 window.getWeekdayNumber = getWeekdayNumber;
 window.validateConfig = validateConfig; 

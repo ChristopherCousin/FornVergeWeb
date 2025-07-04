@@ -142,6 +142,93 @@
         </div>
     </div>
 
+    <!-- Modal para gestionar ausencias (vacaciones, bajas, etc.) -->
+    <div id="ausenciasModal" class="modal">
+        <div class="modal-content max-w-4xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">
+                    <i class="fas fa-calendar-times mr-2 text-purple-600"></i>Gestión de Ausencias
+                </h3>
+                <button id="closeAusenciasModal" class="text-gray-500 hover:text-gray-700 transition">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Formulario para nueva ausencia -->
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <h4 class="font-semibold text-purple-800 mb-4">
+                        <i class="fas fa-plus mr-2"></i>Nueva Ausencia
+                    </h4>
+                    
+                    <form id="nuevaAusenciaForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">👤 Empleado</label>
+                            <select id="ausenciaEmpleado" class="w-full border border-gray-300 rounded-lg p-3" required>
+                                <option value="">Seleccionar empleado...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">📅 Fecha Inicio</label>
+                                <input type="date" id="ausenciaFechaInicio" class="w-full border border-gray-300 rounded-lg p-3" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">📅 Fecha Fin</label>
+                                <input type="date" id="ausenciaFechaFin" class="w-full border border-gray-300 rounded-lg p-3" required>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">🏷️ Tipo de Ausencia</label>
+                            <select id="ausenciaTipo" class="w-full border border-gray-300 rounded-lg p-3" required>
+                                <option value="">Seleccionar tipo...</option>
+                                <option value="vacaciones">🏖️ Vacaciones</option>
+                                <option value="baja_medica">🏥 Baja médica</option>
+                                <option value="permiso">📋 Permiso personal</option>
+                                <option value="maternidad">👶 Maternidad/Paternidad</option>
+                                <option value="convenio">📋 Días convenio</option>
+                                <option value="asuntos_propios">📝 Asuntos propios</option>
+                                <option value="festivo_local">🎉 Festivo local</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">⏰ Horas según convenio</label>
+                            <div class="w-full bg-gray-100 border border-gray-300 rounded-lg p-3 text-gray-700">
+                                <strong>6,8 horas/día</strong>
+                                <input type="hidden" id="ausenciaHorasDia" value="6.8">
+                            </div>
+                            <small class="text-gray-500">Fijo según Convenio Hostelería Baleares</small>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition font-medium">
+                            <i class="fas fa-plus mr-2"></i>Registrar Ausencia
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Lista de ausencias existentes -->
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-list mr-2"></i>Ausencias Registradas
+                    </h4>
+                    
+                    <div id="listaAusencias" class="space-y-3 max-h-96 overflow-y-auto">
+                        <!-- Se genera dinámicamente -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-3 pt-6 border-t mt-6">
+                <button id="cerrarAusenciasModal" class="bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 transition font-medium">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal para gestionar vacaciones -->
     <div id="vacationModal" class="modal">
         <div class="modal-content">
@@ -301,5 +388,11 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/admin-horarios.js"></script>
+    <!-- SISTEMA ANUAL DEL CONVENIO -->
+    <script src="js/convenio-anual.js"></script>
+    <!-- GESTIÓN DE AUSENCIAS -->
+    <script src="js/ausencias-manager.js"></script>
+    <!-- CONTROL ANUAL SIMPLE PARA LA ENCARGADA -->
+    <script src="js/control-anual-simple.js"></script>
 </body>
 </html> 

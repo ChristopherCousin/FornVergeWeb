@@ -88,13 +88,30 @@ class ControlAnualSimple {
         const panel = document.createElement('div');
         panel.id = 'controlAnualPanel';
         panel.innerHTML = `
-            <div class="bg-white border-2 border-purple-200 rounded-lg shadow-lg p-6 mb-4">
-                <div class="text-center mb-6">
-                    <h3 class="text-2xl font-bold text-purple-800">
-                        📊 Control Anual del Convenio
-                    </h3>
-                    <p class="text-gray-600">Información para planificar horarios cumpliendo el convenio</p>
+            <div class="bg-white border-2 border-purple-200 rounded-lg shadow-lg mb-4">
+                <!-- Header con botón de minimizar -->
+                <div class="flex justify-between items-center p-4 pb-0">
+                    <div class="text-center flex-1">
+                        <h3 class="text-2xl font-bold text-purple-800">
+                            📊 Control Anual del Convenio
+                        </h3>
+                        <p id="subtituloPanel" class="text-gray-600">Información para planificar horarios cumpliendo el convenio</p>
+                    </div>
+                    <button id="btnMinimizarPanel" class="ml-4 text-gray-500 hover:text-gray-700 transition p-2 rounded-lg hover:bg-gray-100" title="Minimizar/Maximizar panel">
+                        <i id="iconoMinimizar" class="fas fa-chevron-up text-xl"></i>
+                    </button>
                 </div>
+                
+                <!-- Indicador cuando está minimizado -->
+                <div id="indicadorMinimizado" class="hidden px-4 pb-2 cursor-pointer">
+                    <div class="text-center text-sm text-gray-500 bg-gray-50 rounded-lg py-2 hover:bg-gray-100 transition">
+                        <i class="fas fa-chart-line mr-1"></i>
+                        <span id="resumenMinimizado">Panel minimizado - Click para ver estadísticas</span>
+                    </div>
+                </div>
+                
+                <!-- Contenido del panel -->
+                <div id="contenidoPanel" class="p-6 pt-4">
                 
                 <!-- Botones principales -->
                 <div class="grid grid-cols-2 gap-4 mb-6">
@@ -124,6 +141,8 @@ class ControlAnualSimple {
                         <div>• <strong>Descanso semanal:</strong> 1,5 días seguidos</div>
                     </div>
                 </div>
+                
+                </div> <!-- Cierre del contenido del panel -->
             </div>
         `;
 
@@ -135,6 +154,9 @@ class ControlAnualSimple {
 
         // Eventos
         this.setupEventos();
+        
+        // Configurar funcionalidad de minimizar/maximizar
+        this.setupMinimizarPanel();
         
         // Actualizar datos cada 5 minutos
         this.actualizarEstadoEmpleados();
@@ -153,6 +175,111 @@ class ControlAnualSimple {
         document.getElementById('btnActualizarDatos').addEventListener('click', async () => {
             await this.actualizarDatos();
         });
+    }
+
+    setupMinimizarPanel() {
+        const btnMinimizar = document.getElementById('btnMinimizarPanel');
+        const contenidoPanel = document.getElementById('contenidoPanel');
+        const iconoMinimizar = document.getElementById('iconoMinimizar');
+        const indicadorMinimizado = document.getElementById('indicadorMinimizado');
+        const subtituloPanel = document.getElementById('subtituloPanel');
+        const resumenMinimizado = document.getElementById('resumenMinimizado');
+        
+        if (!btnMinimizar || !contenidoPanel || !iconoMinimizar || !indicadorMinimizado) {
+            console.log('⚠️ Elementos del panel no encontrados');
+            return;
+        }
+
+        // Cargar estado previo desde localStorage
+        const estadoPrevio = localStorage.getItem('controlAnualPanelMinimizado');
+        let isMinimizado = estadoPrevio === 'true';
+        
+        // Aplicar estado inicial
+        this.aplicarEstadoPanel(isMinimizado);
+
+        // Manejar click en el botón
+        btnMinimizar.addEventListener('click', () => {
+            isMinimizado = !isMinimizado;
+            this.aplicarEstadoPanel(isMinimizado);
+            
+            // Guardar estado en localStorage
+            localStorage.setItem('controlAnualPanelMinimizado', isMinimizado.toString());
+        });
+        
+        // También permitir expandir haciendo click en el indicador
+        indicadorMinimizado.addEventListener('click', () => {
+            if (isMinimizado) {
+                isMinimizado = false;
+                this.aplicarEstadoPanel(isMinimizado);
+                localStorage.setItem('controlAnualPanelMinimizado', isMinimizado.toString());
+            }
+        });
+        
+        console.log('✅ Funcionalidad de minimizar/maximizar configurada');
+    }
+    
+    aplicarEstadoPanel(isMinimizado) {
+        const contenidoPanel = document.getElementById('contenidoPanel');
+        const iconoMinimizar = document.getElementById('iconoMinimizar');
+        const indicadorMinimizado = document.getElementById('indicadorMinimizado');
+        const subtituloPanel = document.getElementById('subtituloPanel');
+        const resumenMinimizado = document.getElementById('resumenMinimizado');
+        const btnMinimizar = document.getElementById('btnMinimizarPanel');
+        
+        if (isMinimizado) {
+            // Minimizar con animación
+            contenidoPanel.style.transition = 'all 0.3s ease';
+            contenidoPanel.style.opacity = '0';
+            contenidoPanel.style.transform = 'translateY(-10px)';
+            
+            setTimeout(() => {
+                contenidoPanel.classList.add('hidden');
+                indicadorMinimizado.classList.remove('hidden');
+                iconoMinimizar.classList.remove('fa-chevron-up');
+                iconoMinimizar.classList.add('fa-chevron-down');
+                btnMinimizar.title = 'Maximizar panel';
+                
+                // Actualizar resumen minimizado con datos actuales
+                this.actualizarResumenMinimizado();
+            }, 300);
+            
+        } else {
+            // Maximizar con animación
+            indicadorMinimizado.classList.add('hidden');
+            contenidoPanel.classList.remove('hidden');
+            contenidoPanel.style.opacity = '0';
+            contenidoPanel.style.transform = 'translateY(-10px)';
+            
+            setTimeout(() => {
+                contenidoPanel.style.transition = 'all 0.3s ease';
+                contenidoPanel.style.opacity = '1';
+                contenidoPanel.style.transform = 'translateY(0)';
+                iconoMinimizar.classList.remove('fa-chevron-down');
+                iconoMinimizar.classList.add('fa-chevron-up');
+                btnMinimizar.title = 'Minimizar panel';
+            }, 10);
+        }
+    }
+    
+    actualizarResumenMinimizado() {
+        const resumenMinimizado = document.getElementById('resumenMinimizado');
+        if (!resumenMinimizado || !this.convenioAnual || !this.convenioAnual.stats_anuales) {
+            return;
+        }
+        
+        const stats = Object.values(this.convenioAnual.stats_anuales);
+        const empleadosEquilibrados = stats.filter(s => s.estado_semanal === 'equilibrado').length;
+        const empleadosConProblemas = stats.filter(s => s.estado_semanal === 'subcarga' || s.estado_semanal === 'sobrecarga').length;
+        const empleadosAusentes = stats.filter(s => s.estado_semanal === 'de_ausencia').length;
+        const totalPartidos = stats.reduce((sum, s) => sum + (s.total_partidos || 0), 0);
+        
+        let textoResumen = `${stats.length} empleados`;
+        if (empleadosEquilibrados > 0) textoResumen += ` • ${empleadosEquilibrados} equilibrados`;
+        if (empleadosConProblemas > 0) textoResumen += ` • ${empleadosConProblemas} requieren ajustes`;
+        if (empleadosAusentes > 0) textoResumen += ` • ${empleadosAusentes} ausentes`;
+        if (totalPartidos > 0) textoResumen += ` • ${totalPartidos} partidos totales`;
+        
+        resumenMinimizado.textContent = textoResumen;
     }
 
     async actualizarDatos() {
@@ -232,6 +359,10 @@ class ControlAnualSimple {
                                     <div class="flex justify-between text-sm">
                                         <span>Horas trabajadas (desde junio):</span>
                                         <span class="font-medium text-gray-900">${empleadoStats.horas_reales_agora.toFixed(0)}h</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span>Partidos realizados:</span>
+                                        <span class="font-medium text-blue-600">${empleadoStats.total_partidos || 0} turnos dobles</span>
                                     </div>
                                     <div class="flex justify-between text-sm">
                                         <span>Progreso del convenio:</span>
@@ -315,6 +446,10 @@ class ControlAnualSimple {
                                         empleadoStats.estado_semanal === 'subcarga' || empleadoStats.estado_semanal === 'sobrecarga' ? 'text-' + colorBorde + '-600' : 'text-green-600'}">${mediaSemanal.toFixed(1)}h/semana ${empleadoStats.estado_semanal === 'sin_datos' ? '(pocos datos)' : ''}</span>
                                 </div>
                                 <div class="flex justify-between text-sm">
+                                    <span>Partidos realizados:</span>
+                                    <span class="font-medium text-blue-600">${empleadoStats.total_partidos || 0} turnos dobles</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
                                     <span>Progreso del convenio:</span>
                                     <span class="font-medium text-gray-600">${progreso.toFixed(1)}% (${empleadoStats.total_horas_año.toFixed(0)}h / 1.776h)</span>
                                 </div>
@@ -351,6 +486,9 @@ class ControlAnualSimple {
         const alertasCompensacion = this.generarResumenCompensacion(stats);
         
         container.innerHTML = empleadosHtml + alertasCompensacion;
+        
+        // Actualizar resumen minimizado si está minimizado
+        this.actualizarResumenMinimizado();
     }
 
     generarResumenCompensacion(stats) {
@@ -434,7 +572,7 @@ class ControlAnualSimple {
                             ${empleadosConSobrecarga.map(s => `
                                 <div class="flex justify-between text-red-600">
                                     <span>• ${s.empleado_nombre}:</span>
-                                    <span>${s.horas_reales_agora.toFixed(0)}h trabajadas (+${s.diferencia_carga_trabajo.toFixed(0)}h vs ideal)</span>
+                                    <span>${s.horas_reales_agora.toFixed(0)}h trabajadas (+${s.diferencia_carga_trabajo.toFixed(0)}h vs ideal) • ${s.total_partidos || 0} partidos</span>
                                 </div>
                             `).join('')}
                         </div>
@@ -448,7 +586,7 @@ class ControlAnualSimple {
                             ${empleadosConSubcarga.map(s => `
                                 <div class="flex justify-between text-blue-600">
                                     <span>• ${s.empleado_nombre}:</span>
-                                    <span>${s.horas_reales_agora.toFixed(0)}h trabajadas (${s.diferencia_carga_trabajo.toFixed(0)}h vs ideal)</span>
+                                    <span>${s.horas_reales_agora.toFixed(0)}h trabajadas (${s.diferencia_carga_trabajo.toFixed(0)}h vs ideal) • ${s.total_partidos || 0} partidos</span>
                                 </div>
                             `).join('')}
                         </div>
@@ -462,7 +600,7 @@ class ControlAnualSimple {
                             ${empleadosEquilibrados.map(s => `
                                 <div class="flex justify-between text-green-600">
                                     <span>• ${s.empleado_nombre}:</span>
-                                    <span>${s.horas_reales_agora.toFixed(0)}h trabajadas (${s.diferencia_carga_trabajo >= 0 ? '+' : ''}${s.diferencia_carga_trabajo.toFixed(0)}h vs ideal)</span>
+                                    <span>${s.horas_reales_agora.toFixed(0)}h trabajadas (${s.diferencia_carga_trabajo >= 0 ? '+' : ''}${s.diferencia_carga_trabajo.toFixed(0)}h vs ideal) • ${s.total_partidos || 0} partidos</span>
                                 </div>
                             `).join('')}
                         </div>

@@ -224,6 +224,9 @@ class ConvenioAnualManager {
                 // ====== HORAS POR AUSENCIAS ======
                 horas_ausencias: this.calcularHorasAusencias(inicioAño, hoy, empleado.id),
                 
+                // ====== PARTIDOS (TURNOS DOBLES) ======
+                total_partidos: this.calcularPartidos(empleado.id),
+                
                 // ====== TOTALES ======
                 total_horas_año: 0,
                 total_dias_trabajados: 0,
@@ -327,6 +330,52 @@ class ConvenioAnualManager {
         });
         
         return totalAusencias;
+    }
+
+    calcularPartidos(empleadoId) {
+        const fichajesEmpleado = this.fichajes.filter(f => f.empleado_id === empleadoId);
+        
+        // Agrupar fichajes por fecha
+        const fichajesPorFecha = {};
+        fichajesEmpleado.forEach(fichaje => {
+            const fecha = fichaje.fecha;
+            if (!fichajesPorFecha[fecha]) {
+                fichajesPorFecha[fecha] = [];
+            }
+            fichajesPorFecha[fecha].push(fichaje);
+        });
+        
+        let totalPartidos = 0;
+        
+        // Analizar cada día para detectar turnos dobles
+        Object.entries(fichajesPorFecha).forEach(([fecha, fichajes]) => {
+            // Solo contar como partido si hay exactamente 2 fichajes en el día
+            if (fichajes.length === 2) {
+                const fichaje1 = fichajes[0];
+                const fichaje2 = fichajes[1];
+                
+                // Verificar si hay diferencia significativa en las horas (indicativo de turno doble)
+                const horas1 = fichaje1.horas_trabajadas || 0;
+                const horas2 = fichaje2.horas_trabajadas || 0;
+                
+                // Considerar partido si:
+                // 1. Ambos fichajes tienen horas significativas (>1h cada uno)
+                // 2. La diferencia entre horas es de al menos 2h (indica descanso entre turnos)
+                if (horas1 >= 1 && horas2 >= 1 && Math.abs(horas1 - horas2) >= 2) {
+                    totalPartidos++;
+                    console.log(`  🔄 ${this.empleados.find(e => e.id === empleadoId)?.name}: Partido detectado en ${fecha} (${horas1}h + ${horas2}h)`);
+                }
+                // También contar como partido si ambos turnos son similares (típico de turnos partidos)
+                else if (horas1 >= 2 && horas2 >= 2 && Math.abs(horas1 - horas2) <= 2) {
+                    totalPartidos++;
+                    console.log(`  🔄 ${this.empleados.find(e => e.id === empleadoId)?.name}: Partido detectado en ${fecha} (${horas1}h + ${horas2}h - turnos similares)`);
+                }
+            }
+        });
+        
+        console.log(`  🎯 ${this.empleados.find(e => e.id === empleadoId)?.name}: ${totalPartidos} partidos totales`);
+        
+        return totalPartidos;
     }
 
     analizarCumplimientoConvenio(stats, empleado) {

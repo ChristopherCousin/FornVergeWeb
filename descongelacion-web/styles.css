@@ -167,6 +167,7 @@ body {
 .product-emoji {
     font-size: 3rem;
     min-width: 70px;
+    flex-shrink: 0;
 }
 
 .product-name {
@@ -184,6 +185,7 @@ body {
     border-radius: 20px;
     font-size: 1rem;
     font-weight: 700;
+    flex-shrink: 0;
 }
 
 /* ===== GRID DE TANDAS ===== */

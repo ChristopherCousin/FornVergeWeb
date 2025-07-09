@@ -153,7 +153,7 @@ class DescongelacionApp {
     }
 
     createProductCard(productGroup) {
-        const emoji = PRODUCT_EMOJIS[productGroup.producto] || '🥖';
+        const emoji = PRODUCT_EMOJIS[productGroup.producto] || '';
         
         // Obtener cantidades por tanda
         const mañana = productGroup.tandas['mañana']?.cantidad_ajustada || 0;
@@ -167,7 +167,7 @@ class DescongelacionApp {
         return `
             <div class="product-card">
                 <div class="product-header">
-                    <span class="product-emoji">${emoji}</span>
+                    ${emoji ? `<span class="product-emoji">${emoji}</span>` : ''}
                     <h3 class="product-name">${productGroup.producto}</h3>
                     <div class="product-total">Total: ${total}</div>
                 </div>

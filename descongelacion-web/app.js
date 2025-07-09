@@ -32,9 +32,8 @@ class DescongelacionApp {
             this.updateConnectionStatus(false);
         }
 
-        // Configurar fecha para mañana
+        // Configurar fecha para HOY (día actual)
         this.targetDate = new Date();
-        this.targetDate.setDate(this.targetDate.getDate() + 1);
         
         // Configurar interfaz
         this.setupUI();
@@ -61,7 +60,7 @@ class DescongelacionApp {
         document.getElementById('current-date').textContent = formatDate(now);
         document.getElementById('current-time').textContent = formatTime(now);
         document.getElementById('target-date').textContent = 
-            `Preparando para: ${formatShortDate(this.targetDate)}`;
+            `Producción de hoy: ${formatShortDate(this.targetDate)}`;
     }
 
     updateConnectionStatus(isOnline) {
@@ -162,6 +161,9 @@ class DescongelacionApp {
         const tarde = productGroup.tandas['tarde']?.cantidad_ajustada || 0;
         const total = mañana + mediodia + tarde;
 
+        // Solo mostrar el producto si tiene cantidades
+        if (total === 0) return '';
+
         return `
             <div class="product-card">
                 <div class="product-header">
@@ -170,21 +172,30 @@ class DescongelacionApp {
                     <div class="product-total">Total: ${total}</div>
                 </div>
                 <div class="tandas-grid">
+                    ${mañana > 0 ? `
                     <div class="tanda-item mañana">
                         <div class="tanda-icon">🌅</div>
                         <div class="tanda-label">Mañana</div>
+                        <div class="tanda-horario">06:40h → 07:00h</div>
                         <div class="tanda-amount">${mañana}</div>
                     </div>
+                    ` : ''}
+                    ${mediodia > 0 ? `
                     <div class="tanda-item mediodia">
                         <div class="tanda-icon">☀️</div>
                         <div class="tanda-label">Mediodía</div>
+                        <div class="tanda-horario">10:40h → 11:00h</div>
                         <div class="tanda-amount">${mediodia}</div>
                     </div>
+                    ` : ''}
+                    ${tarde > 0 ? `
                     <div class="tanda-item tarde">
                         <div class="tanda-icon">🌇</div>
                         <div class="tanda-label">Tarde</div>
+                        <div class="tanda-horario">16:40h → 17:00h</div>
                         <div class="tanda-amount">${tarde}</div>
                     </div>
+                    ` : ''}
                 </div>
             </div>
         `;

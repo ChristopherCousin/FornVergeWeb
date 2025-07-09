@@ -7,37 +7,34 @@ const SUPABASE_CONFIG = {
 
 // ===== CONFIGURACIÓN DE HORARIOS =====
 const TIME_CONFIG = {
-    // Franjas horarias para la producción
+    // Franjas horarias para la producción - HORARIOS ACTUALIZADOS
     tandas: {
         mañana: { 
             start: 6, 
-            end: 12, 
+            end: 11, 
             emoji: '🌅', 
             name: 'Mañana',
-            work_start: 6,  // Empleados entran a las 6:00
-            ready_time: 7,  // Todo listo a las 7:00 (apertura al público)
-            description: 'Entran 6:00, Apertura 7:00',
-            preparation_time: '17:00' // Se prepara el día anterior a las 17:00
+            hornear_hora: '06:40',     // Hora de inicio del horneado
+            listo_hora: '07:00',       // Hora cuando está listo para venta
+            description: 'Hornear 06:40h → Listo 07:00h (primera venta)'
         },
         mediodia: { 
-            start: 12, 
+            start: 11, 
             end: 17, 
             emoji: '☀️', 
             name: 'Mediodía',
-            work_start: 12, // Empleados entran a las 12:00
-            ready_time: 12, // Todo listo a las 12:00
-            description: 'Cambio turno 12:00',
-            preparation_time: '17:00' // Se prepara el día anterior a las 17:00
+            hornear_hora: '10:40',     // Hora de inicio del horneado
+            listo_hora: '11:00',       // Hora cuando está listo para venta
+            description: 'Hornear 10:40h → Listo 11:00h'
         },
         tarde: { 
             start: 17, 
             end: 21, 
-            emoji: '🌆', 
+            emoji: '🌇', 
             name: 'Tarde',
-            work_start: 17, // Empleados entran a las 17:00
-            ready_time: 17, // Todo listo a las 17:00
-            description: 'Cambio turno 17:00',
-            preparation_time: '17:00' // Se prepara el día anterior a las 17:00
+            hornear_hora: '16:40',     // Hora de inicio del horneado
+            listo_hora: '17:00',       // Hora cuando está listo para venta
+            description: 'Hornear 16:40h → Listo 17:00h'
         }
     },
     
@@ -276,7 +273,10 @@ function calculateDefrostSchedule(tanda, producto) {
     
     const defrostMinutes = TIME_CONFIG.tiempos_descongelacion[producto] || 60;
     const bakingMinutes = TIME_CONFIG.tiempos_horneado[producto] || 15;
-    const readyTime = tandaInfo.ready_time * 60; // Convertir a minutos
+    
+    // Parsear hora listo (formato "HH:MM")
+    const [readyHour, readyMin] = tandaInfo.listo_hora.split(':').map(Number);
+    const readyTime = readyHour * 60 + readyMin; // Convertir a minutos
     
     // Calcular hacia atrás desde hora objetivo
     const bakeStartTime = readyTime - bakingMinutes;

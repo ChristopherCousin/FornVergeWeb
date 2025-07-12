@@ -76,6 +76,7 @@ body {
     text-align: right;
     font-size: 1rem;
     font-weight: 500;
+    color: white;
 }
 
 .target-date {
@@ -84,6 +85,7 @@ body {
     border-top: 1px solid rgba(255, 255, 255, 0.2);
     font-size: 1.1rem;
     font-weight: 600;
+    color: white;
 }
 
 /* ===== STATUS BAR ===== */
@@ -130,6 +132,7 @@ body {
 /* ===== CONTENIDO PRINCIPAL ===== */
 .products-container {
     padding: 2rem 1rem;
+    background: #f8f9fa;
 }
 
 /* ===== GRID DE PRODUCTOS SIMPLE ===== */
@@ -174,7 +177,7 @@ body {
     flex: 1;
     font-size: 1.4rem;
     font-weight: 700;
-    color: var(--dark-color);
+    color: #212529;
     margin: 0;
 }
 
@@ -196,8 +199,8 @@ body {
 }
 
 .tanda-item {
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
+    background: #ffffff;
+    border: 2px solid #e9ecef;
     border-radius: var(--border-radius);
     padding: 1rem;
     text-align: center;
@@ -205,20 +208,23 @@ body {
 }
 
 .tanda-item:hover {
-    background: #e9ecef;
+    background: #f8f9fa;
     transform: scale(1.02);
 }
 
 .tanda-item.mañana {
     border-left: 4px solid #ffc107;
+    background: #fff9e6;
 }
 
 .tanda-item.mediodia {
     border-left: 4px solid #fd7e14;
+    background: #ffeee6;
 }
 
 .tanda-item.tarde {
     border-left: 4px solid #6f42c1;
+    background: #f3f0ff;
 }
 
 .tanda-icon {
@@ -229,7 +235,7 @@ body {
 .tanda-label {
     font-size: 0.9rem;
     font-weight: 600;
-    color: var(--muted-color);
+    color: #495057;
     margin-bottom: 0.25rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -237,16 +243,19 @@ body {
 
 .tanda-horario {
     font-size: 0.8rem;
-    font-weight: 500;
-    color: var(--primary-color);
+    font-weight: 600;
+    color: #6f42c1;
     margin-bottom: 0.5rem;
     line-height: 1.2;
+    background: rgba(111, 66, 193, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
 }
 
 .tanda-amount {
     font-size: 1.8rem;
     font-weight: 700;
-    color: var(--dark-color);
+    color: #212529;
 }
 
 /* ===== LOADING ===== */

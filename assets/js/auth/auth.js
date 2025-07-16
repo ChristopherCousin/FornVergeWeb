@@ -190,7 +190,6 @@ function getFallbackName(code) {
         'raquel2025': 'RAQUEL', 
         'maria2025': 'MARÍA',
         'xisca2025': 'XISCA',
-        'andrea2025': 'ANDREA',
         'adminforn2025': 'ADMINISTRADOR'
     };
     return names[code] || 'EMPLEADO';
@@ -205,7 +204,6 @@ function getFallbackEmoji(code) {
         'raquel2025': '👩‍💼', 
         'maria2025': '👩‍💼',
         'xisca2025': '👩‍💼',
-        'andrea2025': '👩‍💼',
         'adminforn2025': '👔'
     };
     return emojis[code] || '👤';

@@ -45,7 +45,7 @@ class ControlAnualSimple {
     async inicializarSupabase() {
         // Esperar a que Supabase esté disponible
         while (!window.supabase) {
-            // console.log('⏳ Esperando Supabase...');
+            console.log('⏳ Esperando Supabase...');
             await new Promise(resolve => setTimeout(resolve, 500));
         }
         
@@ -54,7 +54,7 @@ class ControlAnualSimple {
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzeGdreGplaWZha3dzbGFtZ2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjM4NjIsImV4cCI6MjA2NDg5OTg2Mn0.iGDmQJGRjsldPGmXLO5PFiaLOk7P3Rpr0omF3b8SJkg';
         
         this.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        // console.log('✅ Supabase inicializado correctamente');
+        console.log('✅ Supabase inicializado correctamente');
     }
 
     async cargarEmpleados() {
@@ -65,7 +65,7 @@ class ControlAnualSimple {
             .order('name');
         
         this.empleados = empleados || [];
-        // console.log(`👥 ${this.empleados.length} empleados cargados`);
+        console.log(`👥 ${this.empleados.length} empleados cargados`);
     }
 
     async inicializarSistemaAnual() {
@@ -81,7 +81,7 @@ class ControlAnualSimple {
         window.controlAnualSimple = this;
         
         // Esperar a que ausencias se inicialice externamente
-        // console.log('⏳ Esperando inicialización externa de AusenciasManager...');
+        console.log('⏳ Esperando inicialización externa de AusenciasManager...');
     }
 
     crearPanelSimple() {

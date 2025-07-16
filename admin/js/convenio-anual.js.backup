@@ -61,7 +61,7 @@ class ConvenioAnualManager {
     }
 
     async cargarDatos() {
-        // console.log('🔍 Cargando datos para análisis anual...');
+        console.log('🔍 Cargando datos para análisis anual...');
         
         // Cargar empleados (excluir admins)
         const { data: empleados } = await this.supabase
@@ -71,7 +71,7 @@ class ConvenioAnualManager {
             .order('name');
         
         this.empleados = empleados || [];
-        // console.log(`👥 ${this.empleados.length} empleados cargados`);
+        console.log(`👥 ${this.empleados.length} empleados cargados`);
         
         // Cargar fichajes desde inicio de año
         const { data: fichajes } = await this.supabase
@@ -81,13 +81,13 @@ class ConvenioAnualManager {
             .order('fecha', { ascending: false });
         
         this.fichajes = fichajes || [];
-        // console.log(`📋 ${this.fichajes.length} fichajes cargados desde enero`);
+        console.log(`📋 ${this.fichajes.length} fichajes cargados desde enero`);
         
         // ====== DEBUG: IMPRIMIR TODOS LOS FICHAJES ======
-        // console.log('\n🔍 ======== TODOS LOS FICHAJES DE SUPABASE ========');
+        console.log('\n🔍 ======== TODOS LOS FICHAJES DE SUPABASE ========');
         console.log('Filtro: fecha >= ' + this.convenio.inicio_año);
-        // console.log('Total fichajes:', this.fichajes.length);
-        // console.log('\n📊 DESGLOSE POR EMPLEADO:');
+        console.log('Total fichajes:', this.fichajes.length);
+        console.log('\n📊 DESGLOSE POR EMPLEADO:');
         
         // Agrupar por empleado
         const fichajesPorEmpleado = {};
@@ -104,7 +104,7 @@ class ConvenioAnualManager {
             const empleado = this.empleados.find(e => e.id === empleadoId);
             const nombreEmpleado = empleado ? empleado.name : `ID:${empleadoId}`;
             
-            // console.log(`\n👤 ${nombreEmpleado.toUpperCase()} (${fichajesEmpleado.length} fichajes):`);
+            console.log(`\n👤 ${nombreEmpleado.toUpperCase()} (${fichajesEmpleado.length} fichajes):`);
             
             // Ordenar por fecha
             fichajesEmpleado.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
@@ -117,15 +117,15 @@ class ConvenioAnualManager {
                 const horas = fichaje.horas_trabajadas || 0;
                 totalHoras += horas;
                 
-                // console.log(`   ${(index + 1).toString().padStart(2, ' ')}. ${fechaStr} (${diaSemana}) → ${horas.toFixed(1)}h`);
+                console.log(`   ${(index + 1).toString().padStart(2, ' ')}. ${fechaStr} (${diaSemana}) → ${horas.toFixed(1)}h`);
             });
             
-            // console.log(`   📊 TOTAL: ${totalHoras.toFixed(1)} horas`);
-            // console.log(`   📅 Primer fichaje: ${fichajesEmpleado[0]?.fecha || 'N/A'}`);
-            // console.log(`   📅 Último fichaje: ${fichajesEmpleado[fichajesEmpleado.length - 1]?.fecha || 'N/A'}`);
+            console.log(`   📊 TOTAL: ${totalHoras.toFixed(1)} horas`);
+            console.log(`   📅 Primer fichaje: ${fichajesEmpleado[0]?.fecha || 'N/A'}`);
+            console.log(`   📅 Último fichaje: ${fichajesEmpleado[fichajesEmpleado.length - 1]?.fecha || 'N/A'}`);
         }
         
-        // console.log('\n🔍 ======== FIN LISTADO FICHAJES ========\n');
+        console.log('\n🔍 ======== FIN LISTADO FICHAJES ========\n');
         
         // Cargar ausencias activas este año
         const { data: ausencias } = await this.supabase
@@ -136,19 +136,19 @@ class ConvenioAnualManager {
             .order('fecha_inicio');
         
         this.ausencias = ausencias || [];
-        // console.log(`🏖️ ${this.ausencias.length} ausencias aprobadas este año`);
+        console.log(`🏖️ ${this.ausencias.length} ausencias aprobadas este año`);
         
         // Debug: mostrar ausencias por empleado
         if (this.ausencias.length > 0) {
-            // console.log('\n📋 AUSENCIAS REGISTRADAS:');
+            console.log('\n📋 AUSENCIAS REGISTRADAS:');
             this.ausencias.forEach(ausencia => {
                 const empleado = this.empleados.find(e => e.id === ausencia.empleado_id);
                 const nombreEmpleado = empleado ? empleado.name : `ID:${ausencia.empleado_id}`;
-                // console.log(`  👤 ${nombreEmpleado} (ID: ${ausencia.empleado_id}): ${ausencia.tipo} | ${ausencia.fecha_inicio} → ${ausencia.fecha_fin} | Estado: ${ausencia.estado}`);
+                console.log(`  👤 ${nombreEmpleado} (ID: ${ausencia.empleado_id}): ${ausencia.tipo} | ${ausencia.fecha_inicio} → ${ausencia.fecha_fin} | Estado: ${ausencia.estado}`);
             });
             
             // ===== VALIDACIÓN DE FICHAJES DURANTE AUSENCIAS =====
-            // console.log('\n🔍 VALIDANDO FICHAJES DURANTE AUSENCIAS:');
+            console.log('\n🔍 VALIDANDO FICHAJES DURANTE AUSENCIAS:');
             this.validarFichajesDuranteAusencias();
         }
     }
@@ -181,19 +181,19 @@ class ConvenioAnualManager {
                     finAusencia: ausenciaActiva.fecha_fin
                 });
                 
-                // console.log(`🚨 FICHAJE INVÁLIDO: ${nombreEmpleado} trabajó ${fichaje.horas_trabajadas}h el ${fechaFichaje} durante ${ausenciaActiva.tipo} (${ausenciaActiva.fecha_inicio} → ${ausenciaActiva.fecha_fin})`);
+                console.log(`🚨 FICHAJE INVÁLIDO: ${nombreEmpleado} trabajó ${fichaje.horas_trabajadas}h el ${fechaFichaje} durante ${ausenciaActiva.tipo} (${ausenciaActiva.fecha_inicio} → ${ausenciaActiva.fecha_fin})`);
             }
         });
         
         if (fichajesInvalidos.length > 0) {
-            // console.log(`⚠️ TOTAL: ${fichajesInvalidos.length} fichajes durante ausencias detectados`);
+            console.log(`⚠️ TOTAL: ${fichajesInvalidos.length} fichajes durante ausencias detectados`);
             this.alertas_convenio.push({
                 tipo: 'fichajes_durante_ausencia',
                 fichajes: fichajesInvalidos,
                 gravedad: 'alta'
             });
         } else {
-            // console.log('✅ No se detectaron fichajes durante ausencias');
+            console.log('✅ No se detectaron fichajes durante ausencias');
         }
     }
 
@@ -207,7 +207,7 @@ class ConvenioAnualManager {
         for (const empleado of this.empleados) {
             // Excluir empleados no sujetos al convenio
             if (this.convenio.excluidos.includes(empleado.name.toUpperCase())) {
-                // console.log(`⏭️ Saltando ${empleado.name} (excluido del convenio)`);
+                console.log(`⏭️ Saltando ${empleado.name} (excluido del convenio)`);
                 continue;
             }
             
@@ -259,7 +259,7 @@ class ConvenioAnualManager {
             
             this.stats_anuales[empleado.id] = stats;
             
-            // console.log(`📊 ${empleado.name}: ${stats.total_horas_año.toFixed(1)}h año`);
+            console.log(`📊 ${empleado.name}: ${stats.total_horas_año.toFixed(1)}h año`);
         }
     }
 
@@ -275,7 +275,7 @@ class ConvenioAnualManager {
         
         const totalTeorico = horasSemanasCompletas + horasDiasRestantes;
         
-        // console.log(`  📅 ${this.empleados.find(e => e.id === empleadoId)?.name}: ${totalTeorico.toFixed(1)}h teóricas (${fechaDesde.toLocaleDateString()} - ${fechaHasta.toLocaleDateString()}) = ${semanasCompletas} semanas × ${(this.convenio.dias_trabajo_empleada_semana * this.convenio.horas_teoricas_dia).toFixed(1)}h/semana`);
+        console.log(`  📅 ${this.empleados.find(e => e.id === empleadoId)?.name}: ${totalTeorico.toFixed(1)}h teóricas (${fechaDesde.toLocaleDateString()} - ${fechaHasta.toLocaleDateString()}) = ${semanasCompletas} semanas × ${(this.convenio.dias_trabajo_empleada_semana * this.convenio.horas_teoricas_dia).toFixed(1)}h/semana`);
         
         return totalTeorico;
     }
@@ -289,7 +289,7 @@ class ConvenioAnualManager {
         
         const totalReal = fichajesEmpleado.reduce((sum, f) => sum + (f.horas_trabajadas || 0), 0);
         
-        // console.log(`  📋 ${this.empleados.find(e => e.id === empleadoId)?.name}: ${totalReal.toFixed(1)}h reales (${fichajesEmpleado.length} fichajes)`);
+        console.log(`  📋 ${this.empleados.find(e => e.id === empleadoId)?.name}: ${totalReal.toFixed(1)}h reales (${fichajesEmpleado.length} fichajes)`);
         
         return totalReal;
     }
@@ -326,7 +326,7 @@ class ConvenioAnualManager {
             
             totalAusencias += horasAusencia;
             
-            // console.log(`  🏖️ ${ausencia.tipo}: ${horasAusencia.toFixed(1)}h (${diasNaturales} días naturales = ${semanasCompletas} semanas + ${diasRestantes} días → ${semanasCompletas * this.convenio.dias_trabajo_empleada_semana + diasLaborablesRestantes} días laborables)`);
+            console.log(`  🏖️ ${ausencia.tipo}: ${horasAusencia.toFixed(1)}h (${diasNaturales} días naturales = ${semanasCompletas} semanas + ${diasRestantes} días → ${semanasCompletas * this.convenio.dias_trabajo_empleada_semana + diasLaborablesRestantes} días laborables)`);
         });
         
         return totalAusencias;
@@ -363,17 +363,17 @@ class ConvenioAnualManager {
                 // 2. La diferencia entre horas es de al menos 2h (indica descanso entre turnos)
                 if (horas1 >= 1 && horas2 >= 1 && Math.abs(horas1 - horas2) >= 2) {
                     totalPartidos++;
-                    // console.log(`  🔄 ${this.empleados.find(e => e.id === empleadoId)?.name}: Partido detectado en ${fecha} (${horas1}h + ${horas2}h)`);
+                    console.log(`  🔄 ${this.empleados.find(e => e.id === empleadoId)?.name}: Partido detectado en ${fecha} (${horas1}h + ${horas2}h)`);
                 }
                 // También contar como partido si ambos turnos son similares (típico de turnos partidos)
                 else if (horas1 >= 2 && horas2 >= 2 && Math.abs(horas1 - horas2) <= 2) {
                     totalPartidos++;
-                    // console.log(`  🔄 ${this.empleados.find(e => e.id === empleadoId)?.name}: Partido detectado en ${fecha} (${horas1}h + ${horas2}h - turnos similares)`);
+                    console.log(`  🔄 ${this.empleados.find(e => e.id === empleadoId)?.name}: Partido detectado en ${fecha} (${horas1}h + ${horas2}h - turnos similares)`);
                 }
             }
         });
         
-        // console.log(`  🎯 ${this.empleados.find(e => e.id === empleadoId)?.name}: ${totalPartidos} partidos totales`);
+        console.log(`  🎯 ${this.empleados.find(e => e.id === empleadoId)?.name}: ${totalPartidos} partidos totales`);
         
         return totalPartidos;
     }
@@ -451,9 +451,9 @@ class ConvenioAnualManager {
                 if (diasTranscurridos >= 4 && fichajes.length >= 2) {
                     semanasCompletas[claveSeccion] = fichajes;
                     horasSemanasCompletas += horasEstaSemana;
-                    // console.log(`     🟡 Semana ${claveSeccion}: ${horasEstaSemana.toFixed(1)}h (ACTUAL, pero con ${diasTranscurridos} días transcurridos → INCLUIDA)`);
+                    console.log(`     🟡 Semana ${claveSeccion}: ${horasEstaSemana.toFixed(1)}h (ACTUAL, pero con ${diasTranscurridos} días transcurridos → INCLUIDA)`);
                 } else {
-                    // console.log(`     ❌ Semana ${claveSeccion}: ${horasEstaSemana.toFixed(1)}h (ACTUAL y solo ${diasTranscurridos} días → EXCLUIDA)`);
+                    console.log(`     ❌ Semana ${claveSeccion}: ${horasEstaSemana.toFixed(1)}h (ACTUAL y solo ${diasTranscurridos} días → EXCLUIDA)`);
                 }
             } else {
                 // Semana pasada - incluir siempre
@@ -469,8 +469,8 @@ class ConvenioAnualManager {
             horasSemanasCompletas / numSemanasCompletas : 0;
         
         // Debug info DETALLADO
-        // console.log(`📊 ${stats.empleado_nombre}:`);
-        // console.log(`   - Semanas con datos: ${Object.keys(semanasConDatos).length}`);
+        console.log(`📊 ${stats.empleado_nombre}:`);
+        console.log(`   - Semanas con datos: ${Object.keys(semanasConDatos).length}`);
         console.log(`   - Semana actual (excluida): ${claveSeccionActual}`);
         
         // Mostrar TODAS las semanas encontradas
@@ -478,15 +478,15 @@ class ConvenioAnualManager {
             const fichajes = semanasConDatos[claveSeccion];
             const horasSemana = fichajes.reduce((sum, f) => sum + (f.horas_trabajadas || 0), 0);
             const esActual = claveSeccion === claveSeccionActual;
-            // console.log(`     ${esActual ? '❌' : '✅'} Semana ${claveSeccion}: ${horasSemana.toFixed(1)}h (${fichajes.length} fichajes) ${esActual ? '← ACTUAL, EXCLUIDA' : ''}`);
+            console.log(`     ${esActual ? '❌' : '✅'} Semana ${claveSeccion}: ${horasSemana.toFixed(1)}h (${fichajes.length} fichajes) ${esActual ? '← ACTUAL, EXCLUIDA' : ''}`);
         });
         
         console.log(`   - Semanas COMPLETAS: ${numSemanasCompletas}`);
-        // console.log(`   - Horas en semanas completas: ${horasSemanasCompletas.toFixed(1)}h`);
+        console.log(`   - Horas en semanas completas: ${horasSemanasCompletas.toFixed(1)}h`);
         
         // Calcular media inicial aquí para mostrar en el log
         const mediaCalculada = numSemanasCompletas > 0 ? horasSemanasCompletas / numSemanasCompletas : 0;
-        // console.log(`   - CÁLCULO INICIAL: ${horasSemanasCompletas.toFixed(1)}h ÷ ${numSemanasCompletas} semanas = ${mediaCalculada.toFixed(1)}h/semana`);
+        console.log(`   - CÁLCULO INICIAL: ${horasSemanasCompletas.toFixed(1)}h ÷ ${numSemanasCompletas} semanas = ${mediaCalculada.toFixed(1)}h/semana`);
         
         // Horas que faltan para llegar al máximo anual
         stats.horas_restantes_año = Math.max(0, this.convenio.horas_maximas_anuales - stats.total_horas_año);
@@ -499,12 +499,12 @@ class ConvenioAnualManager {
         }
         
         // ====== VERIFICAR SI ESTÁ ACTUALMENTE DE AUSENCIA ======
-        // console.log(`🔍 Verificando ausencias para ${stats.empleado_nombre} (ID: ${stats.empleado_id})`);
+        console.log(`🔍 Verificando ausencias para ${stats.empleado_nombre} (ID: ${stats.empleado_id})`);
         
         // Convertir a fechas sin horas para comparación precisa
         const fechaActualSinHora = fechaActual.toISOString().split('T')[0];
         console.log(`   📅 Fecha actual (sin hora): ${fechaActualSinHora}`);
-        // console.log(`   🏖️ Ausencias del empleado:`);
+        console.log(`   🏖️ Ausencias del empleado:`);
         
         const ausenciasEmpleado = this.ausencias.filter(a => a.empleado_id === stats.empleado_id);
         ausenciasEmpleado.forEach(ausencia => {
@@ -528,7 +528,7 @@ class ConvenioAnualManager {
             // CONTINUAR análisis para calcular compensación histórica
             // No hacer return aquí para que calcule diferencia_carga_trabajo
         } else {
-            // console.log(`   ❌ No hay ausencias activas para ${stats.empleado_nombre}`);
+            console.log(`   ❌ No hay ausencias activas para ${stats.empleado_nombre}`);
         }
         
         // ====== ANÁLISIS DE COMPENSACIÓN HISTÓRICA ======
@@ -561,13 +561,13 @@ class ConvenioAnualManager {
         const horasIdealesAjustadas = semanasDisponibles * (this.convenio.dias_trabajo_empleada_semana * this.convenio.horas_teoricas_dia); // 40.8h/semana ideal
         const horasRealesDesdeJunio = stats.horas_reales_agora;
         
-        // console.log(`   📊 Cálculo compensación ${stats.empleado_nombre}:`);
+        console.log(`   📊 Cálculo compensación ${stats.empleado_nombre}:`);
         console.log(`     • Días totales desde junio: ${diasTotalesDesdeJunio}`);
         console.log(`     • Días de ausencia: ${diasAusencia}`);
         console.log(`     • Días disponibles: ${diasDisponibles}`);
         console.log(`     • Semanas disponibles: ${semanasDisponibles.toFixed(1)}`);
-        // console.log(`     • Horas ideales ajustadas: ${horasIdealesAjustadas.toFixed(1)}h`);
-        // console.log(`     • Horas reales: ${horasRealesDesdeJunio.toFixed(1)}h`);
+        console.log(`     • Horas ideales ajustadas: ${horasIdealesAjustadas.toFixed(1)}h`);
+        console.log(`     • Horas reales: ${horasRealesDesdeJunio.toFixed(1)}h`);
         
         const diferenciaCargaTrabajo = horasRealesDesdeJunio - horasIdealesAjustadas;
         console.log(`     • Diferencia: ${diferenciaCargaTrabajo >= 0 ? '+' : ''}${diferenciaCargaTrabajo.toFixed(1)}h`);
@@ -592,7 +592,7 @@ class ConvenioAnualManager {
         } else {
             // En todos los demás casos, usar cálculo por días (más confiable)
             stats.media_semanal_real = mediaPorDias;
-            // console.log(`   📊 MEDIA SEMANAL: ${stats.media_semanal_real.toFixed(1)}h/semana (${totalDiasTrabajados} días × ${horasPorDia.toFixed(1)}h/día × 6 días/semana)`);
+            console.log(`   📊 MEDIA SEMANAL: ${stats.media_semanal_real.toFixed(1)}h/semana (${totalDiasTrabajados} días × ${horasPorDia.toFixed(1)}h/día × 6 días/semana)`);
             if (numSemanasCompletas < 3) {
                 console.log(`   ⚠️ Usando método por días: pocas semanas completas (${numSemanasCompletas})`);
             } else if (diferenciaPorcentual >= 15) {
@@ -675,14 +675,14 @@ class ConvenioAnualManager {
         console.log('\n📊 ======== RESUMEN ANUAL DEL CONVENIO ========');
         
         Object.values(this.stats_anuales).forEach(stats => {
-            // console.log(`\n👤 ${stats.empleado_nombre.toUpperCase()}:`);
-            // console.log(`   💼 Total horas año: ${stats.total_horas_año.toFixed(1)}h / ${this.convenio.horas_maximas_anuales}h`);
-            // console.log(`   📈 Progreso: ${(stats.total_horas_año / this.convenio.horas_maximas_anuales * 100).toFixed(1)}%`);
-            // console.log(`   🎯 Horas restantes: ${stats.horas_restantes_año.toFixed(1)}h`);
+            console.log(`\n👤 ${stats.empleado_nombre.toUpperCase()}:`);
+            console.log(`   💼 Total horas año: ${stats.total_horas_año.toFixed(1)}h / ${this.convenio.horas_maximas_anuales}h`);
+            console.log(`   📈 Progreso: ${(stats.total_horas_año / this.convenio.horas_maximas_anuales * 100).toFixed(1)}%`);
+            console.log(`   🎯 Horas restantes: ${stats.horas_restantes_año.toFixed(1)}h`);
             console.log(`   📊 Media semanal real: ${stats.media_semanal_real.toFixed(1)}h/semana`);
             console.log(`   ⚖️ Estado semanal: ${stats.estado_semanal}`);
             console.log(`   💡 Recomendación: ${stats.recomendacion_compensacion}`);
-            // console.log(`   📅 Para resto del año: ${stats.horas_recomendadas_semana.toFixed(1)}h/semana`);
+            console.log(`   📅 Para resto del año: ${stats.horas_recomendadas_semana.toFixed(1)}h/semana`);
             
             if (stats.excesos_diarios.length > 0) {
                 console.log(`   ⚠️ Excesos diarios: ${stats.excesos_diarios.length}`);
@@ -722,24 +722,24 @@ class ConvenioAnualManager {
     mostrarAlerta(alerta) {
         switch (alerta.tipo) {
             case 'exceso_diario':
-                // console.log(`   👤 ${alerta.empleado}: ${alerta.cantidad} días con >9h`);
+                console.log(`   👤 ${alerta.empleado}: ${alerta.cantidad} días con >9h`);
                 break;
             case 'exceso_semanal':
-                // console.log(`   👤 ${alerta.empleado}: ${alerta.cantidad} semanas con >40h`);
+                console.log(`   👤 ${alerta.empleado}: ${alerta.cantidad} semanas con >40h`);
                 break;
             case 'exceso_semanal_compensar':
-                // console.log(`   👤 ${alerta.empleado}: Exceso de ${alerta.desviacion}h/semana - Reducir horas para compensar`);
+                console.log(`   👤 ${alerta.empleado}: Exceso de ${alerta.desviacion}h/semana - Reducir horas para compensar`);
                 break;
             case 'defecto_semanal_compensar':
-                // console.log(`   👤 ${alerta.empleado}: Defecto de ${alerta.desviacion}h/semana - Aumentar horas para compensar`);
+                console.log(`   👤 ${alerta.empleado}: Defecto de ${alerta.desviacion}h/semana - Aumentar horas para compensar`);
                 break;
             case 'cerca_limite_anual':
-                // console.log(`   👤 ${alerta.empleado}: ${alerta.porcentaje}% del límite anual`);
+                console.log(`   👤 ${alerta.empleado}: ${alerta.porcentaje}% del límite anual`);
                 break;
             case 'fichajes_durante_ausencia':
-                // console.log(`   🚨 FICHAJES DURANTE AUSENCIAS: ${alerta.fichajes.length} fichajes inválidos detectados`);
+                console.log(`   🚨 FICHAJES DURANTE AUSENCIAS: ${alerta.fichajes.length} fichajes inválidos detectados`);
                 alerta.fichajes.forEach(fichaje => {
-                    // console.log(`     👤 ${fichaje.empleado}: ${fichaje.fecha} (${fichaje.horas}h) durante ${fichaje.tipoAusencia}`);
+                    console.log(`     👤 ${fichaje.empleado}: ${fichaje.fecha} (${fichaje.horas}h) durante ${fichaje.tipoAusencia}`);
                 });
                 break;
         }

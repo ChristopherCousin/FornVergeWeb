@@ -15,7 +15,7 @@ class AusenciasManager {
     }
 
     async init() {
-        // console.log('🏖️ Inicializando Gestión de Ausencias...');
+        console.log('🏖️ Inicializando Gestión de Ausencias...');
         
         try {
             // Solo configurar event listeners una vez
@@ -29,7 +29,7 @@ class AusenciasManager {
             this.cargarEmpleadosEnSelect();
             this.actualizarListaAusencias();
             
-            // console.log('✅ Gestión de Ausencias inicializada');
+            console.log('✅ Gestión de Ausencias inicializada');
             
         } catch (error) {
             console.error('❌ Error inicializando Gestión de Ausencias:', error);
@@ -85,7 +85,7 @@ class AusenciasManager {
             .order('name');
         
         this.empleados = empleados || [];
-        // console.log(`👥 ${this.empleados.length} empleados cargados para ausencias`);
+        console.log(`👥 ${this.empleados.length} empleados cargados para ausencias`);
     }
 
     async cargarAusencias() {
@@ -103,7 +103,7 @@ class AusenciasManager {
             empleado_nombre: a.employees?.name || 'Desconocido'
         }));
         
-        // console.log(`🏖️ ${this.ausencias.length} ausencias cargadas`);
+        console.log(`🏖️ ${this.ausencias.length} ausencias cargadas`);
     }
 
     cargarEmpleadosEnSelect() {
@@ -405,12 +405,12 @@ class AusenciasManager {
 const inicializarAusencias = async () => {
     // Evitar múltiples inicializaciones simultáneas
     if (window.ausenciasManager || window.inicializandoAusencias) {
-        // console.log('🔄 Sistema de ausencias ya inicializado o en proceso');
+        console.log('🔄 Sistema de ausencias ya inicializado o en proceso');
         return;
     }
     
     window.inicializandoAusencias = true;
-    // console.log('🏖️ Iniciando sistema de ausencias...');
+    console.log('🏖️ Iniciando sistema de ausencias...');
     
     let intentos = 0;
     const maxIntentos = 20; // Más intentos para ausencias
@@ -422,13 +422,13 @@ const inicializarAusencias = async () => {
             typeof window.controlAnualSimple.supabase.from === 'function') {
             
             try {
-                // console.log('✅ Dependencias de ausencias disponibles, inicializando...');
+                console.log('✅ Dependencias de ausencias disponibles, inicializando...');
                 
                 // Crear instancia global
                 window.ausenciasManager = new AusenciasManager(window.controlAnualSimple.supabase);
                 await window.ausenciasManager.init();
                 
-                // console.log('✅ Sistema de ausencias inicializado correctamente');
+                console.log('✅ Sistema de ausencias inicializado correctamente');
                 window.inicializandoAusencias = false;
                 return;
                 
@@ -439,7 +439,7 @@ const inicializarAusencias = async () => {
             }
         }
         
-        // console.log(`⏳ Esperando dependencias de ausencias... (${intentos + 1}/${maxIntentos})`);
+        console.log(`⏳ Esperando dependencias de ausencias... (${intentos + 1}/${maxIntentos})`);
         await new Promise(resolve => setTimeout(resolve, 500));
         intentos++;
     }

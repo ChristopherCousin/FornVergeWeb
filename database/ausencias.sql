@@ -198,10 +198,6 @@ $$ LANGUAGE plpgsql;
 -- Vacaciones de verano para Gaby
 INSERT INTO ausencias (empleado_id, fecha_inicio, fecha_fin, tipo, motivo, estado, creado_por) VALUES
 ((SELECT id FROM employees WHERE name = 'GABY'), '2025-08-01', '2025-08-15', 'vacaciones', 'Vacaciones verano', 'aprobado', 'admin');
-
--- Baja médica para Andrea  
-INSERT INTO ausencias (empleado_id, fecha_inicio, fecha_fin, tipo, motivo, estado, creado_por) VALUES
-((SELECT id FROM employees WHERE name = 'ANDREA'), '2025-07-10', '2025-07-12', 'baja_medica', 'Gripe', 'aprobado', 'admin');
 */
 
 -- ================================================================

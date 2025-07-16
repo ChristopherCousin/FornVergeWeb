@@ -63,4 +63,4 @@ export const SUPABASE_CONFIG = {
 };
 
 // Códigos de acceso válidos (SOLO PARA FALLBACK LOCAL SI SUPABASE FALLA)
-export const FALLBACK_CODES = ['bryan2025', 'raquel2025', 'maria2025', 'xisca2025', 'andrea2025', 'adminforn2025']; 
+export const FALLBACK_CODES = ['bryan2025', 'raquel2025', 'maria2025', 'xisca2025', 'adminforn2025']; 

@@ -491,7 +491,6 @@ INSERT INTO employees (name, emoji, employee_id, access_code, role) VALUES
 ('RAQUEL', '👩‍💼', 'raquel', 'cmFxdWVsMjAyNQ==', 'employee'),
 ('MARÍA', '👩‍💼', 'maria', 'bWFyaWEyMDI1', 'employee'),
 ('XISCA', '👩‍💼', 'xisca', 'eGlzY2EyMDI1', 'employee'),
-('ANDREA', '👩‍💼', 'andrea', 'YW5kcmVhMjAyNQ==', 'employee'),
 ('ADMINISTRADOR', '👔', 'admin', 'YWRtaW5mb3JuMjAyNQ==', 'admin');
 
 4. Configurar Row Level Security (RLS):

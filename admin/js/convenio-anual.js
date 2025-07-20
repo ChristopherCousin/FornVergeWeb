@@ -222,7 +222,7 @@ class ConvenioAnualManager {
                 horas_reales_agora: this.calcularHorasReales(inicioReales, hoy, empleado.id),
                 
                 // ====== HORAS POR AUSENCIAS ======
-                horas_ausencias: await this.calcularHorasAusencias(inicioAño, hoy, empleado.id),
+                horas_ausencias: this.calcularHorasAusencias(inicioAño, hoy, empleado.id),
                 
                 // ====== PARTIDOS (TURNOS DOBLES) ======
                 total_partidos: this.calcularPartidos(empleado.id),
@@ -305,9 +305,9 @@ class ConvenioAnualManager {
 
     /**
      * METODOLOGÍA JAVI 2.0 - Cálculo inteligente de ausencias
-     * Solo cuenta días que tocaba trabajar según cuadrante planificado
+     * Solo cuenta días laborables según regla general del convenio
      */
-    async calcularHorasAusencias(fechaDesde, fechaHasta, empleadoId) {
+    calcularHorasAusencias(fechaDesde, fechaHasta, empleadoId) {
         const ausenciasEmpleado = this.ausencias.filter(a => 
             a.empleado_id === empleadoId &&
             // Verificar solapamiento de fechas
@@ -328,21 +328,31 @@ class ConvenioAnualManager {
             while (fechaIterador <= finReal) {
                 const fechaStr = fechaIterador.toISOString().split('T')[0];
                 
-                // ✅ METODOLOGÍA JAVI 2.0: Consultar horario planificado para esa fecha exacta
-                const eraLaborable = await this.consultarHorarioPlanificadoFecha(empleadoId, fechaStr);
+                // ✅ METODOLOGÍA JAVI 2.0 CORREGIDA: Solo regla general del convenio
+                const eraLaborable = this.aplicarReglaGeneralConvenio(fechaStr);
                 
                 if (eraLaborable) {
                     horasAusenciaReal += this.convenio.horas_teoricas_dia; // 6.8h solo si tocaba trabajar
                 }
                 
-                // Log limpiado para producción
+                // Debug limpiado - ya se maneja en aplicarReglaGeneralConvenio
                 
                 fechaIterador.setDate(fechaIterador.getDate() + 1);
             }
             
             totalAusencias += horasAusenciaReal;
             
-            // Logs de ausencias eliminados para producción
+            // === DEBUG JAVI 2.0 CORREGIDO ===
+            const empleado = this.empleados.find(e => e.id === empleadoId);
+            if (empleado && empleado.name.toUpperCase().includes('RAQUEL')) {
+                const diasTotales = Math.floor((finReal - inicioReal) / (1000 * 60 * 60 * 24)) + 1;
+                const diasLaborablesCalculados = horasAusenciaReal / 6.8;
+                console.log(`\n✅ AUSENCIA ${ausencia.tipo.toUpperCase()}: ${ausencia.fecha_inicio} → ${ausencia.fecha_fin}`);
+                console.log(`   📊 Total días naturales: ${diasTotales} días`);
+                console.log(`   💼 Días laborables (convenio): ${diasLaborablesCalculados.toFixed(1)} días`);
+                console.log(`   ✅ Horas JAVI 2.0: ${horasAusenciaReal.toFixed(1)}h`);
+                console.log(`   📋 Detalle día por día (solo convenio, no horarios planificados):`);
+            }
         }
         
         return totalAusencias;
@@ -465,63 +475,25 @@ class ConvenioAnualManager {
         return totalTurnosMañana;
     }
 
-    /**
-     * METODOLOGÍA JAVI 2.0 - Consulta horario planificado para fecha exacta
-     * Retorna true si era día laborable, false si día libre
-     */
-    async consultarHorarioPlanificadoFecha(empleadoId, fecha) {
-        try {
-            // 1. Calcular week_start para esta fecha
-            const fechaObj = new Date(fecha);
-            const dayOfWeek = fechaObj.getDay(); // 0=Domingo, 1=Lunes, ..., 6=Sábado
-            const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Ajustar para que lunes = 0
-            const mondayDate = new Date(fechaObj);
-            mondayDate.setDate(fechaObj.getDate() - daysFromMonday);
-            const weekStart = mondayDate.toISOString().split('T')[0];
-            
-            // 2. Convertir a nombre del día
-            const daysMap = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
-            const dayName = daysMap[dayOfWeek];
-            
-            // 3. Consultar horario planificado en Supabase
-            const { data, error } = await this.supabase
-                .from('schedules')
-                .select('is_free_day, start_time, end_time')
-                .eq('employee_id', empleadoId)
-                .eq('week_start', weekStart)
-                .eq('day_of_week', dayName)
-                .limit(1);
-            
-            if (error) {
-                // Fallback silencioso: aplicar regla general (6 de 7 días laborables)
-                return this.aplicarReglaGeneral(fecha);
-            }
-            
-            if (!data || data.length === 0) {
-                // No hay horario planificado para esa fecha - usar regla general
-                return this.aplicarReglaGeneral(fecha);
-            }
-            
-            // 4. Determinar si era laborable
-            const horario = data[0];
-            return !horario.is_free_day; // Si no es día libre, es laborable
-            
-        } catch (error) {
-            // Fallback silencioso en caso de error
-            return this.aplicarReglaGeneral(fecha);
-        }
-    }
+    // Función eliminada - era conceptualmente incorrecta mezclar control anual con horarios planificados
 
     /**
-     * Regla general para bajas largas sin horario planificado
-     * 6 días laborables de cada 7 días naturales
+     * METODOLOGÍA JAVI 2.0 - Regla general del convenio
+     * Solo domingos libres, resto laborables (6 de 7 días)
      */
-    aplicarReglaGeneral(fecha) {
+    aplicarReglaGeneralConvenio(fecha) {
         const fechaObj = new Date(fecha);
         const dayOfWeek = fechaObj.getDay(); // 0=Domingo, 1=Lunes, ..., 6=Sábado
+        const esLaborable = dayOfWeek !== 0; // Todos excepto domingo
         
-        // Asumir que domingo es día libre (típico en hostelería)
-        return dayOfWeek !== 0; // Todos excepto domingo
+        // DEBUG para ausencias de Raquel
+        const empleado = this.empleados.find(e => e && e.name && e.name.toUpperCase().includes('RAQUEL'));
+        if (empleado) {
+            const diasSemana = ['DOM', 'LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB'];
+            console.log(`   📅 ${fecha} (${diasSemana[dayOfWeek]}): ${esLaborable ? 'LABORABLE (+6.8h)' : 'DÍA LIBRE (+0h)'}`);
+        }
+        
+        return esLaborable;
     }
 
     /**
@@ -756,7 +728,29 @@ class ConvenioAnualManager {
         const horasIdealesAjustadas = semanasDisponibles * (this.convenio.dias_trabajo_empleada_semana * this.convenio.horas_teoricas_dia); // 40.8h/semana ideal
         const horasRealesDesdeJunio = stats.horas_reales_agora;
         
-        // Logs detallados eliminados para producción
+        // === DEBUG JAVI 2.0 CORREGIDO ===
+        if (stats.empleado_nombre.toUpperCase().includes('RAQUEL')) {
+            console.log(`\n✅ ===== FÓRMULA JAVI 2.0 CORREGIDA =====`);
+            console.log(`📅 Período: ${this.convenio.inicio_datos_reales} → ${fechaActualStr}`);
+            console.log(`📊 Días totales desde junio: ${diasTotalesDesdeJunio} días`);
+            console.log(`🏥 Días de ausencia: ${diasAusencia} días`);
+            console.log(`⚡ Horas reales fichadas: ${horasRealesDesdeJunio.toFixed(1)}h`);
+            console.log(`🏥 Horas ausencias (solo convenio): ${stats.horas_ausencias.toFixed(1)}h`);
+            
+            // FÓRMULA JAVI 2.0
+            const fechaInicio = new Date(this.convenio.inicio_datos_reales);
+            const fechaFin = new Date(fechaActualStr);
+            const diasExactos = Math.floor((fechaFin - fechaInicio) / (1000 * 60 * 60 * 24)) + 1;
+            const semanasJavi = diasExactos / 7;
+            const horasIdealesFijas = semanasJavi * 40.8;
+            const horasCumplidas = horasRealesDesdeJunio + stats.horas_ausencias;
+            const diferenciaJavi20 = horasCumplidas - horasIdealesFijas;
+            
+            console.log(`📊 Horas ideales FIJAS: ${horasIdealesFijas.toFixed(2)}h`);
+            console.log(`🧮 Horas cumplidas: ${horasCumplidas.toFixed(1)}h`);
+            console.log(`✅ DIFERENCIA JAVI 2.0: ${diferenciaJavi20 >= 0 ? '+' : ''}${diferenciaJavi20.toFixed(1)}h`);
+            console.log(`==========================================`);
+        }
         
         // console.log(`   📊 Cálculo compensación ${stats.empleado_nombre}:`);
         console.log(`     • Días totales desde junio: ${diasTotalesDesdeJunio}`);

@@ -21,7 +21,7 @@ class ConvenioAnualManager {
         this.convenio = {
             // Límites diarios
             horas_maximas_dia: 9,
-            descanso_minimo_entre_turnos: 12, // horas
+            descanso_minimo_entre_turnos: 10, // horas
             
             // Límites semanales
             horas_maximas_semana: 40,
@@ -222,10 +222,13 @@ class ConvenioAnualManager {
                 horas_reales_agora: this.calcularHorasReales(inicioReales, hoy, empleado.id),
                 
                 // ====== HORAS POR AUSENCIAS ======
-                horas_ausencias: this.calcularHorasAusencias(inicioAño, hoy, empleado.id),
+                horas_ausencias: await this.calcularHorasAusencias(inicioAño, hoy, empleado.id),
                 
                 // ====== PARTIDOS (TURNOS DOBLES) ======
                 total_partidos: this.calcularPartidos(empleado.id),
+                
+                // ====== TURNOS DE MAÑANA (6:00-15:00) ======
+                total_turnos_mañana: this.calcularTurnosMañana(empleado.id),
                 
                 // ====== TOTALES ======
                 total_horas_año: 0,
@@ -246,10 +249,16 @@ class ConvenioAnualManager {
                 recomendacion_compensacion: ''
             };
             
+                    // Logs de debug eliminados para producción
+
             // Calcular totales
             stats.total_horas_año = stats.horas_teoricas_pre_agora + 
                                    stats.horas_reales_agora + 
                                    stats.horas_ausencias;
+                                   
+            if (empleado.name.toUpperCase().includes('RAQUEL')) {
+                console.log(`📊 TOTAL horas año: ${stats.total_horas_año.toFixed(1)}h`);
+            }
             
             // Analizar cumplimiento del convenio
             this.analizarCumplimientoConvenio(stats, empleado);
@@ -294,7 +303,11 @@ class ConvenioAnualManager {
         return totalReal;
     }
 
-    calcularHorasAusencias(fechaDesde, fechaHasta, empleadoId) {
+    /**
+     * METODOLOGÍA JAVI 2.0 - Cálculo inteligente de ausencias
+     * Solo cuenta días que tocaba trabajar según cuadrante planificado
+     */
+    async calcularHorasAusencias(fechaDesde, fechaHasta, empleadoId) {
         const ausenciasEmpleado = this.ausencias.filter(a => 
             a.empleado_id === empleadoId &&
             // Verificar solapamiento de fechas
@@ -303,31 +316,34 @@ class ConvenioAnualManager {
         
         let totalAusencias = 0;
         
-        ausenciasEmpleado.forEach(ausencia => {
+        for (const ausencia of ausenciasEmpleado) {
             // Calcular días que se solapan con el período consultado
             const inicioReal = new Date(Math.max(new Date(ausencia.fecha_inicio), fechaDesde));
             const finReal = new Date(Math.min(new Date(ausencia.fecha_fin), fechaHasta));
             
-            const diasNaturales = Math.floor((finReal - inicioReal) / (1000 * 60 * 60 * 24)) + 1;
+            let horasAusenciaReal = 0;
             
-            // SOLO imputar días que le correspondía trabajar (6 días/semana)
-            // Cada semana completa = 6 días laborables × 6,8h = 40,8h
-            const semanasCompletas = Math.floor(diasNaturales / 7);
-            const diasRestantes = diasNaturales % 7;
+            // Iterar día por día en el período de ausencia
+            const fechaIterador = new Date(inicioReal);
+            while (fechaIterador <= finReal) {
+                const fechaStr = fechaIterador.toISOString().split('T')[0];
+                
+                // ✅ METODOLOGÍA JAVI 2.0: Consultar horario planificado para esa fecha exacta
+                const eraLaborable = await this.consultarHorarioPlanificadoFecha(empleadoId, fechaStr);
+                
+                if (eraLaborable) {
+                    horasAusenciaReal += this.convenio.horas_teoricas_dia; // 6.8h solo si tocaba trabajar
+                }
+                
+                // Log limpiado para producción
+                
+                fechaIterador.setDate(fechaIterador.getDate() + 1);
+            }
             
-            // Horas por semanas completas
-            const horasSemanasCompletas = semanasCompletas * this.convenio.dias_trabajo_empleada_semana * this.convenio.horas_teoricas_dia;
+            totalAusencias += horasAusenciaReal;
             
-            // Para días restantes, usar proporción (máximo 6 días por semana)
-            const diasLaborablesRestantes = Math.min(diasRestantes, this.convenio.dias_trabajo_empleada_semana);
-            const horasDiasRestantes = diasLaborablesRestantes * this.convenio.horas_teoricas_dia;
-            
-            const horasAusencia = horasSemanasCompletas + horasDiasRestantes;
-            
-            totalAusencias += horasAusencia;
-            
-            // console.log(`  🏖️ ${ausencia.tipo}: ${horasAusencia.toFixed(1)}h (${diasNaturales} días naturales = ${semanasCompletas} semanas + ${diasRestantes} días → ${semanasCompletas * this.convenio.dias_trabajo_empleada_semana + diasLaborablesRestantes} días laborables)`);
-        });
+            // Logs de ausencias eliminados para producción
+        }
         
         return totalAusencias;
     }
@@ -376,6 +392,185 @@ class ConvenioAnualManager {
         // console.log(`  🎯 ${this.empleados.find(e => e.id === empleadoId)?.name}: ${totalPartidos} partidos totales`);
         
         return totalPartidos;
+    }
+
+    /**
+     * Calcula el número total de turnos de mañana (6:00-15:00) de un empleado
+     * Excluye a Bryan (le gustan las tardes) y Raquel (siempre está de mañanas)
+     * Solo cuenta turnos NO partidos en horario de mañana
+     */
+    calcularTurnosMañana(empleadoId) {
+        const empleado = this.empleados.find(e => e.id === empleadoId);
+        if (!empleado) return 0;
+        
+        // ===== EXCLUSIONES ESPECÍFICAS =====
+        const nombreEmpleado = empleado.name.toUpperCase().trim();
+        
+        // No contar Bryan (le gusta estar de tardes)
+        if (nombreEmpleado.includes('BRYAN')) {
+            return 0;
+        }
+        
+        // No contar Raquel (siempre está de mañanas - no necesita equilibrio)
+        if (nombreEmpleado.includes('RAQUEL')) {
+            return 0;
+        }
+        
+        const fichajesEmpleado = this.fichajes.filter(f => f.empleado_id === empleadoId);
+        
+        // Agrupar fichajes por fecha
+        const fichajesPorFecha = {};
+        fichajesEmpleado.forEach(fichaje => {
+            const fecha = fichaje.fecha;
+            if (!fichajesPorFecha[fecha]) {
+                fichajesPorFecha[fecha] = [];
+            }
+            fichajesPorFecha[fecha].push(fichaje);
+        });
+        
+        let totalTurnosMañana = 0;
+
+        // Analizar cada día para detectar turnos de mañana
+        Object.entries(fichajesPorFecha).forEach(([fecha, fichajes]) => {
+            // ===== SOLO CONTAR DÍAS CON UN SOLO FICHAJE (NO PARTIDOS) =====
+            if (fichajes.length === 1) {
+                const fichaje = fichajes[0];
+                
+                // Verificar que tenga horas de entrada y salida
+                if (fichaje.entrada && fichaje.salida) {
+                    // Extraer solo la hora de los timestamps
+                    const horaEntrada = this.extraerHoraDeTimestamp(fichaje.entrada);
+                    const horaSalida = this.extraerHoraDeTimestamp(fichaje.salida);
+                    
+                    if (horaEntrada !== null && horaSalida !== null) {
+                        // ===== FRANJA DE MAÑANA AMPLIADA =====
+                        // 5:30 (330 min) a 15:30 (930 min) para cubrir casos como 5:55-14:00
+                        const inicioMañana = 5 * 60 + 30; // 5:30 = 330 minutos
+                        const finMañana = 15 * 60 + 30;   // 15:30 = 930 minutos
+                        
+                        // Verificar si entrada Y salida están dentro de la franja de mañana
+                        if (horaEntrada >= inicioMañana && horaEntrada <= finMañana &&
+                            horaSalida >= inicioMañana && horaSalida <= finMañana &&
+                            horaSalida > horaEntrada) { // Verificar que salida > entrada
+                            
+                            totalTurnosMañana++;
+                        }
+                    }
+                }
+            }
+            // ===== SI HAY 2 FICHAJES = PARTIDO → NO CONTAR COMO MAÑANA =====
+            // Los partidos no se cuentan como mañanas, independientemente del horario
+        });
+        
+        return totalTurnosMañana;
+    }
+
+    /**
+     * METODOLOGÍA JAVI 2.0 - Consulta horario planificado para fecha exacta
+     * Retorna true si era día laborable, false si día libre
+     */
+    async consultarHorarioPlanificadoFecha(empleadoId, fecha) {
+        try {
+            // 1. Calcular week_start para esta fecha
+            const fechaObj = new Date(fecha);
+            const dayOfWeek = fechaObj.getDay(); // 0=Domingo, 1=Lunes, ..., 6=Sábado
+            const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Ajustar para que lunes = 0
+            const mondayDate = new Date(fechaObj);
+            mondayDate.setDate(fechaObj.getDate() - daysFromMonday);
+            const weekStart = mondayDate.toISOString().split('T')[0];
+            
+            // 2. Convertir a nombre del día
+            const daysMap = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+            const dayName = daysMap[dayOfWeek];
+            
+            // 3. Consultar horario planificado en Supabase
+            const { data, error } = await this.supabase
+                .from('schedules')
+                .select('is_free_day, start_time, end_time')
+                .eq('employee_id', empleadoId)
+                .eq('week_start', weekStart)
+                .eq('day_of_week', dayName)
+                .limit(1);
+            
+            if (error) {
+                // Fallback silencioso: aplicar regla general (6 de 7 días laborables)
+                return this.aplicarReglaGeneral(fecha);
+            }
+            
+            if (!data || data.length === 0) {
+                // No hay horario planificado para esa fecha - usar regla general
+                return this.aplicarReglaGeneral(fecha);
+            }
+            
+            // 4. Determinar si era laborable
+            const horario = data[0];
+            return !horario.is_free_day; // Si no es día libre, es laborable
+            
+        } catch (error) {
+            // Fallback silencioso en caso de error
+            return this.aplicarReglaGeneral(fecha);
+        }
+    }
+
+    /**
+     * Regla general para bajas largas sin horario planificado
+     * 6 días laborables de cada 7 días naturales
+     */
+    aplicarReglaGeneral(fecha) {
+        const fechaObj = new Date(fecha);
+        const dayOfWeek = fechaObj.getDay(); // 0=Domingo, 1=Lunes, ..., 6=Sábado
+        
+        // Asumir que domingo es día libre (típico en hostelería)
+        return dayOfWeek !== 0; // Todos excepto domingo
+    }
+
+    /**
+     * Calcula días laborables (Lun-Vie) según metodología JAVI original
+     */
+    calcularDiasLaborablesJavi(fechaInicio, fechaFin) {
+        const inicio = new Date(fechaInicio);
+        const fin = new Date(fechaFin);
+        let diasLaborables = 0;
+        
+        const fecha = new Date(inicio);
+        while (fecha <= fin) {
+            const diaSemana = fecha.getDay(); // 0=Domingo, 1=Lunes, ..., 6=Sábado
+            if (diaSemana >= 1 && diaSemana <= 5) { // Lunes a Viernes
+                diasLaborables++;
+            }
+            fecha.setDate(fecha.getDate() + 1);
+        }
+        
+        return diasLaborables;
+    }
+
+    /**
+     * Extrae la hora de un timestamp y la convierte a minutos desde medianoche (UTC)
+     */
+    extraerHoraDeTimestamp(timestamp) {
+        if (!timestamp || timestamp === 'null') return null;
+        
+        try {
+            // Si es un timestamp ISO, crear objeto Date
+            const fecha = new Date(timestamp);
+            if (isNaN(fecha.getTime())) return null;
+            
+            // Obtener horas y minutos en UTC (no hora local)
+            const horas = fecha.getUTCHours();
+            const minutos = fecha.getUTCMinutes();
+            
+            return (horas * 60) + minutos;
+        } catch (error) {
+            // Si falla, intentar extraer formato HH:MM del string
+            const horaMatch = timestamp.toString().match(/(\d{1,2}):(\d{2})/);
+            if (horaMatch) {
+                const horas = parseInt(horaMatch[1], 10) || 0;
+                const minutos = parseInt(horaMatch[2], 10) || 0;
+                return (horas * 60) + minutos;
+            }
+            
+            return null;
+        }
     }
 
     analizarCumplimientoConvenio(stats, empleado) {
@@ -511,7 +706,7 @@ class ConvenioAnualManager {
             const esActiva = ausencia.fecha_inicio <= fechaActualSinHora && 
                            ausencia.fecha_fin >= fechaActualSinHora && 
                            ausencia.estado === 'aprobado';
-            console.log(`     ${ausencia.tipo}: ${ausencia.fecha_inicio} → ${ausencia.fecha_fin} | Estado: ${ausencia.estado} | ¿Activa? ${esActiva}`);
+            // Log de ausencias simplificado para privacidad
         });
         
         const ausenciaActual = this.ausencias.find(ausencia => 
@@ -551,7 +746,7 @@ class ConvenioAnualManager {
                 if (inicioAusencia <= finAusencia) {
                     const diasEstaAusencia = Math.floor((new Date(finAusencia) - new Date(inicioAusencia)) / (1000 * 60 * 60 * 24)) + 1;
                     diasAusencia += diasEstaAusencia;
-                    console.log(`   🏖️ Ausencia ${ausencia.tipo}: ${inicioAusencia} → ${finAusencia} = ${diasEstaAusencia} días`);
+                    // Log de ausencias específicas eliminado para privacidad
                 }
             });
         
@@ -561,20 +756,28 @@ class ConvenioAnualManager {
         const horasIdealesAjustadas = semanasDisponibles * (this.convenio.dias_trabajo_empleada_semana * this.convenio.horas_teoricas_dia); // 40.8h/semana ideal
         const horasRealesDesdeJunio = stats.horas_reales_agora;
         
+        // Logs detallados eliminados para producción
+        
         // console.log(`   📊 Cálculo compensación ${stats.empleado_nombre}:`);
         console.log(`     • Días totales desde junio: ${diasTotalesDesdeJunio}`);
         console.log(`     • Días de ausencia: ${diasAusencia}`);
         console.log(`     • Días disponibles: ${diasDisponibles}`);
         console.log(`     • Semanas disponibles: ${semanasDisponibles.toFixed(1)}`);
-        // console.log(`     • Horas ideales ajustadas: ${horasIdealesAjustadas.toFixed(1)}h`);
-        // console.log(`     • Horas reales: ${horasRealesDesdeJunio.toFixed(1)}h`);
         
-        const diferenciaCargaTrabajo = horasRealesDesdeJunio - horasIdealesAjustadas;
+        // ✅ APLICAR METODOLOGÍA JAVI 2.0 PARA DIFERENCIA FINAL
+        const fechaInicio = new Date(this.convenio.inicio_datos_reales);
+        const fechaFin = new Date(fechaActualStr);
+        const diasExactos = Math.floor((fechaFin - fechaInicio) / (1000 * 60 * 60 * 24)) + 1;
+        const semanasJavi = diasExactos / 7;
+        const horasIdealesFijas = semanasJavi * 40.8; // Horas ideales FIJAS (no ajustadas por bajas)
+        const horasCumplidas = horasRealesDesdeJunio + stats.horas_ausencias;
+        const diferenciaCargaTrabajo = horasCumplidas - horasIdealesFijas; // ✅ NUEVA FÓRMULA JAVI 2.0
+        
         console.log(`     • Diferencia: ${diferenciaCargaTrabajo >= 0 ? '+' : ''}${diferenciaCargaTrabajo.toFixed(1)}h`);
         
         // Guardar SIEMPRE la diferencia de carga (incluso para empleados ausentes)
         stats.diferencia_carga_trabajo = diferenciaCargaTrabajo;
-        stats.horas_ideales_desde_junio = horasIdealesAjustadas;
+        stats.horas_ideales_desde_junio = horasIdealesFijas; // ✅ Usar horas ideales FIJAS
         
         // ====== CALCULAR MEDIA SEMANAL CORRECTA (basada en días trabajados) ======
         // Si tenemos pocos datos o semanas muy parciales, usar método alternativo

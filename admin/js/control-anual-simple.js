@@ -272,12 +272,14 @@ class ControlAnualSimple {
         const empleadosConProblemas = stats.filter(s => s.estado_semanal === 'subcarga' || s.estado_semanal === 'sobrecarga').length;
         const empleadosAusentes = stats.filter(s => s.estado_semanal === 'de_ausencia').length;
         const totalPartidos = stats.reduce((sum, s) => sum + (s.total_partidos || 0), 0);
+        const totalMañanas = stats.reduce((sum, s) => sum + (s.total_turnos_mañana || 0), 0);
         
         let textoResumen = `${stats.length} empleados`;
         if (empleadosEquilibrados > 0) textoResumen += ` • ${empleadosEquilibrados} equilibrados`;
         if (empleadosConProblemas > 0) textoResumen += ` • ${empleadosConProblemas} requieren ajustes`;
         if (empleadosAusentes > 0) textoResumen += ` • ${empleadosAusentes} ausentes`;
         if (totalPartidos > 0) textoResumen += ` • ${totalPartidos} partidos totales`;
+        if (totalMañanas > 0) textoResumen += ` • ${totalMañanas} mañanas totales`;
         
         resumenMinimizado.textContent = textoResumen;
     }
@@ -365,6 +367,10 @@ class ControlAnualSimple {
                                         <span class="font-medium text-blue-600">${empleadoStats.total_partidos || 0} turnos dobles</span>
                                     </div>
                                     <div class="flex justify-between text-sm">
+                                        <span>Turnos de mañana:</span>
+                                        <span class="font-medium text-orange-600">${empleadoStats.total_turnos_mañana || 0} mañanas</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
                                         <span>Progreso del convenio:</span>
                                         <span class="font-medium text-gray-600">${progreso.toFixed(1)}% (${empleadoStats.total_horas_año.toFixed(0)}h / 1.776h)</span>
                                     </div>
@@ -450,6 +456,10 @@ class ControlAnualSimple {
                                     <span class="font-medium text-blue-600">${empleadoStats.total_partidos || 0} turnos dobles</span>
                                 </div>
                                 <div class="flex justify-between text-sm">
+                                    <span>Turnos de mañana:</span>
+                                    <span class="font-medium text-orange-600">${empleadoStats.total_turnos_mañana || 0} mañanas</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
                                     <span>Progreso del convenio:</span>
                                     <span class="font-medium text-gray-600">${progreso.toFixed(1)}% (${empleadoStats.total_horas_año.toFixed(0)}h / 1.776h)</span>
                                 </div>
@@ -493,13 +503,24 @@ class ControlAnualSimple {
 
     generarResumenCompensacion(stats) {
         // Filtrar empleados por su estado de compensación histórica
-        const empleadosConDatos = stats.filter(s => s.estado_semanal !== 'sin_datos' && s.estado_semanal !== 'de_ausencia');
+        // INCLUIR empleados de ausencia para planificación (pero marcarlos especialmente)
+        const empleadosConDatos = stats.filter(s => s.estado_semanal !== 'sin_datos');
         const empleadosSinDatos = stats.filter(s => s.estado_semanal === 'sin_datos');
         const empleadosDeAusencia = stats.filter(s => s.estado_semanal === 'de_ausencia');
         
-        const empleadosConSobrecarga = empleadosConDatos.filter(s => s.estado_semanal === 'sobrecarga');
-        const empleadosConSubcarga = empleadosConDatos.filter(s => s.estado_semanal === 'subcarga');
-        const empleadosEquilibrados = empleadosConDatos.filter(s => s.estado_semanal === 'equilibrado');
+        // Clasificar empleados (LÓGICA ORIGINAL + ausencias)
+        const empleadosConSobrecarga = empleadosConDatos.filter(s => 
+            s.estado_semanal === 'sobrecarga' || 
+            (s.estado_semanal === 'de_ausencia' && s.diferencia_carga_trabajo > 5)
+        );
+        const empleadosConSubcarga = empleadosConDatos.filter(s => 
+            s.estado_semanal === 'subcarga' || 
+            (s.estado_semanal === 'de_ausencia' && s.diferencia_carga_trabajo < -5)
+        );
+        const empleadosEquilibrados = empleadosConDatos.filter(s => 
+            s.estado_semanal === 'equilibrado' || 
+            (s.estado_semanal === 'de_ausencia' && Math.abs(s.diferencia_carga_trabajo) <= 5)
+        );
 
         // Información sobre empleados de ausencia (simplificada)
         let seccionAusencias = '';
@@ -566,13 +587,28 @@ class ControlAnualSimple {
                 </h4>
                 
                 ${empleadosConSobrecarga.length > 0 ? `
-                    <div class="mb-3">
-                        <h5 class="font-medium text-red-700 mb-2">🔻 Reducir carga futura (han trabajado MÁS del ideal):</h5>
-                        <div class="space-y-1 text-sm">
+                    <div class="mb-4">
+                        <h5 class="font-medium text-red-700 mb-3">🔻 Reducir carga futura (han trabajado MÁS del ideal):</h5>
+                        <div class="space-y-3">
                             ${empleadosConSobrecarga.map(s => `
-                                <div class="flex justify-between text-red-600">
-                                    <span>• ${s.empleado_nombre}:</span>
-                                    <span>${s.horas_reales_agora.toFixed(0)}h trabajadas (+${s.diferencia_carga_trabajo.toFixed(0)}h vs ideal) • ${s.total_partidos || 0} partidos</span>
+                                <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                                    <div class="font-semibold text-red-800 mb-2">
+                                        • ${s.empleado_nombre}
+                                        ${s.estado_semanal === 'de_ausencia' ? '<span class="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded">🏥 VUELVE PRONTO</span>' : ''}
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                        <div class="bg-white rounded px-2 py-1">
+                                            <span class="text-gray-600">Horas:</span> 
+                                            <span class="font-medium text-red-600">${s.horas_reales_agora.toFixed(0)}h (+${s.diferencia_carga_trabajo.toFixed(0)}h vs ideal)</span>
+                                        </div>
+                                        <div class="bg-white rounded px-2 py-1">
+                                            <span class="text-gray-600">Partidos:</span> 
+                                            <span class="font-medium text-blue-600">${s.total_partidos || 0}</span>
+                                            <span class="text-gray-600 ml-2">Mañanas:</span> 
+                                            <span class="font-medium text-orange-600">${s.total_turnos_mañana || 0}</span>
+                                        </div>
+                                    </div>
+                                    ${s.estado_semanal === 'de_ausencia' ? '<div class="mt-2 text-xs text-blue-700 bg-blue-100 rounded px-2 py-1"><strong>💡 Incluir en próxima planificación</strong> - Datos históricos disponibles arriba</div>' : ''}
                                 </div>
                             `).join('')}
                         </div>
@@ -580,13 +616,28 @@ class ControlAnualSimple {
                 ` : ''}
                 
                 ${empleadosConSubcarga.length > 0 ? `
-                    <div class="mb-3">
-                        <h5 class="font-medium text-blue-700 mb-2">🔺 Aumentar carga futura (han trabajado MENOS del ideal):</h5>
-                        <div class="space-y-1 text-sm">
+                    <div class="mb-4">
+                        <h5 class="font-medium text-blue-700 mb-3">🔺 Aumentar carga futura (han trabajado MENOS del ideal):</h5>
+                        <div class="space-y-3">
                             ${empleadosConSubcarga.map(s => `
-                                <div class="flex justify-between text-blue-600">
-                                    <span>• ${s.empleado_nombre}:</span>
-                                    <span>${s.horas_reales_agora.toFixed(0)}h trabajadas (${s.diferencia_carga_trabajo.toFixed(0)}h vs ideal) • ${s.total_partidos || 0} partidos</span>
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                    <div class="font-semibold text-blue-800 mb-2">
+                                        • ${s.empleado_nombre}
+                                        ${s.estado_semanal === 'de_ausencia' ? '<span class="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded">🏥 VUELVE PRONTO</span>' : ''}
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                        <div class="bg-white rounded px-2 py-1">
+                                            <span class="text-gray-600">Horas:</span> 
+                                            <span class="font-medium text-blue-600">${s.horas_reales_agora.toFixed(0)}h (${s.diferencia_carga_trabajo.toFixed(0)}h vs ideal)</span>
+                                        </div>
+                                        <div class="bg-white rounded px-2 py-1">
+                                            <span class="text-gray-600">Partidos:</span> 
+                                            <span class="font-medium text-blue-600">${s.total_partidos || 0}</span>
+                                            <span class="text-gray-600 ml-2">Mañanas:</span> 
+                                            <span class="font-medium text-orange-600">${s.total_turnos_mañana || 0}</span>
+                                        </div>
+                                    </div>
+                                    ${s.estado_semanal === 'de_ausencia' ? '<div class="mt-2 text-xs text-blue-700 bg-blue-100 rounded px-2 py-1"><strong>💡 Incluir en próxima planificación</strong> - Datos históricos disponibles arriba</div>' : ''}
                                 </div>
                             `).join('')}
                         </div>
@@ -594,18 +645,35 @@ class ControlAnualSimple {
                 ` : ''}
                 
                 ${empleadosEquilibrados.length > 0 ? `
-                    <div class="mb-3">
-                        <h5 class="font-medium text-green-700 mb-2">✅ En equilibrio histórico:</h5>
-                        <div class="space-y-1 text-sm">
+                    <div class="mb-4">
+                        <h5 class="font-medium text-green-700 mb-3">✅ En equilibrio histórico:</h5>
+                        <div class="space-y-3">
                             ${empleadosEquilibrados.map(s => `
-                                <div class="flex justify-between text-green-600">
-                                    <span>• ${s.empleado_nombre}:</span>
-                                    <span>${s.horas_reales_agora.toFixed(0)}h trabajadas (${s.diferencia_carga_trabajo >= 0 ? '+' : ''}${s.diferencia_carga_trabajo.toFixed(0)}h vs ideal) • ${s.total_partidos || 0} partidos</span>
+                                <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+                                    <div class="font-semibold text-green-800 mb-2">
+                                        • ${s.empleado_nombre}
+                                        ${s.estado_semanal === 'de_ausencia' ? '<span class="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded">🏥 VUELVE PRONTO</span>' : ''}
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                        <div class="bg-white rounded px-2 py-1">
+                                            <span class="text-gray-600">Horas:</span> 
+                                            <span class="font-medium text-green-600">${s.horas_reales_agora.toFixed(0)}h (${s.diferencia_carga_trabajo >= 0 ? '+' : ''}${s.diferencia_carga_trabajo.toFixed(0)}h vs ideal)</span>
+                                        </div>
+                                        <div class="bg-white rounded px-2 py-1">
+                                            <span class="text-gray-600">Partidos:</span> 
+                                            <span class="font-medium text-blue-600">${s.total_partidos || 0}</span>
+                                            <span class="text-gray-600 ml-2">Mañanas:</span> 
+                                            <span class="font-medium text-orange-600">${s.total_turnos_mañana || 0}</span>
+                                        </div>
+                                    </div>
+                                    ${s.estado_semanal === 'de_ausencia' ? '<div class="mt-2 text-xs text-blue-700 bg-blue-100 rounded px-2 py-1"><strong>💡 Incluir en próxima planificación</strong> - Datos históricos disponibles arriba</div>' : ''}
                                 </div>
                             `).join('')}
                         </div>
                     </div>
                 ` : ''}
+                
+
                 
                 <div class="mt-3 p-2 bg-orange-100 rounded text-sm text-orange-800">
                     💡 <strong>Objetivo:</strong> Compensar en las próximas semanas para que todas acaben cerca del ideal (~40.8h/semana promedio desde junio).

@@ -1,0 +1,11 @@
+# Configuración del proyecto
+project_id = "csxgkxjeifakwslamglc"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]
+
+[functions]
+[functions.get-sales]
+verify_jwt = true 

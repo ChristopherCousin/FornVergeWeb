@@ -70,6 +70,12 @@
             transition: width 0.5s ease-in-out;
             border-radius: 10px;
         }
+        .total-mes {
+            font-size: 12px;
+            color: #6c757d;
+            text-align: center;
+            margin-top: 8px;
+        }
         .error {
             color: #dc3545;
             margin-top: 10px;
@@ -92,6 +98,7 @@
             <div class="progress-bar">
                 <div class="progress-fill" id="barra-progreso" style="width: 0%"></div>
             </div>
+            <div id="total-mes-label" class="total-mes"></div>
         </div>
     </div>
 
@@ -118,51 +125,44 @@
             const porcentaje = Math.min((total / META_MENSUAL) * 100, 100);
             document.getElementById('barra-progreso').style.width = `${porcentaje}%`;
             document.getElementById('porcentaje').textContent = `${porcentaje.toFixed(1)}%`;
+            document.getElementById('total-mes-label').textContent = `Total del mes: ${formatearMoneda(total)}`;
         };
 
-        // Obtener las ventas en tiempo real
-        async function obtenerVentasEnTiempoReal() {
+        // Obtener las ventas en tiempo real y el histórico
+        async function actualizarVistaCompleta() {
             const elementoVentas = document.getElementById('total-ventas');
             const elementoTimestamp = document.getElementById('timestamp');
 
             try {
-                // Llamar a nuestra Edge Function
-                const { data, error } = await supabase.functions.invoke('get-sales', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
+                // Llamar a nuestra única Edge Function que devuelve todo
+                const { data, error } = await supabase.functions.invoke('get-sales');
                 
-                if (error) {
-                    console.error('Error de Supabase:', error);
-                    throw error;
+                if (error) throw error;
+
+                if (!data || typeof data.ventasDeHoy !== 'number' || typeof data.totalMes !== 'number') {
+                    throw new Error('Formato de respuesta inválido desde la función');
                 }
 
-                if (!data || typeof data.total !== 'number') {
-                    throw new Error('Formato de respuesta inválido');
-                }
+                // Actualizar el total de ventas de hoy
+                elementoVentas.textContent = formatearMoneda(data.ventasDeHoy);
+                elementoTimestamp.textContent = `Actualizado: ${new Date().toLocaleTimeString()}`;
 
-                // Actualizar el total de ventas
-                elementoVentas.textContent = formatearMoneda(data.total);
-                elementoTimestamp.textContent = `Última actualización: ${new Date().toLocaleTimeString()}`;
-
-                // Actualizar la barra de progreso
-                actualizarProgreso(data.total);
+                // Actualizar la barra de progreso con el total del mes
+                actualizarProgreso(data.totalMes);
 
             } catch (error) {
                 console.error('Error detallado:', error);
                 elementoVentas.textContent = "Error";
                 elementoVentas.style.color = "red";
-                elementoTimestamp.textContent = `Error al actualizar: ${error.message || 'Error desconocido'}`;
+                elementoTimestamp.textContent = `Error: ${error.message || 'Desconocido'}`;
             }
         }
 
         // Iniciar la actualización automática
         document.addEventListener('DOMContentLoaded', () => {
-            obtenerVentasEnTiempoReal();
+            actualizarVistaCompleta();
             // Actualizar cada minuto
-            setInterval(obtenerVentasEnTiempoReal, 60000);
+            setInterval(actualizarVistaCompleta, 60000);
         });
     </script>
 </body>

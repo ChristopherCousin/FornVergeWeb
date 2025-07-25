@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ventas en Tiempo Real - Verge del Lluch</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0;
+            background-color: #f0f2f5;
+        }
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            min-width: 300px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .ventas-container {
+            margin-bottom: 20px;
+        }
+        #total-ventas {
+            font-size: 48px;
+            font-weight: bold;
+            color: #28a745;
+            min-height: 60px;
+            margin: 10px 0;
+        }
+        .moneda {
+            font-size: 24px;
+            color: #6c757d;
+        }
+        #timestamp {
+            font-size: 14px;
+            color: #888;
+            margin-top: 15px;
+        }
+        .progress-container {
+            margin-top: 30px;
+            text-align: left;
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            color: #666;
+            font-size: 14px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #28a745;
+            transition: width 0.5s ease-in-out;
+            border-radius: 10px;
+        }
+        .error {
+            color: #dc3545;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Ventas de Hoy</h1>
+        <div class="ventas-container">
+            <div id="total-ventas">Cargando...</div>
+            <div id="timestamp"></div>
+        </div>
+        <div class="progress-container">
+            <div class="progress-label">
+                <span>Progreso hacia el bonus</span>
+                <span id="porcentaje">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="barra-progreso" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://csxgkxjeifakwslamglc.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzeGdreGplaWZha3dzbGFtZ2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjM4NjIsImV4cCI6MjA2NDg5OTg2Mn0.iGDmQJGRjsldPG';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Constantes
+        const META_MENSUAL = 40000; // Meta para el bonus
+
+        // Formatear números como moneda
+        const formatearMoneda = (cantidad) => {
+            return new Intl.NumberFormat('es-ES', {
+                style: 'currency',
+                currency: 'EUR',
+                minimumFractionDigits: 2
+            }).format(cantidad);
+        };
+
+        // Actualizar la barra de progreso
+        const actualizarProgreso = (total) => {
+            const porcentaje = Math.min((total / META_MENSUAL) * 100, 100);
+            document.getElementById('barra-progreso').style.width = `${porcentaje}%`;
+            document.getElementById('porcentaje').textContent = `${porcentaje.toFixed(1)}%`;
+        };
+
+        // Obtener las ventas en tiempo real
+        async function obtenerVentasEnTiempoReal() {
+            const elementoVentas = document.getElementById('total-ventas');
+            const elementoTimestamp = document.getElementById('timestamp');
+
+            try {
+                // Llamar a nuestra Edge Function
+                const { data, error } = await supabase.functions.invoke('get-sales', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (error) {
+                    console.error('Error de Supabase:', error);
+                    throw error;
+                }
+
+                if (!data || typeof data.total !== 'number') {
+                    throw new Error('Formato de respuesta inválido');
+                }
+
+                // Actualizar el total de ventas
+                elementoVentas.textContent = formatearMoneda(data.total);
+                elementoTimestamp.textContent = `Última actualización: ${new Date().toLocaleTimeString()}`;
+
+                // Actualizar la barra de progreso
+                actualizarProgreso(data.total);
+
+            } catch (error) {
+                console.error('Error detallado:', error);
+                elementoVentas.textContent = "Error";
+                elementoVentas.style.color = "red";
+                elementoTimestamp.textContent = `Error al actualizar: ${error.message || 'Error desconocido'}`;
+            }
+        }
+
+        // Iniciar la actualización automática
+        document.addEventListener('DOMContentLoaded', () => {
+            obtenerVentasEnTiempoReal();
+            // Actualizar cada minuto
+            setInterval(obtenerVentasEnTiempoReal, 60000);
+        });
+    </script>
+</body>
+</html> 

@@ -348,11 +348,11 @@ class ControlAnualSimple {
         );
         const empleadosConSubcarga = empleadosConDatos.filter(s => 
             s.estado_semanal === 'subcarga' || 
-            (s.estado_semanal === 'de_ausencia' && s.diferencia_carga_trabajo < -5)
+            (s.estado_semanal === 'de_ausencia' && s.diferencia_carga_trabajo < -1)
         );
         const empleadosEquilibrados = empleadosConDatos.filter(s => 
             s.estado_semanal === 'equilibrado' || 
-            (s.estado_semanal === 'de_ausencia' && Math.abs(s.diferencia_carga_trabajo) <= 5)
+            (s.estado_semanal === 'de_ausencia' && Math.abs(s.diferencia_carga_trabajo) <= 1)
         );
 
         // Información sobre empleados de ausencia (simplificada)

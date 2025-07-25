@@ -127,9 +127,18 @@
 
             try {
                 // Llamar a nuestra Edge Function
-                const { data, error } = await supabase.functions.invoke('get-sales');
+                const { data, error } = await supabase.functions.invoke('get-sales', {
+                    method: 'GET'
+                });
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('Error de Supabase:', error);
+                    throw error;
+                }
+
+                if (!data || typeof data.total !== 'number') {
+                    throw new Error('Formato de respuesta inválido');
+                }
 
                 // Actualizar el total de ventas
                 elementoVentas.textContent = formatearMoneda(data.total);
@@ -139,10 +148,10 @@
                 actualizarProgreso(data.total);
 
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error detallado:', error);
                 elementoVentas.textContent = "Error";
                 elementoVentas.style.color = "red";
-                elementoTimestamp.textContent = `Error al actualizar: ${new Date().toLocaleTimeString()}`;
+                elementoTimestamp.textContent = `Error al actualizar: ${error.message || 'Error desconocido'}`;
             }
         }
 

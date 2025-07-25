@@ -322,175 +322,8 @@ class ControlAnualSimple {
         const container = document.getElementById('estadoEmpleadosAnual');
         const stats = Object.values(this.convenioAnual.stats_anuales);
         
-        // Generar tarjetas de empleados
-        const empleadosHtml = stats.map(empleadoStats => {
-            const progreso = (empleadoStats.total_horas_año / 1776 * 100);
-            const horasRestantes = Math.max(0, 1776 - empleadoStats.total_horas_año);
-            const mediaSemanal = empleadoStats.media_semanal_real || 0;
-            const diferenciaCarga = empleadoStats.diferencia_carga_trabajo || 0;
-            
-            // Colores y estados según la compensación histórica
-            let colorBorde = 'green';
-            let estado = '✅ Equilibrio perfecto';
-            let alertaCompensacion = '';
-            
-            // Caso especial: Empleado de ausencia (vacaciones, baja, etc.)
-            if (empleadoStats.estado_semanal === 'de_ausencia') {
-                // Calcular qué tal lo hizo ANTES de la ausencia
-                const diferenciaCarga = empleadoStats.diferencia_carga_trabajo || 0;
-                let estadoTrabajo = '';
-                let colorCompensacion = 'blue';
-                
-                if (Math.abs(diferenciaCarga) <= 15) {
-                    estadoTrabajo = `Equilibrio perfecto (${diferenciaCarga >= 0 ? '+' : ''}${diferenciaCarga.toFixed(0)}h vs ideal)`;
-                    colorCompensacion = 'green';
-                } else if (diferenciaCarga > 15) {
-                    estadoTrabajo = `Trabajó MUCHO (+${diferenciaCarga.toFixed(0)}h vs ideal)`;
-                    colorCompensacion = 'orange';
-                } else {
-                    estadoTrabajo = `Trabajó POCO (${diferenciaCarga.toFixed(0)}h vs ideal)`;
-                    colorCompensacion = 'yellow';
-                }
-                
-                return `
-                    <div class="border-l-4 border-blue-500 bg-white p-4 rounded-r-lg shadow-sm">
-                        <div class="flex justify-between items-start">
-                            <div class="flex-1">
-                                <h5 class="text-lg font-semibold text-gray-900">${empleadoStats.empleado_nombre}</h5>
-                                <div class="mt-2 space-y-1">
-                                    <div class="flex justify-between text-sm">
-                                        <span>Horas trabajadas (desde junio):</span>
-                                        <span class="font-medium text-gray-900">${empleadoStats.horas_reales_agora.toFixed(0)}h</span>
-                                    </div>
-                                    <div class="flex justify-between text-sm">
-                                        <span>Partidos realizados:</span>
-                                        <span class="font-medium text-blue-600">${empleadoStats.total_partidos || 0} turnos dobles</span>
-                                    </div>
-                                    <div class="flex justify-between text-sm">
-                                        <span>Turnos de mañana:</span>
-                                        <span class="font-medium text-orange-600">${empleadoStats.total_turnos_mañana || 0} mañanas</span>
-                                    </div>
-                                    <div class="flex justify-between text-sm">
-                                        <span>Progreso del convenio:</span>
-                                        <span class="font-medium text-gray-600">${progreso.toFixed(1)}% (${empleadoStats.total_horas_año.toFixed(0)}h / 1.776h)</span>
-                                    </div>
-                                    <div class="flex justify-between text-sm">
-                                        <span>Compensación histórica:</span>
-                                        <span class="font-medium text-${colorCompensacion}-600">${estadoTrabajo}</span>
-                                    </div>
-                                </div>
-                                
-                                <!-- Nota de ausencia discreta -->
-                                <div class="mt-3 p-2 rounded-lg bg-blue-50 text-blue-700">
-                                    <div class="text-sm">🏖️ Actualmente ausente - Análisis histórico disponible</div>
-                                </div>
-                                
-                                <!-- Barra de progreso -->
-                                <div class="mt-3">
-                                    <div class="bg-gray-200 rounded-full h-2">
-                                        <div class="bg-blue-500 h-2 rounded-full transition-all duration-300" 
-                                             style="width: ${Math.min(progreso, 100)}%"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="ml-4 text-right">
-                                <div class="text-2xl">🏖️</div>
-                                <div class="text-xs text-gray-500">Ausente</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-            // Caso especial: Sin datos suficientes
-            else if (empleadoStats.estado_semanal === 'sin_datos') {
-                colorBorde = 'gray';
-                estado = '📊 Sin datos';
-                alertaCompensacion = empleadoStats.recomendacion_compensacion || 'Pocos datos históricos - Continuar con horarios normales';
-            }
-            // Prioridad 1: Estado crítico por límite anual
-            else if (progreso > 95) {
-                colorBorde = 'red';
-                estado = '🔴 CRÍTICO';
-                alertaCompensacion = '⛔ NO programar más horas';
-            } else if (progreso > 85) {
-                colorBorde = 'orange';
-                estado = '⚠️ Cuidado';
-                alertaCompensacion = `⚠️ Máximo ${empleadoStats.horas_recomendadas_semana.toFixed(0)}h/semana`;
-            } 
-            // Prioridad 2: Estados de compensación histórica
-            else if (empleadoStats.estado_semanal === 'sobrecarga') {
-                colorBorde = 'red';
-                estado = '🔥 Ha trabajado MUCHO';
-                alertaCompensacion = empleadoStats.recomendacion_compensacion;
-            } else if (empleadoStats.estado_semanal === 'subcarga') {
-                colorBorde = 'orange';
-                estado = '⚠️ Ha trabajado POCO';
-                alertaCompensacion = empleadoStats.recomendacion_compensacion;
-            } else if (empleadoStats.estado_semanal === 'equilibrado') {
-                colorBorde = 'green';
-                estado = '✅ Equilibrio perfecto';
-                alertaCompensacion = empleadoStats.recomendacion_compensacion || `Continuar con el ritmo actual`;
-            } else {
-                // Estado por defecto
-                alertaCompensacion = `✅ Puede hacer ${empleadoStats.horas_recomendadas_semana.toFixed(0)}h/semana`;
-            }
-            
-            return `
-                <div class="border-l-4 border-${colorBorde}-500 bg-white p-4 rounded-r-lg shadow-sm">
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1">
-                            <h5 class="text-lg font-semibold text-gray-900">${empleadoStats.empleado_nombre}</h5>
-                            <div class="mt-2 space-y-1">
-                                <div class="flex justify-between text-sm">
-                                    <span>Horas trabajadas (desde junio):</span>
-                                    <span class="font-medium text-gray-900">${empleadoStats.horas_reales_agora.toFixed(0)}h</span>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span>Media semanal real:</span>
-                                    <span class="font-medium ${empleadoStats.estado_semanal === 'sin_datos' ? 'text-gray-500' : 
-                                        empleadoStats.estado_semanal === 'subcarga' || empleadoStats.estado_semanal === 'sobrecarga' ? 'text-' + colorBorde + '-600' : 'text-green-600'}">${mediaSemanal.toFixed(1)}h/semana ${empleadoStats.estado_semanal === 'sin_datos' ? '(pocos datos)' : ''}</span>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span>Partidos realizados:</span>
-                                    <span class="font-medium text-blue-600">${empleadoStats.total_partidos || 0} turnos dobles</span>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span>Turnos de mañana:</span>
-                                    <span class="font-medium text-orange-600">${empleadoStats.total_turnos_mañana || 0} mañanas</span>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span>Progreso del convenio:</span>
-                                    <span class="font-medium text-gray-600">${progreso.toFixed(1)}% (${empleadoStats.total_horas_año.toFixed(0)}h / 1.776h)</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Alerta de compensación -->
-                            <div class="mt-3 p-2 rounded-lg ${colorBorde === 'red' ? 'bg-red-50 text-red-800' : 
-                                                                colorBorde === 'orange' ? 'bg-orange-50 text-orange-800' :
-                                                                colorBorde === 'yellow' ? 'bg-yellow-50 text-yellow-800' :
-                                                                colorBorde === 'gray' ? 'bg-gray-50 text-gray-700' :
-                                                                'bg-green-50 text-green-800'}">
-                                <div class="text-sm font-medium">${alertaCompensacion}</div>
-                            </div>
-                            
-                            <!-- Barra de progreso -->
-                            <div class="mt-3">
-                                <div class="bg-gray-200 rounded-full h-2">
-                                    <div class="bg-${colorBorde}-500 h-2 rounded-full transition-all duration-300" 
-                                         style="width: ${Math.min(progreso, 100)}%"></div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="ml-4 text-right">
-                            <div class="text-2xl">${estado.split(' ')[0]}</div>
-                            <div class="text-xs text-gray-500">${estado.split(' ').slice(1).join(' ')}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
+        // No mostrar tarjetas individuales - solo la sección de compensaciones
+        const empleadosHtml = '';
 
         // Generar resumen de alertas de compensación
         const alertasCompensacion = this.generarResumenCompensacion(stats);
@@ -579,108 +412,106 @@ class ControlAnualSimple {
             `;
         }
 
-        // Mostrar sección de compensaciones históricas detallada
-        return seccionAusencias + seccionSinDatos + `
-            <div class="mt-6 bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <h4 class="text-lg font-semibold text-orange-800 mb-3">
-                    ⚖️ Compensaciones Históricas Necesarias (Desde Junio)
+        // Mostrar sección de compensaciones históricas SIMPLIFICADA
+        let compensacionesHtml = `
+            <div class="mt-6 bg-white border border-gray-200 rounded-lg p-4">
+                <h4 class="text-lg font-semibold text-gray-800 mb-4">
+                    ⚖️ Compensaciones Necesarias para Próximos Horarios
                 </h4>
-                
-                ${empleadosConSobrecarga.length > 0 ? `
-                    <div class="mb-4">
-                        <h5 class="font-medium text-red-700 mb-3">🔻 Reducir carga futura (han trabajado MÁS del ideal):</h5>
-                        <div class="space-y-3">
-                            ${empleadosConSobrecarga.map(s => `
-                                <div class="bg-red-50 border border-red-200 rounded-lg p-3">
-                                    <div class="font-semibold text-red-800 mb-2">
-                                        • ${s.empleado_nombre}
-                                        ${s.estado_semanal === 'de_ausencia' ? '<span class="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded">🏥 VUELVE PRONTO</span>' : ''}
-                                    </div>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                                        <div class="bg-white rounded px-2 py-1">
-                                            <span class="text-gray-600">Horas:</span> 
-                                            <span class="font-medium text-red-600">${s.horas_reales_agora.toFixed(0)}h (+${s.diferencia_carga_trabajo.toFixed(0)}h vs ideal)</span>
-                                        </div>
-                                        <div class="bg-white rounded px-2 py-1">
-                                            <span class="text-gray-600">Partidos:</span> 
-                                            <span class="font-medium text-blue-600">${s.total_partidos || 0}</span>
-                                            <span class="text-gray-600 ml-2">Mañanas:</span> 
-                                            <span class="font-medium text-orange-600">${s.total_turnos_mañana || 0}</span>
-                                        </div>
-                                    </div>
-                                    ${s.estado_semanal === 'de_ausencia' ? '<div class="mt-2 text-xs text-blue-700 bg-blue-100 rounded px-2 py-1"><strong>💡 Incluir en próxima planificación</strong> - Datos históricos disponibles arriba</div>' : ''}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-                
-                ${empleadosConSubcarga.length > 0 ? `
-                    <div class="mb-4">
-                        <h5 class="font-medium text-blue-700 mb-3">🔺 Aumentar carga futura (han trabajado MENOS del ideal):</h5>
-                        <div class="space-y-3">
-                            ${empleadosConSubcarga.map(s => `
-                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                                    <div class="font-semibold text-blue-800 mb-2">
-                                        • ${s.empleado_nombre}
-                                        ${s.estado_semanal === 'de_ausencia' ? '<span class="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded">🏥 VUELVE PRONTO</span>' : ''}
-                                    </div>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                                        <div class="bg-white rounded px-2 py-1">
-                                            <span class="text-gray-600">Horas:</span> 
-                                            <span class="font-medium text-blue-600">${s.horas_reales_agora.toFixed(0)}h (${s.diferencia_carga_trabajo.toFixed(0)}h vs ideal)</span>
-                                        </div>
-                                        <div class="bg-white rounded px-2 py-1">
-                                            <span class="text-gray-600">Partidos:</span> 
-                                            <span class="font-medium text-blue-600">${s.total_partidos || 0}</span>
-                                            <span class="text-gray-600 ml-2">Mañanas:</span> 
-                                            <span class="font-medium text-orange-600">${s.total_turnos_mañana || 0}</span>
-                                        </div>
-                                    </div>
-                                    ${s.estado_semanal === 'de_ausencia' ? '<div class="mt-2 text-xs text-blue-700 bg-blue-100 rounded px-2 py-1"><strong>💡 Incluir en próxima planificación</strong> - Datos históricos disponibles arriba</div>' : ''}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-                
-                ${empleadosEquilibrados.length > 0 ? `
-                    <div class="mb-4">
-                        <h5 class="font-medium text-green-700 mb-3">✅ En equilibrio histórico:</h5>
-                        <div class="space-y-3">
-                            ${empleadosEquilibrados.map(s => `
-                                <div class="bg-green-50 border border-green-200 rounded-lg p-3">
-                                    <div class="font-semibold text-green-800 mb-2">
-                                        • ${s.empleado_nombre}
-                                        ${s.estado_semanal === 'de_ausencia' ? '<span class="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded">🏥 VUELVE PRONTO</span>' : ''}
-                                    </div>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                                        <div class="bg-white rounded px-2 py-1">
-                                            <span class="text-gray-600">Horas:</span> 
-                                            <span class="font-medium text-green-600">${s.horas_reales_agora.toFixed(0)}h (${s.diferencia_carga_trabajo >= 0 ? '+' : ''}${s.diferencia_carga_trabajo.toFixed(0)}h vs ideal)</span>
-                                        </div>
-                                        <div class="bg-white rounded px-2 py-1">
-                                            <span class="text-gray-600">Partidos:</span> 
-                                            <span class="font-medium text-blue-600">${s.total_partidos || 0}</span>
-                                            <span class="text-gray-600 ml-2">Mañanas:</span> 
-                                            <span class="font-medium text-orange-600">${s.total_turnos_mañana || 0}</span>
-                                        </div>
-                                    </div>
-                                    ${s.estado_semanal === 'de_ausencia' ? '<div class="mt-2 text-xs text-blue-700 bg-blue-100 rounded px-2 py-1"><strong>💡 Incluir en próxima planificación</strong> - Datos históricos disponibles arriba</div>' : ''}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-                
+        `;
 
-                
-                <div class="mt-3 p-2 bg-orange-100 rounded text-sm text-orange-800">
-                    💡 <strong>Objetivo:</strong> Compensar en las próximas semanas para que todas acaben cerca del ideal (~40.8h/semana promedio desde junio).
-                    <br>📊 <strong>Análisis:</strong> Basado en horas reales trabajadas vs. lo que deberían haber trabajado desde el 06/06/2025.
+        // Empleados que han trabajado MÁS (reducir carga)
+        if (empleadosConSobrecarga.length > 0) {
+            compensacionesHtml += `
+                <div class="mb-4">
+                    <h5 class="font-bold text-red-700 mb-2">🔻 DAR MENOS HORAS:</h5>
+                    <div class="space-y-2">
+            `;
+            empleadosConSobrecarga.forEach(s => {
+                compensacionesHtml += `
+                    <div class="bg-red-50 p-3 rounded flex justify-between items-center">
+                        <div class="font-semibold text-red-800">
+                            ${s.empleado_nombre} 
+                            ${s.estado_semanal === 'de_ausencia' ? '(🏥 vuelve pronto)' : ''}
+                        </div>
+                        <div class="text-sm">
+                            <span class="text-red-600 font-bold">+${Math.abs(s.diferencia_carga_trabajo).toFixed(0)}h extra</span> | 
+                            ${s.total_partidos || 0} partidos | 
+                            ${s.total_turnos_mañana || 0} mañanas
+                        </div>
+                    </div>
+                `;
+            });
+            compensacionesHtml += `
+                    </div>
+                </div>
+            `;
+        }
+
+        // Empleados que han trabajado MENOS (aumentar carga)
+        if (empleadosConSubcarga.length > 0) {
+            compensacionesHtml += `
+                <div class="mb-4">
+                    <h5 class="font-bold text-blue-700 mb-2">🔺 DAR MÁS HORAS:</h5>
+                    <div class="space-y-2">
+            `;
+            empleadosConSubcarga.forEach(s => {
+                compensacionesHtml += `
+                    <div class="bg-blue-50 p-3 rounded flex justify-between items-center">
+                        <div class="font-semibold text-blue-800">
+                            ${s.empleado_nombre}
+                            ${s.estado_semanal === 'de_ausencia' ? '(🏥 vuelve pronto)' : ''}
+                        </div>
+                        <div class="text-sm">
+                            <span class="text-blue-600 font-bold">${Math.abs(s.diferencia_carga_trabajo).toFixed(0)}h menos</span> | 
+                            ${s.total_partidos || 0} partidos | 
+                            ${s.total_turnos_mañana || 0} mañanas
+                        </div>
+                    </div>
+                `;
+            });
+            compensacionesHtml += `
+                    </div>
+                </div>
+            `;
+        }
+
+        // Empleados equilibrados
+        if (empleadosEquilibrados.length > 0) {
+            compensacionesHtml += `
+                <div class="mb-4">
+                    <h5 class="font-bold text-green-700 mb-2">✅ MANTENER IGUAL:</h5>
+                    <div class="space-y-2">
+            `;
+            empleadosEquilibrados.forEach(s => {
+                compensacionesHtml += `
+                    <div class="bg-green-50 p-3 rounded flex justify-between items-center">
+                        <div class="font-semibold text-green-800">
+                            ${s.empleado_nombre}
+                            ${s.estado_semanal === 'de_ausencia' ? '(🏥 vuelve pronto)' : ''}
+                        </div>
+                        <div class="text-sm">
+                            <span class="text-green-600 font-bold">equilibrado</span> | 
+                            ${s.total_partidos || 0} partidos | 
+                            ${s.total_turnos_mañana || 0} mañanas
+                        </div>
+                    </div>
+                `;
+            });
+            compensacionesHtml += `
+                    </div>
+                </div>
+            `;
+        }
+
+        compensacionesHtml += `
+                <div class="mt-4 p-3 bg-gray-100 rounded text-sm text-gray-700">
+                    💡 <strong>Objetivo:</strong> Compensar diferencias históricas desde junio para que todas acaben cerca del ideal.
                 </div>
             </div>
         `;
+
+        return seccionAusencias + seccionSinDatos + compensacionesHtml;
     }
 
     calcularSemanasRestantes() {

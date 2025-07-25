@@ -427,11 +427,16 @@ class ControlAnualSimple {
                     <h5 class="font-bold text-red-700 mb-2">🔻 DAR MENOS HORAS:</h5>
                     <div class="space-y-2">
             `;
-            empleadosConSobrecarga.forEach(s => {
+            empleadosConSobrecarga
+                .sort((a, b) => b.diferencia_carga_trabajo - a.diferencia_carga_trabajo)
+                .forEach(s => {
+                const mediaJornadaBadge = s.empleado_nombre.toUpperCase().includes('GABY')
+                    ? '<span class="ml-2 text-xs font-normal text-gray-500 bg-gray-200 px-2 py-1 rounded-full">25h/sem</span>'
+                    : '';
                 compensacionesHtml += `
                     <div class="bg-red-50 p-3 rounded flex justify-between items-center">
                         <div class="font-semibold text-red-800">
-                            ${s.empleado_nombre} 
+                            ${s.empleado_nombre} ${mediaJornadaBadge}
                             ${s.estado_semanal === 'de_ausencia' ? '(🏥 vuelve pronto)' : ''}
                         </div>
                         <div class="text-sm">
@@ -455,11 +460,16 @@ class ControlAnualSimple {
                     <h5 class="font-bold text-blue-700 mb-2">🔺 DAR MÁS HORAS:</h5>
                     <div class="space-y-2">
             `;
-            empleadosConSubcarga.forEach(s => {
+            empleadosConSubcarga
+                .sort((a, b) => a.diferencia_carga_trabajo - b.diferencia_carga_trabajo)
+                .forEach(s => {
+                const mediaJornadaBadge = s.empleado_nombre.toUpperCase().includes('GABY')
+                    ? '<span class="ml-2 text-xs font-normal text-gray-500 bg-gray-200 px-2 py-1 rounded-full">25h/sem</span>'
+                    : '';
                 compensacionesHtml += `
                     <div class="bg-blue-50 p-3 rounded flex justify-between items-center">
                         <div class="font-semibold text-blue-800">
-                            ${s.empleado_nombre}
+                            ${s.empleado_nombre} ${mediaJornadaBadge}
                             ${s.estado_semanal === 'de_ausencia' ? '(🏥 vuelve pronto)' : ''}
                         </div>
                         <div class="text-sm">
@@ -484,10 +494,13 @@ class ControlAnualSimple {
                     <div class="space-y-2">
             `;
             empleadosEquilibrados.forEach(s => {
+                const mediaJornadaBadge = s.empleado_nombre.toUpperCase().includes('GABY')
+                    ? '<span class="ml-2 text-xs font-normal text-gray-500 bg-gray-200 px-2 py-1 rounded-full">25h/sem</span>'
+                    : '';
                 compensacionesHtml += `
                     <div class="bg-green-50 p-3 rounded flex justify-between items-center">
                         <div class="font-semibold text-green-800">
-                            ${s.empleado_nombre}
+                            ${s.empleado_nombre} ${mediaJornadaBadge}
                             ${s.estado_semanal === 'de_ausencia' ? '(🏥 vuelve pronto)' : ''}
                         </div>
                         <div class="text-sm">

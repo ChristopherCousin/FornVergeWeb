@@ -763,7 +763,12 @@ class ConvenioAnualManager {
         const fechaFin = new Date(fechaActualStr);
         const diasExactos = Math.floor((fechaFin - fechaInicio) / (1000 * 60 * 60 * 24)) + 1;
         const semanasJavi = diasExactos / 7;
-        const horasIdealesFijas = semanasJavi * 40.8; // Horas ideales FIJAS (no ajustadas por bajas)
+
+        // Ajustar horas semanales ideales según el empleado (GABY es media jornada)
+        const esMediaJornada = stats.empleado_nombre.toUpperCase().includes('GABY');
+        const horasSemanalesIdeales = esMediaJornada ? 25 : 40.8;
+
+        const horasIdealesFijas = semanasJavi * horasSemanalesIdeales; // Horas ideales FIJAS (no ajustadas por bajas)
         const horasCumplidas = horasRealesDesdeJunio + stats.horas_ausencias;
         const diferenciaCargaTrabajo = horasCumplidas - horasIdealesFijas; // ✅ NUEVA FÓRMULA JAVI 2.0
         
@@ -812,10 +817,10 @@ class ConvenioAnualManager {
         }
         
         // Clasificar según la carga de trabajo histórica (solo para empleados activos)
-        if (Math.abs(diferenciaCargaTrabajo) <= 15) {
+        if (Math.abs(diferenciaCargaTrabajo) <= 1) {
             stats.estado_semanal = 'equilibrado';
             stats.recomendacion_compensacion = `Equilibrio perfecto (${diferenciaCargaTrabajo >= 0 ? '+' : ''}${diferenciaCargaTrabajo.toFixed(0)}h vs ideal)`;
-        } else if (diferenciaCargaTrabajo > 15) {
+        } else if (diferenciaCargaTrabajo > 1) {
             stats.estado_semanal = 'sobrecarga';
             stats.recomendacion_compensacion = `Ha trabajado MUCHO (+${diferenciaCargaTrabajo.toFixed(0)}h vs ideal) - Reducir carga próximas semanas`;
             

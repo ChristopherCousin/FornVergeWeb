@@ -128,7 +128,10 @@
             try {
                 // Llamar a nuestra Edge Function
                 const { data, error } = await supabase.functions.invoke('get-sales', {
-                    method: 'GET'
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
                 });
                 
                 if (error) {

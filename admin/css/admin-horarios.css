@@ -1990,3 +1990,47 @@ body {
         grid-template-columns: repeat(2, 1fr) !important;
     }
 } 
+
+/* ===== AJUSTES DE MODAL PARA ESCRITORIO ===== */
+@media (min-width: 1024px) {
+    /* Modal más compacto en desktop */
+    #shiftModal .modal-content {
+        max-width: 640px;
+        padding: 16px;
+        border-radius: 12px;
+        max-height: 80vh;
+    }
+
+    /* Menos espaciado entre bloques dentro del modal */
+    #shiftModal .space-y-4 > div { margin-bottom: 12px; }
+    #shiftModal .space-y-3 > div { margin-bottom: 8px; }
+
+    /* Inputs y selects más compactos */
+    #shiftModal .modal-content input[type="time"],
+    #shiftModal .modal-content select {
+        min-height: 40px;
+        font-size: 14px;
+        padding: 8px 10px;
+        border-radius: 10px;
+    }
+
+    /* Botones del modal más pequeños */
+    #shiftModal .add-shift-btn,
+    #shiftModal #cancelModal {
+        min-height: 42px;
+        font-size: 14px;
+        padding: 10px 14px;
+        border-radius: 10px;
+    }
+
+    /* Templates más densos (4 columnas) */
+    #shiftModal .grid.grid-cols-2 {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+    #shiftModal .template-btn {
+        min-height: 64px;
+        padding: 10px 8px;
+        font-size: 12px;
+    }
+}

@@ -83,6 +83,11 @@ body {
     background: var(--soft-white);
 }
 
+/* Compensar anclas con navbar fija */
+section[id] {
+    scroll-margin-top: 90px;
+}
+
 /* ==========================================
    UTILIDADES TIPOGRÁFICAS
    ========================================== */
@@ -512,6 +517,9 @@ body {
         scroll-behavior: auto !important;
     }
 }
+
+/* Utilidad z-index para notificaciones (usado por JS) */
+.z-1000 { z-index: 1000; }
 
 .sr-only {
     position: absolute;

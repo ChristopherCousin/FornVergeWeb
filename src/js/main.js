@@ -128,8 +128,10 @@ class ScrollManager {
 
         navLinks.forEach(link => {
             link.classList.remove('active');
+            link.removeAttribute('aria-current');
             if (link.getAttribute('href') === `#${current}`) {
                 link.classList.add('active');
+                link.setAttribute('aria-current', 'page');
             }
         });
     }
@@ -196,6 +198,10 @@ class IntersectionObserverManager {
     }
 
     init() {
+        // Si AOS está presente, evitar duplicar animaciones
+        if (window.AOS) {
+            return;
+        }
         // Observer para animaciones de entrada
         this.animationObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -215,16 +221,8 @@ class IntersectionObserverManager {
     }
 
     observeAnimatedElements() {
-        // Elementos con data-aos
-        document.querySelectorAll('[data-aos]').forEach(element => {
-            element.style.opacity = '0';
-            element.style.transform = 'translateY(30px)';
-            element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            this.animationObserver.observe(element);
-        });
-
-        // Cards con hover effects
-        document.querySelectorAll('.card, .info-card').forEach(element => {
+        // Elementos marcados específicamente para animación interna (evita conflicto con AOS)
+        document.querySelectorAll('[data-animate], .card:not([data-aos]), .info-card:not([data-aos])').forEach(element => {
             element.style.opacity = '0';
             element.style.transform = 'translateY(20px)';
             element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
@@ -345,27 +343,20 @@ class OffersManager {
 class NotificationManager {
     static show(message, type = 'info', duration = 3000) {
         const notification = document.createElement('div');
-        
-        const typeClasses = {
-            success: 'bg-green-500',
-            error: 'bg-red-500',
-            warning: 'bg-yellow-500',
-            info: 'bg-blue-500'
-        };
-        
-        notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-1000 ${typeClasses[type] || typeClasses.info} text-white transform translate-x-full transition-transform duration-300`;
+
+        notification.className = `notification-toast notification-toast--${type}`;
         notification.textContent = message;
-        
+
         document.body.appendChild(notification);
-        
+
         // Slide in
         setTimeout(() => {
             notification.style.transform = 'translateX(0)';
-        }, 100);
-        
+        }, 50);
+
         // Slide out and remove
         setTimeout(() => {
-            notification.style.transform = 'translateX(full)';
+            notification.style.transform = 'translateX(120%)';
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);

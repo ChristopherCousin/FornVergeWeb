@@ -82,12 +82,36 @@
     font-weight: 500;
     transition: all var(--transition-normal);
     position: relative;
+    padding-bottom: 4px;
 }
 
 .navbar__link:hover,
 .navbar__link:focus {
     color: var(--primary-gold);
     transform: translateY(-2px);
+}
+
+/* Indicador y estado activo de navegación */
+.navbar__link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 2px;
+    background: var(--gradient-gold);
+    border-radius: 2px;
+    transition: width var(--transition-normal);
+}
+
+.navbar__link:hover::after,
+.navbar__link:focus::after,
+.navbar__link.active::after {
+    width: 100%;
+}
+
+.navbar__link.active {
+    color: var(--primary-gold);
 }
 
 .navbar__mobile-toggle {
@@ -498,6 +522,25 @@
     color: var(--charcoal);
     font-size: 1.2rem;
 }
+
+/* Notificaciones toast (coherentes con JS) */
+.notification-toast {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.875rem 1rem;
+    border-radius: var(--radius-md);
+    color: #fff;
+    box-shadow: var(--shadow-md);
+    transform: translateX(120%);
+    transition: transform var(--transition-normal);
+    z-index: 9999;
+}
+
+.notification-toast--success { background: #16a34a; }
+.notification-toast--error { background: #dc2626; }
+.notification-toast--warning { background: #f59e0b; }
+.notification-toast--info { background: #2563eb; }
 
 /* ==========================================
    STATS GRID

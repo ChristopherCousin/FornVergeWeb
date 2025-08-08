@@ -62,7 +62,15 @@ const availableWeeks = [
     '2025-07-14', // Semana 5: 14-20 Jul
     '2025-07-21', // Semana 6: 21-27 Jul
     '2025-07-28', // Semana 7: 28 Jul-3 Ago
-    '2025-08-04'  // Semana 8: 4-10 Ago
+    '2025-08-04', // Semana 8: 4-10 Ago
+    '2025-08-11', // 11-17 Ago
+    '2025-08-18', // 18-24 Ago
+    '2025-08-25', // 25-31 Ago
+    '2025-09-01', // 1-7 Sep
+    '2025-09-08', // 8-14 Sep
+    '2025-09-15', // 15-21 Sep
+    '2025-09-22', // 22-28 Sep
+    '2025-09-29'  // 29 Sep-5 Oct
 ];
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -97,6 +105,9 @@ let scheduleData = {};
 let currentModalEmployee = null;
 let currentModalDay = null;
 let employeesOnVacation = new Set(); // IDs de empleados de vacaciones
+// Estado de edición de turnos
+let isEditingShift = false;
+let currentEditingShiftIndex = null;
 
 // Configuración de autenticación
 const ADMIN_PASSWORD = 'fornverge2025'; // Contraseña del panel
@@ -380,25 +391,61 @@ function getTotalHours(empId) {
 
 // Funciones de vista por días eliminadas - solo vista de semana
 
-function openShiftModal(empId, day, empName, dayName) {
+function openShiftModal(empId, day, empName, dayName, shiftToEdit = null, shiftIndex = null) {
     currentModalEmployee = empId;
     currentModalDay = day;
+    isEditingShift = !!shiftToEdit || shiftIndex !== null;
+    currentEditingShiftIndex = shiftIndex;
     
     // Mostrar información del empleado y día
     document.getElementById('modalEmployeeDay').textContent = `${empName} - ${dayName}`;
     
-    // Limpiar campos
-    document.getElementById('startTime').value = '07:00';
-    document.getElementById('endTime').value = '14:00';
-    document.getElementById('startTime1').value = '07:00';
-    document.getElementById('endTime1').value = '13:00';
-    document.getElementById('startTime2').value = '16:00';
-    document.getElementById('endTime2').value = '21:00';
-    document.getElementById('shiftType').value = 'morning';
-    
-    // Ocultar campos de turno partido
-    document.getElementById('singleShiftFields').classList.remove('hidden');
-    document.getElementById('splitShiftFields').classList.add('hidden');
+    // Ajustar título y botón según modo (crear/editar)
+    const modalTitle = document.querySelector('#shiftModal h3');
+    if (modalTitle) {
+        modalTitle.innerHTML = isEditingShift
+            ? '<i class="fas fa-edit mr-2 text-blue-600"></i>Editar Turno'
+            : '<i class="fas fa-plus-circle mr-2 text-blue-600"></i>Agregar Turno';
+    }
+    const addButton = document.getElementById('addShift');
+    if (addButton) {
+        addButton.innerHTML = isEditingShift
+            ? '<i class="fas fa-save mr-2"></i>Guardar cambios'
+            : '<i class="fas fa-plus mr-2"></i>Agregar Turno';
+    }
+
+    // Preparar campos
+    const singleFields = document.getElementById('singleShiftFields');
+    const splitFields = document.getElementById('splitShiftFields');
+    const shiftTypeSelector = document.getElementById('shiftTypeSelector');
+    // Por defecto, mostrar campos simples
+    singleFields.classList.remove('hidden');
+    splitFields.classList.add('hidden');
+    shiftTypeSelector.classList.remove('hidden');
+
+    if (shiftToEdit && !shiftToEdit.isFree) {
+        // Precargar datos del turno a editar
+        const startValue = (shiftToEdit.start || '').slice(0, 5) || '07:00';
+        const endValue = (shiftToEdit.end || '').slice(0, 5) || '14:00';
+        const typeValue = getShiftType(shiftToEdit.start, shiftToEdit.end);
+        document.getElementById('startTime').value = startValue;
+        document.getElementById('endTime').value = endValue;
+        document.getElementById('shiftType').value = typeValue;
+        // Inicializar valores por defecto para horario partido (por si el usuario cambia a partido)
+        document.getElementById('startTime1').value = startValue;
+        document.getElementById('endTime1').value = '13:00';
+        document.getElementById('startTime2').value = '16:00';
+        document.getElementById('endTime2').value = '21:00';
+    } else {
+        // Modo creación o día libre
+        document.getElementById('startTime').value = '07:00';
+        document.getElementById('endTime').value = '14:00';
+        document.getElementById('startTime1').value = '07:00';
+        document.getElementById('endTime1').value = '13:00';
+        document.getElementById('startTime2').value = '16:00';
+        document.getElementById('endTime2').value = '21:00';
+        document.getElementById('shiftType').value = 'morning';
+    }
     
     // Mostrar modal con mejor UX móvil
     const modal = document.getElementById('shiftModal');
@@ -425,6 +472,8 @@ function closeModal() {
     
     currentModalEmployee = null;
     currentModalDay = null;
+    isEditingShift = false;
+    currentEditingShiftIndex = null;
     
     updateStatus('Listo ✨');
 }
@@ -581,7 +630,12 @@ function addShiftFromModal() {
             }
         ];
         
-        scheduleData[currentModalEmployee][currentModalDay].push(...shifts);
+        if (isEditingShift && currentEditingShiftIndex !== null) {
+            // Reemplazar el turno editado por dos turnos (partido)
+            scheduleData[currentModalEmployee][currentModalDay].splice(currentEditingShiftIndex, 1, ...shifts);
+        } else {
+            scheduleData[currentModalEmployee][currentModalDay].push(...shifts);
+        }
         
     } else {
         // Modo normal - crear 1 turno
@@ -611,7 +665,12 @@ function addShiftFromModal() {
             description: getShiftDescription(shiftType)
         };
         
-        scheduleData[currentModalEmployee][currentModalDay].push(newShift);
+        if (isEditingShift && currentEditingShiftIndex !== null) {
+            // Reemplazar el turno existente
+            scheduleData[currentModalEmployee][currentModalDay][currentEditingShiftIndex] = newShift;
+        } else {
+            scheduleData[currentModalEmployee][currentModalDay].push(newShift);
+        }
     }
     
     renderEmployees(); // Esto ahora detecta y renderiza la vista correcta
@@ -1685,32 +1744,24 @@ function createWeekDayColumn(day) {
     
     getActiveEmployees().forEach(employee => {
         const shifts = scheduleData[employee.id][day.key] || [];
-        
         if (shifts.length === 0) {
-            // No tiene registros - empleado libre
             freeEmployees.push(employee);
-        } else {
-            // Separar turnos de trabajo de días libres
-            const workShifts = shifts.filter(shift => !shift.isFree);
-            const freeShifts = shifts.filter(shift => shift.isFree);
-            
-            if (workShifts.length > 0) {
-                // Tiene turnos de trabajo - agregar SOLO los turnos de trabajo
-                workShifts.forEach(shift => {
-                    workingShifts.push({
-                        employee: employee,
-                        shift: shift
-                    });
-                });
-                
-                // Log de advertencia si también tiene días libres (problema de datos)
-                if (freeShifts.length > 0) {
-                    console.warn(`⚠️ VISTA SEMANAL: ${employee.name} tiene TANTO turnos de trabajo COMO días libres en ${day.key} - priorizando turnos de trabajo`);
-                }
-            } else {
-                // Solo tiene días libres - empleado libre
-                freeEmployees.push(employee);
+            return;
+        }
+        let hasWorkShift = false;
+        let hasFreeShift = false;
+        shifts.forEach((shift, idx) => {
+            if (shift.isFree) {
+                hasFreeShift = true;
+                return;
             }
+            hasWorkShift = true;
+            workingShifts.push({ employee: employee, shift: shift, indexInSchedule: idx });
+        });
+        if (!hasWorkShift) {
+            freeEmployees.push(employee);
+        } else if (hasFreeShift) {
+            console.warn(`⚠️ VISTA SEMANAL: ${employee.name} tiene TANTO turnos de trabajo COMO días libres en ${day.key} - priorizando turnos de trabajo`);
         }
     });
     
@@ -1721,8 +1772,8 @@ function createWeekDayColumn(day) {
     });
     
     // Renderizar primero los turnos de trabajo
-    workingShifts.forEach(({ employee, shift }) => {
-        const shiftElement = createWeekShiftElement(employee, day, shift);
+    workingShifts.forEach(({ employee, shift, indexInSchedule }) => {
+        const shiftElement = createWeekShiftElement(employee, day, shift, indexInSchedule);
         content.appendChild(shiftElement);
     });
     
@@ -1747,7 +1798,7 @@ function createWeekDayColumn(day) {
     return column;
 }
 
-function createWeekShiftElement(employee, day, shift) {
+function createWeekShiftElement(employee, day, shift, indexInSchedule = null) {
     const element = document.createElement('div');
     
     if (shift.isFree) {
@@ -1757,6 +1808,7 @@ function createWeekShiftElement(employee, day, shift) {
             <div class="week-shift-time">Día libre</div>
             <div style="font-size: 8px; opacity: 0.7; margin-top: 2px;">👆 Toca para asignar</div>
         `;
+        element.title = 'Asignar turno';
     } else {
         const employeeColor = getEmployeeColor(employee.id);
         element.className = `week-shift-compact employee-color`;
@@ -1772,12 +1824,13 @@ function createWeekShiftElement(employee, day, shift) {
                 <i class="fas fa-times"></i>
             </div>
         `;
+        element.title = `Editar turno ${shift.start?.slice(0,5) || ''} - ${shift.end?.slice(0,5) || ''}`;
     }
     
     // Agregar funcionalidad de click para editar
     element.onclick = (e) => {
         e.stopPropagation();
-        openShiftModal(employee.id, day.key, employee.name, day.fullName);
+        openShiftModal(employee.id, day.key, employee.name, day.fullName, shift.isFree ? null : shift, indexInSchedule);
     };
     
     return element;

@@ -1,0 +1,35 @@
+{
+  "brand": "MASSA",
+  "locations": [
+    {
+      "slug": "llevant",
+      "name": "MASSA Calle Aragón 323A",
+      "address": {
+        "street": "Calle Aragón, 323A",
+        "city": "Palma",
+        "region": "Illes Balears",
+        "postalCode": "07009",
+        "country": "ES"
+      },
+      "hours": "Mo-Su 07:00-21:00",
+      "mapsUrl": "https://maps.google.com/?q=Calle+Arag%C3%B3n+323A+Palma"
+    },
+    {
+      "slug": "son-oliva",
+      "name": "MASSA Son Oliva",
+      "address": {
+        "street": "Av. Tomás de Villanueva Cortés, 11, esq. Isaac Albéniz, 3",
+        "city": "Palma",
+        "region": "Illes Balears",
+        "postalCode": "07010",
+        "country": "ES"
+      },
+      "hours": "Mo-Su 07:00-21:00",
+      "mapsUrl": "https://maps.google.com/?q=Av.+Tom%C3%A1s+de+Villanueva+Cort%C3%A9s+11+Palma"
+    }
+  ]
+}
+
+
+
+

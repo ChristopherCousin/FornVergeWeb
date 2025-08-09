@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="MASSA - Cadena de cafeterías & panaderías artesanales en Palma de Mallorca. Llevant y Son Oliva." />
+  <meta name="keywords" content="MASSA, cafetería, panadería, Palma, Mallorca, Llevant, Son Oliva, café, pan artesanal" />
+  <meta name="author" content="MASSA" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/web/" />
+  <meta property="og:title" content="MASSA - Cafeterías & Panaderías Artesanales" />
+  <meta property="og:description" content="Cadena de cafeterías en Palma: Llevant y Son Oliva." />
+  <meta property="og:image" content="/web/assets/images/og/hero.svg" />
+
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:title" content="MASSA - Cafeterías & Panaderías Artesanales" />
+  <meta property="twitter:description" content="Cadena de cafeterías en Palma: Llevant y Son Oliva." />
+  <meta property="twitter:image" content="/web/assets/images/og/hero.svg" />
+
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <title>MASSA - Cafeterías & Panaderías Artesanales</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/mobile.css" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "MASSA",
+    "url": "https://fornvergedelluc.com/web/",
+    "logo": "https://fornvergedelluc.com/web/assets/images/logo.png",
+    "brand": {"@type": "Brand", "name": "MASSA"},
+    "sameAs": [],
+    "department": [
+      {
+        "@type": "LocalBusiness",
+        "name": "MASSA Calle Aragón 323A",
+        "address": {"@type":"PostalAddress","streetAddress":"Calle Aragón, 323A","addressLocality":"Palma","addressRegion":"Illes Balears","postalCode":"07009","addressCountry":"ES"},
+        "openingHours": "Mo-Su 07:00-21:00"
+      },
+      {
+        "@type": "LocalBusiness",
+        "name": "MASSA Son Oliva",
+        "address": {"@type":"PostalAddress","streetAddress":"Av. Tomás de Villanueva Cortés, 11, esq. Isaac Albéniz, 3","addressLocality":"Palma","addressRegion":"Illes Balears","postalCode":"07010","addressCountry":"ES"},
+        "openingHours": "Mo-Su 07:00-21:00"
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <nav class="navbar" id="navbar" role="navigation" aria-label="Navegación principal">
+    <div class="navbar__container">
+      <div class="navbar__brand">
+        <div class="navbar__logo" aria-hidden="true">
+          <i class="fas fa-wheat-awn"></i>
+        </div>
+        <div>
+          <h1 class="navbar__title font-serif">MASSA</h1>
+          <p class="navbar__subtitle">Cafeterías & Panaderías</p>
+        </div>
+      </div>
+      <div class="navbar__nav" role="menubar">
+        <a href="#inicio" class="navbar__link" role="menuitem">Inicio</a>
+        <a href="#locales" class="navbar__link" role="menuitem">Locales</a>
+        <a href="#ofertas" class="navbar__link" role="menuitem">Ofertas</a>
+        <a href="#contacto" class="navbar__link" role="menuitem">Contacto</a>
+      </div>
+      <button class="navbar__mobile-toggle" id="mobile-menu" aria-label="Abrir menú móvil" aria-expanded="false">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu-overlay" id="mobile-menu-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="mobile-menu-title">
+    <button class="mobile-menu-close" id="mobile-menu-close" aria-label="Cerrar menú móvil">
+      <i class="fas fa-times"></i>
+    </button>
+    <nav class="mobile-nav-links" role="navigation" aria-label="Navegación móvil">
+      <h2 id="mobile-menu-title" class="sr-only">Menú de navegación</h2>
+      <a href="#inicio">Inicio</a>
+      <a href="#locales">Locales</a>
+      <a href="#ofertas">Ofertas</a>
+      <a href="#contacto">Contacto</a>
+    </nav>
+  </div>
+
+  <section id="inicio" class="hero angled-separator" role="banner">
+    <div class="container">
+      <div class="hero__content">
+        <h1 class="hero__title font-serif">MASSA</h1>
+        <p class="hero__subtitle">Cadena de Cafeterías & Panaderías Artesanales</p>
+        <p class="hero__description">Dos locales en Palma: Llevant y Son Oliva. Tradición, café de especialidad y una terraza para cada momento del día.</p>
+
+        <div class="grid grid-auto-fit gap-3 mb-6">
+          <div class="info-card" data-aos="fade-up" data-aos-delay="100">
+            <div class="info-card__content">
+              <i class="fas fa-sun info-card__icon" aria-hidden="true"></i>
+              <h3 class="info-card__title">Horario Continuo</h3>
+              <p class="text-cream font-semibold mb-1">7:00 - 21:00</p>
+              <p class="text-cream opacity-75">Abierto todos los días</p>
+            </div>
+          </div>
+          <div class="info-card" data-aos="fade-up" data-aos-delay="200">
+            <div class="info-card__content">
+              <i class="fas fa-mug-hot info-card__icon" aria-hidden="true"></i>
+              <h3 class="info-card__title">Café & Pan</h3>
+              <p class="text-cream font-semibold mb-1">Artesanal</p>
+              <p class="text-cream opacity-75">Ingredientes locales</p>
+            </div>
+          </div>
+          <div class="info-card" data-aos="fade-up" data-aos-delay="300">
+            <div class="info-card__content">
+              <i class="fas fa-location-dot info-card__icon" aria-hidden="true"></i>
+              <h3 class="info-card__title">2 Locales</h3>
+              <p class="text-cream font-semibold mb-1">Llevant • Son Oliva</p>
+              <p class="text-cream opacity-75">Palma de Mallorca</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-3 justify-center mb-4" data-aos="fade-up" data-aos-delay="500">
+          <a href="#locales" class="btn btn-primary"><i class="fas fa-store mr-2"></i>Ver Locales</a>
+          <a href="#ofertas" class="btn btn-outline"><i class="fas fa-percentage mr-2"></i>Ofertas</a>
+        </div>
+      </div>
+    </div>
+    <div class="scroll-indicator" data-aos="fade-in" data-aos-delay="1000" aria-hidden="true">
+      <i class="fas fa-chevron-down"></i>
+    </div>
+  </section>
+
+  <!-- WAVE SEPARATOR -->
+  <div class="wave" aria-hidden="true">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path fill="rgba(212,165,116,0.15)" d="M0,64L60,69.3C120,75,240,85,360,69.3C480,53,600,11,720,10.7C840,11,960,53,1080,64C1200,75,1320,53,1380,42.7L1440,32L1440,0L1380,0C1320,0,1200,0,1080,0C960,0,840,0,720,0C600,0,480,0,360,0C240,0,120,0,60,0L0,0Z"></path></svg>
+  </div>
+
+  <!-- CARTA MASSA / HIGHLIGHTS -->
+  <section id="carta" class="section section-cream">
+    <div class="container">
+      <div class="menu-section-intro" data-aos="fade-up">
+        <h2 class="section-title font-serif">Carta MASSA</h2>
+        <p class="text-brown text-lg max-w-4xl mx-auto leading-relaxed">Selección artesanal pensada para cada momento del día. Ingredientes locales, pan de masa madre y café de especialidad.</p>
+      </div>
+      <div class="menu-grid">
+        <div class="menu-card" data-aos="fade-up" data-aos-delay="50">
+          <div class="badge">Nuevo</div>
+          <h3 class="menu-card__title">Ensaïmada Clásica</h3>
+          <p class="menu-card__desc">Hojaldre suave, manteca y azúcar glas. Tradición mallorquina.</p>
+          <div class="menu-card__meta"><div class="chip-row"><span class="chip">Dulce</span><span class="chip">Artesanal</span></div><div class="price"><sup>€</sup>2.80</div></div>
+        </div>
+        <div class="menu-card" data-aos="fade-up" data-aos-delay="100">
+          <h3 class="menu-card__title">Bocata MASSA</h3>
+          <p class="menu-card__desc">Jamón, queso y tomate de ramallet en pan de masa madre.</p>
+          <div class="menu-card__meta"><div class="chip-row"><span class="chip">Salado</span><span class="chip">Km0</span></div><div class="price"><sup>€</sup>5.50</div></div>
+        </div>
+        <div class="menu-card" data-aos="fade-up" data-aos-delay="150">
+          <h3 class="menu-card__title">Café Especialidad</h3>
+          <p class="menu-card__desc">Blend propio tostado localmente. Espresso, latte o capuccino.</p>
+          <div class="menu-card__meta"><div class="chip-row"><span class="chip">Café</span><span class="chip">Origen</span></div><div class="price"><sup>€</sup>1.80</div></div>
+        </div>
+        <div class="menu-card" data-aos="fade-up" data-aos-delay="200">
+          <h3 class="menu-card__title">Tostada Mediterránea</h3>
+          <p class="menu-card__desc">AOVE, tomate y sal en pan recién horneado. Simple y perfecta.</p>
+          <div class="menu-card__meta"><div class="chip-row"><span class="chip">Veggie</span><span class="chip">Pan del día</span></div><div class="price"><sup>€</sup>3.20</div></div>
+        </div>
+        <div class="menu-card" data-aos="fade-up" data-aos-delay="250">
+          <h3 class="menu-card__title">Croissant Mantequilla</h3>
+          <p class="menu-card__desc">Hojaldre crujiente con mantequilla francesa. Cada mañana.</p>
+          <div class="menu-card__meta"><div class="chip-row"><span class="chip">Horno</span><span class="chip">Diario</span></div><div class="price"><sup>€</sup>2.00</div></div>
+        </div>
+        <div class="menu-card" data-aos="fade-up" data-aos-delay="300">
+          <div class="badge">Top</div>
+          <h3 class="menu-card__title">Cold Brew MASSA</h3>
+          <p class="menu-card__desc">Infusión en frío 16h. Notas a cacao y caramelo.</p>
+          <div class="menu-card__meta"><div class="chip-row"><span class="chip">Frío</span><span class="chip">Especialidad</span></div><div class="price"><sup>€</sup>2.90</div></div>
+        </div>
+      </div>
+      <div class="cta-bar mt-4" data-aos="fade-up" data-aos-delay="350">
+        <div class="btn-row">
+          <a class="btn btn-primary btn--shine" href="#ofertas"><i class="fas fa-percentage mr-2"></i>Ver Ofertas de Hoy</a>
+          <a class="btn btn-outline btn--ghost" href="#locales"><i class="fas fa-location-dot mr-2"></i>Elegir Local</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="locales" class="section section-cream" style="position:relative; z-index:2;">
+    <div class="container">
+      <div class="text-center mb-8" data-aos="fade-up">
+        <h2 class="section-title font-serif">Nuestros Locales</h2>
+        <p class="text-brown text-lg max-w-4xl mx-auto leading-relaxed">Elige tu MASSA más cercano. Misma esencia, dos ubicaciones: Llevant y Son Oliva.</p>
+      </div>
+      <div class="grid grid-auto-fit gap-6">
+        <div class="card card-premium" data-aos="fade-up" data-aos-delay="100">
+          <div class="card__icon"><i class="fas fa-location-dot"></i></div>
+          <h3 class="card__title">MASSA Calle Aragón 323A</h3>
+          <p class="location-card__meta">Calle Aragón, 323A • 07009 Palma</p>
+          <div class="location-card__actions">
+            <a class="btn btn-primary btn--shine" href="./locations/llevant/"><i class="fas fa-arrow-right mr-2"></i>Ver local</a>
+            <a class="btn btn-outline btn--ghost" href="./ofertas/?local=llevant"><i class="fas fa-percentage mr-2"></i>Ofertas</a>
+          </div>
+        </div>
+        <div class="card card-premium" data-aos="fade-up" data-aos-delay="200">
+          <div class="card__icon"><i class="fas fa-location-dot"></i></div>
+          <h3 class="card__title">MASSA Son Oliva</h3>
+          <p class="location-card__meta">Av. Tomás de Villanueva Cortés, 11, esq. Isaac Albéniz, 3 • 07010 Palma</p>
+          <div class="location-card__actions">
+            <a class="btn btn-primary btn--shine" href="./locations/son-oliva/"><i class="fas fa-arrow-right mr-2"></i>Ver local</a>
+            <a class="btn btn-outline btn--ghost" href="./ofertas/?local=son-oliva"><i class="fas fa-percentage mr-2"></i>Ofertas</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="ofertas" class="section section-dark">
+    <div class="container">
+      <div class="text-center" data-aos="fade-up">
+        <div class="card-glass max-w-2xl mx-auto p-8">
+          <div class="flex items-center justify-center gap-4 mb-6">
+            <div class="w-16 h-16 bg-gradient-gold rounded-full flex items-center justify-center shadow-gold">
+              <i class="fas fa-percentage text-charcoal text-2xl"></i>
+            </div>
+            <div>
+              <h3 class="font-serif text-3xl font-bold text-gold mb-0 leading-tight">Ofertas por Local</h3>
+              <p class="text-light-gold mb-0 text-base font-medium">Escanea para ver ofertas en tu MASSA</p>
+            </div>
+          </div>
+
+          <div class="desktop-only qr-grid">
+            <div class="qr-item">
+              <div class="qr-box"><div class="qr-code" data-local="llevant"></div></div>
+              <div class="qr-caption">Calle Aragón 323A</div>
+              <a class="qr-link" href="https://maps.google.com/?q=Calle+Arag%C3%B3n+323A+Palma" target="_blank" rel="noopener">Cómo llegar</a>
+            </div>
+            <div class="qr-item">
+              <div class="qr-box"><div class="qr-code" data-local="son-oliva"></div></div>
+              <div class="qr-caption">Son Oliva</div>
+              <a class="qr-link" href="https://maps.google.com/?q=Av.+Tom%C3%A1s+de+Villanueva+Cort%C3%A9s+11+Palma" target="_blank" rel="noopener">Cómo llegar</a>
+            </div>
+          </div>
+
+          <div class="mobile-only text-center mt-4">
+            <a href="ofertas/?local=llevant" class="btn btn-primary mb-3"><i class="fas fa-store mr-2"></i>Ver ofertas Llevant</a>
+            <a href="ofertas/?local=son-oliva" class="btn btn-outline"><i class="fas fa-store mr-2"></i>Ver ofertas Son Oliva</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contacto" class="section section-cream">
+    <div class="container">
+      <div class="text-center mb-8" data-aos="fade-up">
+        <h2 class="section-title font-serif">Contacto</h2>
+        <p class="text-brown text-lg max-w-2xl mx-auto leading-relaxed">Estamos en Palma de Mallorca. Horario continuo todos los días: 7:00 - 21:00.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="card">
+          <h3 class="font-serif text-xl text-gold mb-3">Calle Aragón 323A</h3>
+          <p class="text-brown">07009 Palma</p>
+          <a class="btn btn-small mt-3" href="https://maps.google.com/?q=Calle+Arag%C3%B3n+323A+Palma" target="_blank" rel="noopener"><i class="fas fa-directions mr-2"></i>Cómo llegar</a>
+        </div>
+        <div class="card">
+          <h3 class="font-serif text-xl text-gold mb-3">Son Oliva</h3>
+          <p class="text-brown">Av. Tomás de Villanueva Cortés, 11, esq. Isaac Albéniz, 3</p>
+          <a class="btn btn-small mt-3" href="https://maps.google.com/?q=Av.+Tom%C3%A1s+de+Villanueva+Cort%C3%A9s+11+Palma" target="_blank" rel="noopener"><i class="fas fa-directions mr-2"></i>Cómo llegar</a>
+        </div>
+        <div class="card">
+          <h3 class="font-serif text-xl text-gold mb-3">Síguenos</h3>
+          <p class="text-brown">Muy pronto nuestras redes sociales</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="section-dark py-8">
+    <div class="container">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+        <div>
+          <h3 class="font-serif text-xl font-bold text-gold mb-3">MASSA</h3>
+          <p class="text-light-gold text-sm">Cafeterías & Panaderías Artesanales</p>
+        </div>
+        <div>
+          <h4 class="text-gold font-semibold mb-3">Locales</h4>
+          <p class="text-cream text-sm">Llevant • Son Oliva</p>
+        </div>
+        <div>
+          <h4 class="text-gold font-semibold mb-3">Horario</h4>
+          <p class="text-light-gold font-semibold">7:00 - 21:00</p>
+        </div>
+      </div>
+      <div class="border-t border-brown mt-6 pt-6 text-center">
+        <p class="text-cream text-sm">© 2025 MASSA. Todos los derechos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <button class="scroll-top" id="scrollTop" aria-label="Volver arriba">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/mobile-menu.js"></script>
+  <script src="assets/js/qr.js"></script>
+  <script>
+    AOS.init({ duration: 800, once: true, offset: 100 });
+  </script>
+</body>
+</html>
+
+
+
+

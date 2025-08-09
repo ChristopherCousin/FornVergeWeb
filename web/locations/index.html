@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Locales - MASSA</title>
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body>
+  <nav class="navbar"><div class="navbar__container"><div class="navbar__brand"><div class="navbar__logo"><i class="fas fa-wheat-awn"></i></div><div><h1 class="navbar__title font-serif">MASSA</h1><p class="navbar__subtitle">Locales</p></div></div></div></nav>
+  <section class="section section-cream" style="padding-top:140px">
+    <div class="container">
+      <h2 class="section-title font-serif">Elige tu local</h2>
+      <div id="locations-grid" class="grid grid-auto-fit gap-6"></div>
+    </div>
+  </section>
+  <script>
+  fetch('../data/locations.json').then(r=>r.json()).then(data=>{
+    const grid=document.getElementById('locations-grid');
+    data.locations.forEach(loc=>{
+      const card=document.createElement('div'); card.className='card card-premium';
+      card.innerHTML=`<div class="card__icon"><i class="fas fa-location-dot"></i></div>
+        <h3 class="card__title">${loc.name}</h3>
+        <p class="card__description">${loc.address.street} • ${loc.address.postalCode} ${loc.address.city}</p>
+        <div class="text-center"><a class="btn btn-primary" href="${loc.slug}/">Ir a ${loc.name}</a></div>`;
+      grid.appendChild(card);
+    });
+  });
+  </script>
+</body>
+</html>
+
+
+
+

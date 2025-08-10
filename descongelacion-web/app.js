@@ -53,6 +53,14 @@ class DescongelacionApp {
         setInterval(() => {
             this.updateDateTime();
         }, 1000);
+
+        // Redibujar según tamaño de pantalla (responsive)
+        window.addEventListener('resize', () => {
+            // Evitar re-render innecesario si no hay productos
+            if (this.allProducts && this.allProducts.length > 0) {
+                this.renderProducts();
+            }
+        });
     }
 
     updateDateTime() {
@@ -145,57 +153,99 @@ class DescongelacionApp {
         container.style.display = 'block';
         noProducts.style.display = 'none';
 
-        container.innerHTML = `
-            <div class="products-grid">
-                ${this.allProducts.map(productGroup => this.createProductCard(productGroup)).join('')}
-            </div>
-        `;
+        if (this.isMobileLayout()) {
+            container.innerHTML = `
+                <div class="products-mobile">
+                    ${this.allProducts.map(productGroup => this.createProductMobileItem(productGroup)).join('')}
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="products-table">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Mañana<br><span class="badge-horario">${TIME_CONFIG.tandas['mañana'].hornear_hora} → ${TIME_CONFIG.tandas['mañana'].listo_hora}</span></th>
+                                <th>Mediodía<br><span class="badge-horario">${TIME_CONFIG.tandas['mediodia'].hornear_hora} → ${TIME_CONFIG.tandas['mediodia'].listo_hora}</span></th>
+                                <th>Tarde<br><span class="badge-horario">${TIME_CONFIG.tandas['tarde'].hornear_hora} → ${TIME_CONFIG.tandas['tarde'].listo_hora}</span></th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${this.allProducts.map(productGroup => this.createProductRow(productGroup)).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
     }
 
-    createProductCard(productGroup) {
-        const emoji = PRODUCT_EMOJIS[productGroup.producto] || '';
-        
-        // Obtener cantidades por tanda
-        const mañana = productGroup.tandas['mañana']?.cantidad_ajustada || 0;
+    createProductRow(productGroup) {
+        const manana = productGroup.tandas['mañana']?.cantidad_ajustada || 0;
         const mediodia = productGroup.tandas['mediodia']?.cantidad_ajustada || 0;
         const tarde = productGroup.tandas['tarde']?.cantidad_ajustada || 0;
-        const total = mañana + mediodia + tarde;
+        const total = manana + mediodia + tarde;
 
-        // Solo mostrar el producto si tiene cantidades
         if (total === 0) return '';
 
         return `
-            <div class="product-card">
-                <div class="product-header">
-                    ${emoji ? `<span class="product-emoji">${emoji}</span>` : ''}
-                    <h3 class="product-name">${productGroup.producto}</h3>
-                    <div class="product-total">Total: ${total}</div>
+            <tr>
+                <td class="col-producto">${productGroup.producto}</td>
+                <td class="col-amount tanda-manana ${manana > 0 ? 'has-amount' : ''}">${manana || ''}</td>
+                <td class="col-amount tanda-mediodia ${mediodia > 0 ? 'has-amount' : ''}">${mediodia || ''}</td>
+                <td class="col-amount tanda-tarde ${tarde > 0 ? 'has-amount' : ''}">${tarde || ''}</td>
+                <td class="col-amount col-total">${total}</td>
+            </tr>
+        `;
+    }
+
+    isMobileLayout() {
+        return window.innerWidth <= 768;
+    }
+
+    createProductMobileItem(productGroup) {
+        const manana = productGroup.tandas['mañana']?.cantidad_ajustada || 0;
+        const mediodia = productGroup.tandas['mediodia']?.cantidad_ajustada || 0;
+        const tarde = productGroup.tandas['tarde']?.cantidad_ajustada || 0;
+        const total = manana + mediodia + tarde;
+
+        if (total === 0) return '';
+
+        const chips = [];
+        if (manana > 0) {
+            chips.push(`
+                <div class="chip chip-manana">
+                    <div class="time">🌅 ${TIME_CONFIG.tandas['mañana'].hornear_hora} → ${TIME_CONFIG.tandas['mañana'].listo_hora}</div>
+                    <div class="amount">${manana}</div>
                 </div>
-                <div class="tandas-grid">
-                    ${mañana > 0 ? `
-                    <div class="tanda-item mañana">
-                        <div class="tanda-icon">🌅</div>
-                        <div class="tanda-label">Mañana</div>
-                        <div class="tanda-horario">06:40h → 07:00h</div>
-                        <div class="tanda-amount">${mañana}</div>
-                    </div>
-                    ` : ''}
-                    ${mediodia > 0 ? `
-                    <div class="tanda-item mediodia">
-                        <div class="tanda-icon">☀️</div>
-                        <div class="tanda-label">Mediodía</div>
-                        <div class="tanda-horario">10:40h → 11:00h</div>
-                        <div class="tanda-amount">${mediodia}</div>
-                    </div>
-                    ` : ''}
-                    ${tarde > 0 ? `
-                    <div class="tanda-item tarde">
-                        <div class="tanda-icon">🌇</div>
-                        <div class="tanda-label">Tarde</div>
-                        <div class="tanda-horario">16:40h → 17:00h</div>
-                        <div class="tanda-amount">${tarde}</div>
-                    </div>
-                    ` : ''}
+            `);
+        }
+        if (mediodia > 0) {
+            chips.push(`
+                <div class="chip chip-mediodia">
+                    <div class="time">☀️ ${TIME_CONFIG.tandas['mediodia'].hornear_hora} → ${TIME_CONFIG.tandas['mediodia'].listo_hora}</div>
+                    <div class="amount">${mediodia}</div>
+                </div>
+            `);
+        }
+        if (tarde > 0) {
+            chips.push(`
+                <div class="chip chip-tarde">
+                    <div class="time">🌇 ${TIME_CONFIG.tandas['tarde'].hornear_hora} → ${TIME_CONFIG.tandas['tarde'].listo_hora}</div>
+                    <div class="amount">${tarde}</div>
+                </div>
+            `);
+        }
+
+        return `
+            <div class="mobile-item">
+                <div class="mobile-header">
+                    <div class="mobile-name">${productGroup.producto}</div>
+                    <div class="mobile-total">${total}</div>
+                </div>
+                <div class="mobile-chips">
+                    ${chips.join('')}
                 </div>
             </div>
         `;

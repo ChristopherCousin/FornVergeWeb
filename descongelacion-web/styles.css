@@ -45,11 +45,11 @@ body {
 
 /* ===== HEADER ===== */
 .app-header {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: #111827;
     color: white;
-    padding: 1.5rem 1rem;
+    padding: 1rem 1rem;
     text-align: center;
-    padding-top: max(1.5rem, env(safe-area-inset-top, 1.5rem));
+    padding-top: max(1rem, env(safe-area-inset-top, 1rem));
 }
 
 .header-content {
@@ -90,43 +90,39 @@ body {
 
 /* ===== STATUS BAR ===== */
 .status-bar {
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: 0.9rem;
+    font-weight: 700;
+    background: #f3f4f6;
+    border-bottom: 1px solid #e5e7eb;
 }
 
-.status-bar.online {
-    background: #d4edda;
-    color: #155724;
-}
+.status-bar.online { color: #065f46; }
 
-.status-bar.offline {
-    background: #f8d7da;
-    color: #721c24;
-}
+.status-bar.offline { color: #7f1d1d; background: #fef2f2; }
 
 /* ===== INFORMACIÓN DEL FLUJO ===== */
 .workflow-info {
-    background: linear-gradient(135deg, #e8f5e8, #d4edda);
-    padding: 1.5rem;
-    text-align: center;
-    border-bottom: 1px solid #c3e6cb;
+    background: #f8fafc;
+    padding: 1rem 1.25rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .workflow-info h3 {
-    color: var(--success-color);
-    margin-bottom: 0.75rem;
-    font-size: 1.3rem;
-    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+    font-weight: 800;
 }
 
 .workflow-info p {
-    color: #155724;
-    font-size: 1rem;
-    font-weight: 500;
+    color: #4b5563;
+    font-size: 0.95rem;
+    font-weight: 600;
 }
 
 /* ===== CONTENIDO PRINCIPAL ===== */
@@ -155,6 +151,154 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
     border-color: var(--primary-color);
+}
+
+/* ===== TABLA DE PRODUCTOS (vista compacta) ===== */
+.products-table {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+}
+
+.table thead th {
+    text-align: left;
+    font-size: 1rem;
+    color: #0b1220;
+    border-bottom: 2px solid #e9ecef;
+    padding: 0.5rem 0.75rem;
+    position: sticky;
+    top: 0;
+    background: #ffffff;
+    z-index: 1;
+}
+
+.table tbody td {
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid #f1f3f4;
+    vertical-align: middle;
+}
+
+.table tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
+.table .col-producto {
+    font-weight: 800;
+    color: #0b1220;
+    white-space: nowrap;
+}
+
+.table .col-producto .product-emoji {
+    font-size: 1.25rem;
+    margin-right: 0.5rem;
+}
+
+.table .col-amount {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-size: 1.3rem;
+    font-weight: 900;
+    letter-spacing: 0.2px;
+    color: #0b1220;
+}
+
+.table .badge-horario {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.8rem;
+    color: #374151;
+    font-weight: 600;
+}
+
+.table .col-total {
+    background: #eef2ff;
+    font-weight: 800;
+}
+
+.table .tanda-manana.has-amount { background: #fff5cc; }
+.table .tanda-mediodia.has-amount { background: #ffe0d1; }
+.table .tanda-tarde.has-amount { background: #e8e3ff; }
+
+@media (max-width: 768px) {
+    .products-table { overflow-x: auto; }
+}
+
+/* ===== VISTA MÓVIL ===== */
+.products-mobile {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.mobile-item {
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 0.75rem 0.75rem;
+}
+
+.mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.mobile-name {
+    font-weight: 700;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mobile-name .product-emoji {
+    font-size: 1.2rem;
+}
+
+.mobile-total {
+    background: #111827;
+    color: #ffffff;
+    font-weight: 800;
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+    min-width: 2.5rem;
+    text-align: center;
+}
+
+.mobile-chips {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.chip {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    padding: 0.5rem 0.6rem;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+    font-weight: 700;
+}
+
+.chip .time { font-size: 0.9rem; color: #0b1220; font-weight: 700; }
+.chip .amount { font-size: 1.25rem; color: #0b1220; }
+
+.chip-manana { background: #fff5cc; }
+.chip-mediodia { background: #ffe0d1; }
+.chip-tarde { background: #e8e3ff; }
+
+@media (max-width: 480px) {
+    .mobile-chips { grid-template-columns: 1fr; }
+    .mobile-total { min-width: 2rem; }
 }
 
 /* ===== HEADER DEL PRODUCTO ===== */

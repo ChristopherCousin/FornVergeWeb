@@ -78,7 +78,7 @@ const APP_CONFIG = {
     version: '2.0.0',
     
     // Configuración de la PWA
-    app_name: 'Forn Verge - Preparación y Descongelación',
+    app_name: 'MASSA Calle Aragón - Preparación',
     
     // Configuración de notificaciones
     notifications: {

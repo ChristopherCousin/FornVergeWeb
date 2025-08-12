@@ -31,33 +31,56 @@ window.ScheduleService = (function(){
   }
 
   function processAllEmployeesSchedules(allSchedules) {
-    const employeesList = window.APP_CONFIG.EMPLOYEE_NAMES;
+    // Construir lista dinámica de empleados a partir de los datos recibidos
+    const employeeNameSet = new Set();
+    allSchedules.forEach(s => {
+      const raw = s.employees && s.employees.name ? s.employees.name : '';
+      if (raw) {
+        const name = raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
+        employeeNameSet.add(name);
+      }
+    });
+
+    const employeeNames = Array.from(employeeNameSet.values());
+    window.AppState.allEmployeeNames = employeeNames;
+
+    // Inicializar estructura por empleado y día
     window.AppState.allEmployeesSchedules = {};
     const currentDays = generateDaysForWeek(window.AppState.currentWeekStart);
-    employeesList.forEach(empName => {
+    employeeNames.forEach(empName => {
       window.AppState.allEmployeesSchedules[empName] = {};
       currentDays.forEach(day => {
         window.AppState.allEmployeesSchedules[empName][day.key] = { is_free_day: true, shifts: [] };
       });
     });
+
+    // Poblar turnos
     allSchedules.forEach(schedule => {
       const empNameRaw = schedule.employees.name;
       const empName = empNameRaw.charAt(0).toUpperCase() + empNameRaw.slice(1).toLowerCase();
-      if (window.AppState.allEmployeesSchedules[empName]) {
-        const dayData = window.AppState.allEmployeesSchedules[empName][schedule.day_of_week];
-        if (schedule.is_free_day) {
-          dayData.is_free_day = true;
-          dayData.shifts = [];
-        } else {
-          dayData.is_free_day = false;
-          dayData.shifts.push({
-            start_time: schedule.start_time,
-            end_time: schedule.end_time,
-            hours: schedule.hours,
-            shift_sequence: schedule.shift_sequence || 1
-          });
-          dayData.shifts.sort((a, b) => a.shift_sequence - b.shift_sequence);
+      // Asegurar que existe el contenedor por si llega un nombre nuevo no inicializado
+      if (!window.AppState.allEmployeesSchedules[empName]) {
+        window.AppState.allEmployeesSchedules[empName] = {};
+        currentDays.forEach(day => {
+          window.AppState.allEmployeesSchedules[empName][day.key] = { is_free_day: true, shifts: [] };
+        });
+        if (!window.AppState.allEmployeeNames.includes(empName)) {
+          window.AppState.allEmployeeNames.push(empName);
         }
+      }
+      const dayData = window.AppState.allEmployeesSchedules[empName][schedule.day_of_week];
+      if (schedule.is_free_day) {
+        dayData.is_free_day = true;
+        dayData.shifts = [];
+      } else {
+        dayData.is_free_day = false;
+        dayData.shifts.push({
+          start_time: schedule.start_time,
+          end_time: schedule.end_time,
+          hours: schedule.hours,
+          shift_sequence: schedule.shift_sequence || 1
+        });
+        dayData.shifts.sort((a, b) => a.shift_sequence - b.shift_sequence);
       }
     });
   }

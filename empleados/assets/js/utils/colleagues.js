@@ -1,5 +1,4 @@
 window.ColleaguesUtils = (function() {
-  const EMPLOYEES = window.APP_CONFIG.EMPLOYEE_NAMES;
   const { schedulesOverlap } = window.OverlapUtils;
 
   function normalizeName(name) {
@@ -13,6 +12,7 @@ window.ColleaguesUtils = (function() {
     const myDayData = currentSchedule[dayKey];
     if (myDayData.is_free_day) return [];
 
+    const EMPLOYEES = window.AppState.allEmployeeNames || [];
     for (const empName of EMPLOYEES) {
       if (empName === currentEmpName) continue;
       const empDayData = allEmployeesSchedules[empName] && allEmployeesSchedules[empName][dayKey];
@@ -33,6 +33,7 @@ window.ColleaguesUtils = (function() {
     const { currentEmployee, allEmployeesSchedules } = window.AppState;
     const colleagues = [];
     const currentEmpName = normalizeName(currentEmployee.name);
+    const EMPLOYEES = window.AppState.allEmployeeNames || [];
     for (const empName of EMPLOYEES) {
       if (empName === currentEmpName) continue;
       const empDayData = allEmployeesSchedules[empName] && allEmployeesSchedules[empName][dayKey];

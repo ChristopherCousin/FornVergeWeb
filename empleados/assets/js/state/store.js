@@ -5,7 +5,8 @@ window.AppState = {
   availableWeeks: [],
   lastRefreshTime: new Date(),
   autoRefreshInterval: null,
-  allEmployeesSchedules: {}
+  allEmployeesSchedules: {},
+  allEmployeeNames: []
 };
 
 

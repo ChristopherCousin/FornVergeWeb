@@ -242,6 +242,26 @@
         // Variables dinámicas que se cargan automáticamente
         let currentWeekStart = null;
         let availableWeeks = [];
+
+        // === Utilidades de fecha/semana ===
+        function toISODate(date) {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Devuelve el lunes de la semana de la fecha proporcionada (semana empieza en lunes)
+        function getCurrentWeekStartMondayISO() {
+            const today = new Date();
+            const d = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            const day = d.getDay(); // 0=Domingo, 1=Lunes, ... 6=Sábado
+            const diffToMonday = (day === 0 ? -6 : 1) - day; // Ajuste para llevar al lunes
+            d.setDate(d.getDate() + diffToMonday);
+            d.setHours(0, 0, 0, 0);
+            return toISODate(d);
+        }
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
@@ -302,7 +322,19 @@
                 console.log('📅 Semanas disponibles:', uniqueWeeks);
                 
                 availableWeeks = uniqueWeeks;
-                currentWeekStart = uniqueWeeks[0] || '2025-02-09'; // Usar la más reciente por defecto
+
+                // Elegir por defecto la semana actual (lunes de esta semana) si existe en BD
+                const thisMondayISO = getCurrentWeekStartMondayISO();
+                const todayTime = new Date(thisMondayISO).getTime();
+
+                if (availableWeeks.includes(thisMondayISO)) {
+                    currentWeekStart = thisMondayISO;
+                } else {
+                    // Elegir la más reciente ANTERIOR o IGUAL a hoy
+                    const sortedDesc = [...availableWeeks].sort((a, b) => new Date(b) - new Date(a));
+                    const fallback = sortedDesc.find(iso => new Date(iso).getTime() <= todayTime);
+                    currentWeekStart = fallback || sortedDesc[0] || '2025-02-09';
+                }
                 
                 return uniqueWeeks;
             } catch (error) {

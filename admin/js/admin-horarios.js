@@ -4,56 +4,40 @@
 const SUPABASE_URL = 'https://csxgkxjeifakwslamglc.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzeGdreGplaWZha3dzbGFtZ2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjM4NjIsImV4cCI6MjA2NDg5OTg2Mn0.iGDmQJGRjsldPGmXLO5PFiaLOk7P3Rpr0omF3b8SJkg';
 
-// Función para calcular automáticamente la semana actual
-function getCurrentWeek() {
+// Utilidades de fecha
+function toISODate(d) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function getThisMondayISO() {
     const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth(); // 0-based (5 = junio)
-    const currentDay = today.getDate();
-    
-    console.log(`📅 Fecha actual: ${currentDay}/${currentMonth + 1}/${currentYear}`);
-    
-    // Si estamos en junio de 2025
-    if (currentYear === 2025 && currentMonth === 5) { // 5 = junio
-        if (currentDay >= 16 && currentDay <= 22) {
-            return '2025-06-16'; // 16-22 Jun
-        } else if (currentDay >= 23 && currentDay <= 29) {
-            return '2025-06-23'; // 23-29 Jun
-        } else if (currentDay >= 30) {
-            return '2025-06-30'; // 30 Jun-6 Jul
-        } else {
-            return '2025-06-16'; // Fallback para días anteriores
-        }
+    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const weekday = d.getDay(); // 0=Domingo, 1=Lunes, ...
+    const diffToMonday = (weekday === 0 ? -6 : 1) - weekday;
+    d.setDate(d.getDate() + diffToMonday);
+    d.setHours(0,0,0,0);
+    return toISODate(d);
+}
+
+// Función para calcular automáticamente la semana actual (lunes) y ajustarla a las disponibles
+function getCurrentWeek(weeks = []) {
+    const thisMonday = getThisMondayISO();
+    if (Array.isArray(weeks) && weeks.length > 0) {
+        if (weeks.includes(thisMonday)) return thisMonday;
+        const todayTs = new Date(thisMonday).getTime();
+        const sortedDesc = [...weeks].sort((a, b) => new Date(b) - new Date(a));
+        const fallback = sortedDesc.find(w => new Date(w).getTime() <= todayTs);
+        return fallback || sortedDesc[0] || thisMonday;
     }
-    // Si estamos en julio de 2025
-    else if (currentYear === 2025 && currentMonth === 6) { // 6 = julio
-        if (currentDay <= 6) {
-            return '2025-06-30'; // 30 Jun-6 Jul
-        } else if (currentDay >= 7 && currentDay <= 13) {
-            return '2025-07-07'; // 7-13 Jul
-        } else if (currentDay >= 14 && currentDay <= 20) {
-            return '2025-07-14'; // 14-20 Jul
-        } else if (currentDay >= 21 && currentDay <= 27) {
-            return '2025-07-21'; // 21-27 Jul
-        } else if (currentDay >= 28) {
-            return '2025-07-28'; // 28 Jul-3 Ago
-        }
-    }
-    // Si estamos en agosto de 2025
-    else if (currentYear === 2025 && currentMonth === 7) { // 7 = agosto
-        if (currentDay <= 3) {
-            return '2025-07-28'; // 28 Jul-3 Ago
-        } else if (currentDay >= 4 && currentDay <= 10) {
-            return '2025-08-04'; // 4-10 Ago
-        }
-    }
-    
-    // Fallback por defecto
-    return '2025-06-23';
+    return thisMonday;
 }
 
 // Variables dinámicas para semanas - CALCULADO AUTOMÁTICAMENTE
-let currentWeekStart = getCurrentWeek(); // Calcular semana actual dinámicamente
+// Nota: se ajusta a la lista de weeks disponible más abajo
+let currentWeekStart; 
 const availableWeeks = [
     '2025-06-16', // Semana 1: 16-22 Jun (pasada)
     '2025-06-23', // Semana 2: 23-29 Jun ← ACTUAL (incluye 24 Jun)
@@ -72,6 +56,9 @@ const availableWeeks = [
     '2025-09-22', // 22-28 Sep
     '2025-09-29'  // 29 Sep-5 Oct
 ];
+
+// Inicializar semana actual en base a availableWeeks
+currentWeekStart = getCurrentWeek(availableWeeks);
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -212,6 +199,7 @@ async function loadEmployees() {
             .from('employees')
             .select('*')
             .neq('role', 'admin')
+            .neq('employee_id', 'xisca')
             .order('name');
 
         if (error) {

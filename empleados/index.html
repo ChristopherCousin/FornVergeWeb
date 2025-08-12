@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Horarios - Forn Verge</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/empleados.css">
+</head>
+<body class="ios-safe-area">
+    
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-6">
+        <div class="login-container p-8 w-full max-w-sm fade-in">
+            <div class="text-center mb-8">
+                <div class="login-logo w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-calendar-check text-white text-3xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800 mb-2">Mis Horarios</h1>
+                <p class="text-gray-600">Forn Verge de Lluc</p>
+                <div class="w-16 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto mt-4"></div>
+            </div>
+            
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-3 text-sm">
+                        <i class="fas fa-key mr-2 text-blue-500"></i>Tu código de acceso
+                    </label>
+                    <div class="input-with-button">
+                        <input 
+                            type="password" 
+                            id="accessCode" 
+                            class="input-field w-full pr-12"
+                            placeholder="Introduce tu código"
+                            required
+                            autocomplete="current-password"
+                        >
+                        <button id="togglePwdBtn" type="button" class="input-suffix-btn" aria-label="Mostrar u ocultar">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <button 
+                    type="submit" 
+                    class="btn-primary w-full"
+                >
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    Ver mis horarios
+                </button>
+            </form>
+            
+            <div id="loginError" class="hidden mt-4 p-4 bg-red-50 text-red-700 rounded-lg text-sm border border-red-200">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                Código incorrecto. Inténtalo de nuevo.
+            </div>
+            
+            <div class="mt-6 text-center">
+                <p class="text-xs text-gray-500">
+                    <i class="fas fa-shield-alt mr-1"></i>
+                    Acceso seguro y personalizado
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Dashboard -->
+    <div id="employeeDashboard" class="hidden min-h-screen fade-in">
+        
+        <!-- Header -->
+        <header class="header-gradient text-white relative">
+            <div class="relative z-10 p-6 pb-4">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1 min-w-0">
+                        <h1 class="text-xl font-bold mb-1" id="employeeName">
+                            <i class="fas fa-user-circle mr-2"></i>Cargando...
+                        </h1>
+                        <p class="text-blue-200 text-sm" id="weekRange">
+                            <i class="fas fa-calendar-week mr-1"></i>Cargando semana...
+                        </p>
+                    </div>
+                    <button id="logoutBtn" class="glass-effect p-3 rounded-full transition-all hover:bg-white/20 ml-3">
+                        <i class="fas fa-sign-out-alt text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Quick Stats -->
+        <div class="px-6 -mt-2 relative z-10">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="stat-card p-4 text-center relative overflow-hidden">
+                    <div class="relative z-10">
+                        <div class="text-2xl font-bold mb-1" id="workDays">--</div>
+                        <div class="text-sm opacity-90">
+                            <i class="fas fa-calendar-check mr-1"></i>Días trabajando
+                        </div>
+                    </div>
+                </div>
+                <div class="next-shift-card stat-card p-4 text-center relative overflow-hidden">
+                    <div class="relative z-10">
+                        <div class="text-sm font-medium mb-1" id="nextShiftDay">
+                            <i class="fas fa-arrow-right mr-1"></i>--
+                        </div>
+                        <div class="text-lg font-bold" id="nextShiftTime">--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Schedule -->
+        <div class="px-6 py-6">
+            <div class="flex items-center justify-between mb-6 sticky-week-nav glass-effect rounded-xl px-3 py-2">
+                <button id="prevWeekBtn" class="week-nav-btn">
+                    <i class="fas fa-chevron-left text-white"></i>
+                </button>
+                
+                <div class="text-center flex-1">
+                    <h2 class="text-xl font-bold text-gray-800 mb-1" id="weekTitle">
+                        📅 Esta semana
+                    </h2>
+                    <div class="w-20 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto"></div>
+                    <div class="mt-2">
+                        <span id="lastUpdated" class="text-xs text-gray-500">
+                            <i class="fas fa-sync-alt mr-1"></i>Actualizado ahora
+                        </span>
+                    </div>
+                </div>
+                
+                <button id="nextWeekBtn" class="week-nav-btn">
+                    <i class="fas fa-chevron-right text-white"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-3" id="scheduleContainer">
+                <!-- Se genera dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Bottom Info -->
+        <div class="px-6 pb-8">
+            <div class="glass-effect rounded-2xl p-5 text-center">
+                <div class="flex items-center justify-center mb-2">
+                    <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                    <span class="text-gray-700 font-medium">Consejo</span>
+                </div>
+                <p class="text-gray-600 text-sm">
+                    Guarda esta página en favoritos para acceso rápido
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto-refresh indicator -->
+    <div id="autoRefreshIndicator" class="auto-refresh-indicator">
+        <i class="fas fa-sync-alt mr-1"></i>
+        <span>Actualizando...</span>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="loading-card">
+            <div class="loading-spinner--primary"></div>
+            <div class="text-sm font-semibold text-gray-700">Cargando horarios...</div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/config/constants.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/lib/supabase.js"></script>
+    <script src="assets/js/state/store.js"></script>
+    <script src="assets/js/utils/dates.js"></script>
+    <script src="assets/js/services/weeks.js"></script>
+    <script src="assets/js/utils/overlap.js"></script>
+    <script src="assets/js/utils/colleagues.js"></script>
+    <script src="assets/js/ui/render.js"></script>
+    <script src="assets/js/services/schedules.js"></script>
+    <script src="assets/js/ui/autoRefresh.js"></script>
+    <script src="assets/js/ui/events.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
+
+

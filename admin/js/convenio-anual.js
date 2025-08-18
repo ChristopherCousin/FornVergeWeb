@@ -37,7 +37,12 @@ class ConvenioAnualManager {
             inicio_datos_reales: '2025-06-06', // Desde cuándo tenemos datos de Ágora
             
             // Empleados excluidos del convenio
-            excluidos: ['BRYAN'] // Socio/autónomo
+            excluidos: ['BRYAN'], // Socio/autónomo
+            
+            // Fechas de alta específicas por empleado (cuando no coinciden con inicio_datos_reales)
+            fechas_alta_empleados: {
+                'MARIA JOSE': '2025-08-12' // María José empezó el 12 de agosto
+            }
         };
         
         this.stats_anuales = {};
@@ -71,7 +76,10 @@ class ConvenioAnualManager {
             .order('name');
         
         this.empleados = empleados || [];
-        // console.log(`👥 ${this.empleados.length} empleados cargados`);
+        console.log(`👥 ${this.empleados.length} empleados cargados para análisis del convenio:`);
+        this.empleados.forEach(emp => {
+            console.log(`   - ${emp.name}`);
+        });
         
         // Cargar fichajes desde inicio de año
         const { data: fichajes } = await this.supabase
@@ -207,19 +215,35 @@ class ConvenioAnualManager {
         for (const empleado of this.empleados) {
             // Excluir empleados no sujetos al convenio
             if (this.convenio.excluidos.includes(empleado.name.toUpperCase())) {
-                // console.log(`⏭️ Saltando ${empleado.name} (excluido del convenio)`);
+                console.log(`⏭️ Saltando ${empleado.name} (excluido del convenio)`);
                 continue;
+            }
+            
+            console.log(`📊 Analizando ${empleado.name}...`);
+            
+            // Determinar fecha de inicio real para este empleado
+            const fechaAltaEmpleado = this.convenio.fechas_alta_empleados[empleado.name.toUpperCase()];
+            const fechaInicioReal = fechaAltaEmpleado ? new Date(fechaAltaEmpleado) : inicioReales;
+            
+            // Debug específico para María José
+            if (empleado.name.toUpperCase().includes('MARIA')) {
+                console.log(`\n🔍 ===== DEBUG FECHA DE ALTA =====`);
+                console.log(`👤 Empleado: ${empleado.name}`);
+                console.log(`🔍 Buscando en fechas_alta_empleados: "${empleado.name.toUpperCase()}"`);
+                console.log(`📅 Fecha encontrada: ${fechaAltaEmpleado || 'NO ENCONTRADA'}`);
+                console.log(`📅 Fecha inicio real: ${fechaInicioReal.toLocaleDateString()}`);
+                console.log(`📅 Fecha inicio por defecto: ${inicioReales.toLocaleDateString()}`);
             }
             
             const stats = {
                 empleado_id: empleado.id,
                 empleado_nombre: empleado.name,
                 
-                // ====== HORAS TEÓRICAS (Enero - 06/06/2025) ======
-                horas_teoricas_pre_agora: this.calcularHorasTeoricas(inicioAño, inicioReales, empleado.id),
+                // ====== HORAS TEÓRICAS (ELIMINADAS - No hay datos reales antes del 6/6/2025) ======
+                horas_teoricas_pre_agora: 0, // Ya no calculamos horas teóricas para enero-junio
                 
-                // ====== HORAS REALES (06/06/2025 - Hoy) ======
-                horas_reales_agora: this.calcularHorasReales(inicioReales, hoy, empleado.id),
+                // ====== HORAS REALES (Desde fecha de alta del empleado - Hoy) ======
+                horas_reales_agora: this.calcularHorasReales(fechaInicioReal, hoy, empleado.id),
                 
                 // ====== HORAS POR AUSENCIAS ======
                 horas_ausencias: this.calcularHorasAusencias(inicioAño, hoy, empleado.id),
@@ -249,7 +273,21 @@ class ConvenioAnualManager {
                 recomendacion_compensacion: ''
             };
             
-                    // Logs de debug eliminados para producción
+            // Logs de debug para María José
+            if (empleado.name.toUpperCase().includes('MARIA JOSE')) {
+                console.log(`\n🔍 ===== ANÁLISIS MARÍA JOSÉ =====`);
+                console.log(`📅 Fecha de alta configurada: ${fechaAltaEmpleado || '6 de junio (por defecto)'}`);
+                console.log(`📊 Horas reales desde ${fechaInicioReal.toLocaleDateString()}: ${stats.horas_reales_agora.toFixed(1)}h`);
+                console.log(`🏥 Horas por ausencias: ${stats.horas_ausencias.toFixed(1)}h`);
+            }
+
+            // Debug: mostrar el nombre exacto de cada empleado
+            console.log(`🔍 Empleado: "${empleado.name}" (toUpperCase: "${empleado.name.toUpperCase()}")`);
+            if (empleado.name.toUpperCase().includes('MARIA')) {
+                console.log(`🎯 ¡Encontrado empleado con "MARIA" en el nombre!`);
+                console.log(`📅 Fecha de alta configurada: ${fechaAltaEmpleado || '6 de junio (por defecto)'}`);
+                console.log(`📊 Horas reales desde ${fechaInicioReal.toLocaleDateString()}: ${stats.horas_reales_agora.toFixed(1)}h`);
+            }
 
             // Calcular totales
             stats.total_horas_año = stats.horas_teoricas_pre_agora + 
@@ -699,20 +737,21 @@ class ConvenioAnualManager {
         }
         
         // ====== ANÁLISIS DE COMPENSACIÓN HISTÓRICA ======
-        // Calcular cuánto ha trabajado comparado con el ideal desde junio
-        const inicioReales = new Date(this.convenio.inicio_datos_reales);
-        const diasTotalesDesdeJunio = Math.floor((fechaActual - inicioReales) / (1000 * 60 * 60 * 24));
+        // Calcular cuánto ha trabajado comparado con el ideal desde la fecha de alta del empleado
+        const fechaAltaEmpleado = this.convenio.fechas_alta_empleados[stats.empleado_nombre.toUpperCase()];
+        const fechaInicioReal = fechaAltaEmpleado ? new Date(fechaAltaEmpleado) : new Date(this.convenio.inicio_datos_reales);
+        const diasTotalesDesdeInicio = Math.floor((fechaActual - fechaInicioReal) / (1000 * 60 * 60 * 24));
         
         // Calcular días que estuvo ausente (no disponible para trabajar)
-        const inicioRealesStr = inicioReales.toISOString().split('T')[0];
+        const fechaInicioStr = fechaInicioReal.toISOString().split('T')[0];
         const fechaActualStr = fechaActual.toISOString().split('T')[0];
         
         let diasAusencia = 0;
         this.ausencias
             .filter(a => a.empleado_id === stats.empleado_id && a.estado === 'aprobado')
             .forEach(ausencia => {
-                // Calcular intersección entre período de ausencia y período desde junio
-                const inicioAusencia = ausencia.fecha_inicio >= inicioRealesStr ? ausencia.fecha_inicio : inicioRealesStr;
+                // Calcular intersección entre período de ausencia y período desde la fecha de alta
+                const inicioAusencia = ausencia.fecha_inicio >= fechaInicioStr ? ausencia.fecha_inicio : fechaInicioStr;
                 const finAusencia = ausencia.fecha_fin <= fechaActualStr ? ausencia.fecha_fin : fechaActualStr;
                 
                 if (inicioAusencia <= finAusencia) {
@@ -723,27 +762,27 @@ class ConvenioAnualManager {
             });
         
         // Días realmente disponibles para trabajar
-        const diasDisponibles = diasTotalesDesdeJunio - diasAusencia;
+        const diasDisponibles = diasTotalesDesdeInicio - diasAusencia;
         const semanasDisponibles = diasDisponibles / 7;
         const horasIdealesAjustadas = semanasDisponibles * (this.convenio.dias_trabajo_empleada_semana * this.convenio.horas_teoricas_dia); // 40.8h/semana ideal
-        const horasRealesDesdeJunio = stats.horas_reales_agora;
+        const horasRealesDesdeInicio = stats.horas_reales_agora;
         
         // === DEBUG JAVI 2.0 CORREGIDO ===
         if (stats.empleado_nombre.toUpperCase().includes('RAQUEL')) {
             console.log(`\n✅ ===== FÓRMULA JAVI 2.0 CORREGIDA =====`);
-            console.log(`📅 Período: ${this.convenio.inicio_datos_reales} → ${fechaActualStr}`);
-            console.log(`📊 Días totales desde junio: ${diasTotalesDesdeJunio} días`);
+            console.log(`📅 Período: ${fechaInicioStr} → ${fechaActualStr}`);
+            console.log(`📊 Días totales desde inicio: ${diasTotalesDesdeInicio} días`);
             console.log(`🏥 Días de ausencia: ${diasAusencia} días`);
-            console.log(`⚡ Horas reales fichadas: ${horasRealesDesdeJunio.toFixed(1)}h`);
+            console.log(`⚡ Horas reales fichadas: ${horasRealesDesdeInicio.toFixed(1)}h`);
             console.log(`🏥 Horas ausencias (solo convenio): ${stats.horas_ausencias.toFixed(1)}h`);
             
             // FÓRMULA JAVI 2.0
-            const fechaInicio = new Date(this.convenio.inicio_datos_reales);
+            const fechaInicio = new Date(fechaInicioStr);
             const fechaFin = new Date(fechaActualStr);
             const diasExactos = Math.floor((fechaFin - fechaInicio) / (1000 * 60 * 60 * 24)) + 1;
             const semanasJavi = diasExactos / 7;
             const horasIdealesFijas = semanasJavi * 40.8;
-            const horasCumplidas = horasRealesDesdeJunio + stats.horas_ausencias;
+            const horasCumplidas = horasRealesDesdeInicio + stats.horas_ausencias;
             const diferenciaJavi20 = horasCumplidas - horasIdealesFijas;
             
             console.log(`📊 Horas ideales FIJAS: ${horasIdealesFijas.toFixed(2)}h`);
@@ -752,14 +791,25 @@ class ConvenioAnualManager {
             console.log(`==========================================`);
         }
         
+        // Debug específico para María José
+        if (stats.empleado_nombre.toUpperCase().includes('MARIA JOSE')) {
+            console.log(`\n🔍 ===== ANÁLISIS COMPENSACIÓN MARÍA JOSÉ =====`);
+            console.log(`📅 Fecha de alta: ${fechaInicioStr}`);
+            console.log(`📅 Fecha actual: ${fechaActualStr}`);
+            console.log(`📊 Días totales desde alta: ${diasTotalesDesdeInicio} días`);
+            console.log(`🏥 Días de ausencia: ${diasAusencia} días`);
+            console.log(`⚡ Horas reales fichadas: ${horasRealesDesdeInicio.toFixed(1)}h`);
+            console.log(`🏥 Horas por ausencias: ${stats.horas_ausencias.toFixed(1)}h`);
+        }
+        
         // console.log(`   📊 Cálculo compensación ${stats.empleado_nombre}:`);
-        console.log(`     • Días totales desde junio: ${diasTotalesDesdeJunio}`);
+        console.log(`     • Días totales desde inicio: ${diasTotalesDesdeInicio}`);
         console.log(`     • Días de ausencia: ${diasAusencia}`);
         console.log(`     • Días disponibles: ${diasDisponibles}`);
         console.log(`     • Semanas disponibles: ${semanasDisponibles.toFixed(1)}`);
         
         // ✅ APLICAR METODOLOGÍA JAVI 2.0 PARA DIFERENCIA FINAL
-        const fechaInicio = new Date(this.convenio.inicio_datos_reales);
+        const fechaInicio = new Date(fechaInicioStr);
         const fechaFin = new Date(fechaActualStr);
         const diasExactos = Math.floor((fechaFin - fechaInicio) / (1000 * 60 * 60 * 24)) + 1;
         const semanasJavi = diasExactos / 7;
@@ -769,7 +819,7 @@ class ConvenioAnualManager {
         const horasSemanalesIdeales = esMediaJornada ? 25 : 40.8;
 
         const horasIdealesFijas = semanasJavi * horasSemanalesIdeales; // Horas ideales FIJAS (no ajustadas por bajas)
-        const horasCumplidas = horasRealesDesdeJunio + stats.horas_ausencias;
+        const horasCumplidas = horasRealesDesdeInicio + stats.horas_ausencias;
         const diferenciaCargaTrabajo = horasCumplidas - horasIdealesFijas; // ✅ NUEVA FÓRMULA JAVI 2.0
         
         console.log(`     • Diferencia: ${diferenciaCargaTrabajo >= 0 ? '+' : ''}${diferenciaCargaTrabajo.toFixed(1)}h`);
@@ -781,7 +831,7 @@ class ConvenioAnualManager {
         // ====== CALCULAR MEDIA SEMANAL CORRECTA (basada en días trabajados) ======
         // Si tenemos pocos datos o semanas muy parciales, usar método alternativo
         const totalDiasTrabajados = fichajesEmpleado.length;
-        const horasPorDia = totalDiasTrabajados > 0 ? horasRealesDesdeJunio / totalDiasTrabajados : 0;
+        const horasPorDia = totalDiasTrabajados > 0 ? horasRealesDesdeInicio / totalDiasTrabajados : 0;
         const mediaPorDias = horasPorDia * this.convenio.dias_trabajo_empleada_semana; // 6 días/semana
         
         // Decidir qué método usar - SIEMPRE usar método por días si es más confiable
@@ -803,12 +853,21 @@ class ConvenioAnualManager {
         }
         
         // Solo crear recomendaciones si tenemos datos suficientes Y no está ausente
-        if (horasRealesDesdeJunio < 50) { // Menos de ~1.5 semanas de trabajo
+        // Para empleados con muy pocos datos, analizar igual pero con recomendación especial
+        if (horasRealesDesdeInicio < 50) { // Menos de ~1.5 semanas de trabajo
             if (stats.estado_semanal !== 'de_ausencia') {
-                stats.estado_semanal = 'sin_datos';
-                stats.recomendacion_compensacion = 'Pocos datos históricos - Seguir con horarios normales';
+                // Calcular días desde que empezó
+                const diasDesdeInicio = Math.floor((new Date() - new Date(fechaInicioStr)) / (1000 * 60 * 60 * 24));
+                
+                if (diasDesdeInicio < 14) { // Menos de 2 semanas desde que empezó
+                    stats.estado_semanal = 'empleado_nuevo';
+                    stats.recomendacion_compensacion = `Empleado nuevo (${diasDesdeInicio} días) - Analizar compensación`;
+                } else {
+                    stats.estado_semanal = 'sin_datos';
+                    stats.recomendacion_compensacion = 'Pocos datos históricos - Seguir con horarios normales';
+                }
             }
-            return;
+            // NO hacer return aquí - continuar con el análisis
         }
         
         // NO modificar estado si ya está marcado como ausente

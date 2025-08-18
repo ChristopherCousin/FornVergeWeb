@@ -199,7 +199,6 @@ async function loadEmployees() {
             .from('employees')
             .select('*')
             .neq('role', 'admin')
-            .neq('employee_id', 'xisca')
             .order('name');
 
         if (error) {

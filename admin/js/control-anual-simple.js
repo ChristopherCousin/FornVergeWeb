@@ -341,19 +341,31 @@ class ControlAnualSimple {
         const empleadosSinDatos = stats.filter(s => s.estado_semanal === 'sin_datos');
         const empleadosDeAusencia = stats.filter(s => s.estado_semanal === 'de_ausencia');
         
-        // Clasificar empleados (LÓGICA ORIGINAL + ausencias)
+        // Clasificar empleados (LÓGICA ORIGINAL + ausencias + empleados nuevos)
         const empleadosConSobrecarga = empleadosConDatos.filter(s => 
             s.estado_semanal === 'sobrecarga' || 
-            (s.estado_semanal === 'de_ausencia' && s.diferencia_carga_trabajo > 5)
+            (s.estado_semanal === 'de_ausencia' && s.diferencia_carga_trabajo > 5) ||
+            (s.estado_semanal === 'empleado_nuevo' && s.diferencia_carga_trabajo > 5)
         );
         const empleadosConSubcarga = empleadosConDatos.filter(s => 
-            s.estado_semanal === 'subcarga' || 
-            (s.estado_semanal === 'de_ausencia' && s.diferencia_carga_trabajo < -1)
+            (s.estado_semanal === 'subcarga' || 
+            (s.estado_semanal === 'de_ausencia' && s.diferencia_carga_trabajo < -1) ||
+            (s.estado_semanal === 'empleado_nuevo' && s.diferencia_carga_trabajo < -1)) &&
+            !s.empleado_nombre.toUpperCase().includes('XISCA') // Excluir a Xisca
         );
         const empleadosEquilibrados = empleadosConDatos.filter(s => 
             s.estado_semanal === 'equilibrado' || 
-            (s.estado_semanal === 'de_ausencia' && Math.abs(s.diferencia_carga_trabajo) <= 1)
+            (s.estado_semanal === 'de_ausencia' && Math.abs(s.diferencia_carga_trabajo) <= 1) ||
+            (s.estado_semanal === 'empleado_nuevo' && Math.abs(s.diferencia_carga_trabajo) <= 1)
         );
+
+        // Debug: mostrar qué empleados están en cada categoría
+        console.log('🔍 ===== ANÁLISIS COMPENSACIONES =====');
+        console.log('📊 Empleados con sobrecarga:', empleadosConSobrecarga.map(s => s.empleado_nombre));
+        console.log('📊 Empleados con subcarga:', empleadosConSubcarga.map(s => s.empleado_nombre));
+        console.log('📊 Empleados equilibrados:', empleadosEquilibrados.map(s => s.empleado_nombre));
+        console.log('📊 Empleados sin datos:', empleadosSinDatos.map(s => s.empleado_nombre));
+        console.log('📊 Empleados de ausencia:', empleadosDeAusencia.map(s => s.empleado_nombre));
 
         // Información sobre empleados de ausencia (simplificada)
         let seccionAusencias = '';
@@ -367,6 +379,8 @@ class ControlAnualSimple {
                 </div>
             `;
         }
+
+
 
         // Información sobre empleados sin datos
         let seccionSinDatos = '';
@@ -438,6 +452,7 @@ class ControlAnualSimple {
                         <div class="font-semibold text-red-800">
                             ${s.empleado_nombre} ${mediaJornadaBadge}
                             ${s.estado_semanal === 'de_ausencia' ? '(🏥 vuelve pronto)' : ''}
+                            ${s.estado_semanal === 'empleado_nuevo' ? '(🆕 nuevo)' : ''}
                         </div>
                         <div class="text-sm">
                             <span class="text-red-600 font-bold">+${Math.abs(s.diferencia_carga_trabajo).toFixed(0)}h extra</span> | 
@@ -471,6 +486,7 @@ class ControlAnualSimple {
                         <div class="font-semibold text-blue-800">
                             ${s.empleado_nombre} ${mediaJornadaBadge}
                             ${s.estado_semanal === 'de_ausencia' ? '(🏥 vuelve pronto)' : ''}
+                            ${s.estado_semanal === 'empleado_nuevo' ? '(🆕 nuevo)' : ''}
                         </div>
                         <div class="text-sm">
                             <span class="text-blue-600 font-bold">${Math.abs(s.diferencia_carga_trabajo).toFixed(0)}h menos</span> | 
@@ -502,6 +518,7 @@ class ControlAnualSimple {
                         <div class="font-semibold text-green-800">
                             ${s.empleado_nombre} ${mediaJornadaBadge}
                             ${s.estado_semanal === 'de_ausencia' ? '(🏥 vuelve pronto)' : ''}
+                            ${s.estado_semanal === 'empleado_nuevo' ? '(🆕 nuevo)' : ''}
                         </div>
                         <div class="text-sm">
                             <span class="text-green-600 font-bold">equilibrado</span> | 

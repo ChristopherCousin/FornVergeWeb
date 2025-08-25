@@ -15,7 +15,8 @@ window.UI = window.UI || {};
       card.classList.add('slide-up');
       const today = new Date();
       const currentDayIndex = (today.getDay() + 6) % 7;
-      const isToday = index === currentDayIndex;
+      const isCurrentWeek = window.AppState.currentWeekStart === window.DateUtils.getCurrentWeekStart();
+      const isToday = isCurrentWeek && index === currentDayIndex;
       if (isToday) card.classList.add('today-highlight');
 
       if (schedule.is_free_day) {
@@ -121,6 +122,19 @@ window.UI = window.UI || {};
               </div>
             `}
           </div>
+          ${(() => {
+            const tasks = (window.AppState.currentSchedule[day.key] && window.AppState.currentSchedule[day.key].tasks) || [];
+            if (!tasks || tasks.length === 0) return '';
+            const chips = tasks.map(t => `<span class=\"chip\"><span class=\"avatar\">${(t.name || t.key || '?').trim().charAt(0).toUpperCase()}</span>${t.name || t.key}</span>`).join('');
+            return `
+              <div class=\"bg-white/60 rounded-xl p-3 mb-3 border border-gray-200\">
+                <div class=\"flex items-center justify-between mb-2\">
+                  <div class=\"font-semibold text-sm text-gray-800\"><i class=\"fas fa-list-check mr-2\"></i>Tareas asignadas</div>
+                </div>
+                <div class=\"chips-row\">${chips}</div>
+              </div>
+            `;
+          })()}
           <div class="flex items-center justify-between text-xs text-gray-700">
             ${isSplitShift ? `
               <div class="bg-white/20 px-2 py-1 rounded-full text-xs">

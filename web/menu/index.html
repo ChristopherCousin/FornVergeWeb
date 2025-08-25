@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú MASSA - Cafetería & Panadería Artesanal</title>
+    <meta name="description" content="Descubre nuestra carta de productos artesanales: desayunos, bollería, café de especialidad y más.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Swiper.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="menu-nav">
+        <div class="nav-brand">
+            <i class="fas fa-wheat-awn"></i>
+            <h1>MASSA</h1>
+        </div>
+        <div class="nav-location">
+            <select id="locationSelector" class="location-select">
+                <option value="llevant">Llevant</option>
+                <option value="son-oliva">Son Oliva</option>
+            </select>
+        </div>
+    </nav>
+
+    <main class="menu-container">
+        <!-- Hero Section -->
+        <section class="menu-hero">
+            <h2 class="visually-hidden">Menú MASSA</h2>
+            <div class="swiper hero-swiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide hero-slide">
+                        <img src="../assets/images/desayuno1.jpg" alt="Desayuno especial MASSA" class="hero-image">
+                        <div class="slide-content">
+                            <h3>Desayuno Especial</h3>
+                            <p>Café + Croissant + Zumo Natural</p>
+                            <div class="price-tag">6.90€</div>
+                        </div>
+                    </div>
+                    <div class="swiper-slide hero-slide">
+                        <img src="../assets/images/desayuno2.jpeg" alt="Desayuno continental" class="hero-image">
+                        <div class="slide-content">
+                            <h3>Continental</h3>
+                            <p>Café + Tostadas + Zumo</p>
+                            <div class="price-tag">5.90€</div>
+                        </div>
+                    </div>
+                    <div class="swiper-slide hero-slide">
+                        <img src="../assets/images/desayuno3.jpeg" alt="Desayuno saludable" class="hero-image">
+                        <div class="slide-content">
+                            <h3>Healthy Start</h3>
+                            <p>Bowl de Yogur + Granola + Café</p>
+                            <div class="price-tag">7.50€</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="swiper-pagination"></div>
+            </div>
+        </section>
+
+        <!-- Categorías -->
+        <section class="menu-categories">
+            <div class="category-tabs">
+                <button class="tab-btn active" data-category="desayunos">
+                    <i class="fas fa-mug-hot"></i>
+                    <span>Desayunos</span>
+                </button>
+                <button class="tab-btn" data-category="panaderia">
+                    <i class="fas fa-bread-slice"></i>
+                    <span>Panadería</span>
+                </button>
+                <button class="tab-btn" data-category="cafe">
+                    <i class="fas fa-coffee"></i>
+                    <span>Café</span>
+                </button>
+                <button class="tab-btn" data-category="dulce">
+                    <i class="fas fa-cookie"></i>
+                    <span>Dulces</span>
+                </button>
+            </div>
+
+            <!-- Contenido de las categorías -->
+            <div class="category-content active" id="desayunos">
+                <div class="menu-grid">
+                    <article class="menu-item" data-aos="fade-up">
+                        <div class="item-image">
+                            <img src="../assets/images/desayuno_completo.png" alt="Desayuno Completo">
+                            <span class="item-badge">Popular</span>
+                        </div>
+                        <div class="item-info">
+                            <h3>Desayuno Completo</h3>
+                            <p>Café + Croissant + Zumo Natural + Huevos Revueltos</p>
+                            <div class="item-meta">
+                                <div class="item-tags">
+                                    <span>Completo</span>
+                                    <span>Caliente</span>
+                                </div>
+                                <div class="item-price">8.90€</div>
+                            </div>
+                        </div>
+                    </article>
+                    <!-- Más items... -->
+                </div>
+            </div>
+
+            <div class="category-content" id="panaderia">
+                <!-- Contenido de panadería -->
+            </div>
+
+            <div class="category-content" id="cafe">
+                <!-- Contenido de café -->
+            </div>
+
+            <div class="category-content" id="dulce">
+                <!-- Contenido de dulces -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="menu.js"></script>
+</body>
+</html>

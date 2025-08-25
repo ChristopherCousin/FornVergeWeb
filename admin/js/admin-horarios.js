@@ -4,6 +4,15 @@
 const SUPABASE_URL = 'https://csxgkxjeifakwslamglc.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzeGdreGplaWZha3dzbGFtZ2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjM4NjIsImV4cCI6MjA2NDg5OTg2Mn0.iGDmQJGRjsldPGmXLO5PFiaLOk7P3Rpr0omF3b8SJkg';
 
+// Función HASH para la contraseña
+async function sha256(text) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // Utilidades de fecha
 function toISODate(d) {
     const year = d.getFullYear();
@@ -97,7 +106,7 @@ let isEditingShift = false;
 let currentEditingShiftIndex = null;
 
 // Configuración de autenticación
-const ADMIN_PASSWORD = 'fornverge2025'; // Contraseña del panel
+const ADMIN_PASSWORD_HASH = 'c02c130935092678750a1396e519f523c8df545464f46ffd27729f2d9cde6f35'; // SHA-256 de 'fornverge2025'
 let isAuthenticated = false;
 
 async function initApp() {
@@ -1329,7 +1338,13 @@ async function handleLogin(e) {
     // Simular pequeño delay para UX
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    if (password === ADMIN_PASSWORD) {
+    const passwordHash = await sha256(password);
+    
+    // DEBUG: Mostrar hashes en consola para verificar
+    console.log('HASH esperado:', ADMIN_PASSWORD_HASH);
+    console.log('HASH introducido:', passwordHash);
+    
+    if (passwordHash === ADMIN_PASSWORD_HASH) {
         // Login exitoso
         isAuthenticated = true;
         

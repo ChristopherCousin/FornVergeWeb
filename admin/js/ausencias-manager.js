@@ -12,6 +12,10 @@ class AusenciasManager {
         this.ausencias = [];
         this.listenersSetup = false; // Evitar event listeners duplicados
         this.formSubmitting = false; // Evitar envío doble del formulario
+        this.PROMEDIO_DIARIO_CONVENIO = 40 / 7; // Aprox 5.714
+
+        // Inicializar
+        this.init();
     }
 
     async init() {
@@ -139,8 +143,7 @@ class AusenciasManager {
             const fechaInicio = document.getElementById('ausenciaFechaInicio').value;
             const fechaFin = document.getElementById('ausenciaFechaFin').value;
             const tipo = document.getElementById('ausenciaTipo').value;
-            // Horas fijas según convenio (6,8h/día)
-            const horasDia = 6.8;
+            const horasDia = 5.6;
 
             // Validaciones
             if (!empleadoId || !fechaInicio || !fechaFin || !tipo) {
@@ -396,6 +399,92 @@ class AusenciasManager {
     empleadoEstaAusente(empleadoId, fecha = new Date()) {
         const ausenciasActivas = this.getAusenciasActivas(fecha);
         return ausenciasActivas.some(ausencia => ausencia.empleado_id === empleadoId);
+    }
+
+    renderAusenciasList(ausencias) {
+        const container = document.getElementById('listaAusencias');
+        if (!container) return;
+
+        let html = '';
+
+        if (ausencias.length === 0) {
+            container.innerHTML = '<div class="text-center text-gray-500 py-4">No hay ausencias registradas.</div>';
+            return;
+        }
+
+        ausencias.forEach(ausencia => {
+            const diasNaturales = Math.floor((new Date(ausencia.fecha_fin) - new Date(ausencia.fecha_inicio)) / (1000 * 60 * 60 * 24)) + 1;
+            const valorTeoricoAusencia = diasNaturales * this.PROMEDIO_DIARIO_CONVENIO;
+            
+            html += `
+                <div class="ausencia-card estado-${ausencia.estado}">
+                    <div class="ausencia-header">
+                        <div class="ausencia-empleado">
+                            <i class="fas fa-user-circle mr-2"></i>
+                            ${this.getEmployeeNameById(ausencia.empleado_id)}
+                        </div>
+                        <div class="ausencia-tipo">${this.formatTipoAusencia(ausencia.tipo)}</div>
+                    </div>
+                    <div class="ausencia-body">
+                        <div class="ausencia-fecha">
+                            <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>
+                            ${new Date(ausencia.fecha_inicio).toLocaleDateString()} &rarr; ${new Date(ausencia.fecha_fin).toLocaleDateString()}
+                        </div>
+                        <div class="ausencia-details">
+                            <div>
+                                <i class="fas fa-business-time mr-2 text-gray-400"></i>
+                                ${diasNaturales} días (valor: ${valorTeoricoAusencia.toFixed(1)}h teóricas)
+                            </div>
+                            <div class="ausencia-estado">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                ${this.formatEstado(ausencia.estado)}
+                            </div>
+                            <div class="info-convenio">
+                                <i class="fas fa-info-circle mr-2 text-blue-500"></i>
+                                <div>
+                                    <div class="font-semibold">Lógica del Convenio</div>
+                                    <div class="text-xs text-gray-600">
+                                        Cada día de ausencia (L-D) reduce la obligación de horas a realizar en ~${this.PROMEDIO_DIARIO_CONVENIO.toFixed(2)}h.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ausencia-actions">
+                        <button class="btn-ausencia-eliminar" onclick="ausenciasManager.eliminarAusencia('${ausencia.id}')"><i class="fas fa-trash-alt"></i> Eliminar</button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+    }
+
+    formatTipoAusencia(tipo) {
+        const tipos = {
+            'vacaciones': 'Vacaciones',
+            'baja_medica': 'Baja Médica',
+            'permiso': 'Permiso',
+            'maternidad': 'Maternidad',
+            'convenio': 'Convenio',
+            'asuntos_propios': 'Asuntos Propios',
+            'festivo_local': 'Festivo Local'
+        };
+        return tipos[tipo] || tipo;
+    }
+
+    formatEstado(estado) {
+        const estados = {
+            'pendiente': 'Pendiente',
+            'aprobado': 'Aprobado',
+            'rechazado': 'Rechazado'
+        };
+        return estados[estado] || estado;
+    }
+
+    getEmployeeNameById(id) {
+        const empleado = this.empleados.find(emp => emp.id === id);
+        return empleado ? empleado.name : 'Desconocido';
     }
 }
 

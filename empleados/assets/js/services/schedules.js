@@ -94,7 +94,8 @@ window.ScheduleService = (function(){
         shifts: [],
         start_time: null,
         end_time: null,
-        hours: 0
+        hours: 0,
+        tasks: []
       };
     });
     scheduleData.forEach(schedule => {
@@ -194,12 +195,34 @@ window.ScheduleService = (function(){
         .eq('week_start', window.AppState.currentWeekStart)
         .order('day_of_week');
       if (myError) { console.error(myError); return; }
+      // Cargar tareas personales de la semana
+      let myTasks = [];
+      try {
+        if (window.TasksService && typeof window.TasksService.getMyTasksForWeek === 'function') {
+          myTasks = await window.TasksService.getMyTasksForWeek(window.AppState.currentWeekStart, window.AppState.currentEmployee.id);
+        }
+      } catch (errTasks) {
+        console.error('Error cargando tareas:', errTasks);
+      }
+
       const { data: allSchedules, error: allError } = await supabase()
         .from('schedules')
         .select(`*, employees!inner(name)`) 
         .eq('week_start', window.AppState.currentWeekStart);
       if (!allError && allSchedules) processAllEmployeesSchedules(allSchedules);
       processScheduleData(mySchedules || []);
+      // Adjuntar tareas por día
+      if (Array.isArray(myTasks) && myTasks.length > 0) {
+        for (const t of myTasks) {
+          const key = t.day_of_week;
+          if (window.AppState.currentSchedule[key]) {
+            if (!Array.isArray(window.AppState.currentSchedule[key].tasks)) {
+              window.AppState.currentSchedule[key].tasks = [];
+            }
+            window.AppState.currentSchedule[key].tasks.push({ key: t.task_key, name: t.name });
+          }
+        }
+      }
       window.UI.renderSchedule();
       window.UI.updateStats();
       updateNavigationButtons();

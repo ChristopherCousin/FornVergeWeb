@@ -72,7 +72,6 @@
       <div class="navbar__nav" role="menubar">
         <a href="#inicio" class="navbar__link" role="menuitem">Inicio</a>
         <a href="#locales" class="navbar__link" role="menuitem">Locales</a>
-        <a href="#ofertas" class="navbar__link" role="menuitem">Ofertas</a>
         <a href="#contacto" class="navbar__link" role="menuitem">Contacto</a>
       </div>
       <button class="navbar__mobile-toggle" id="mobile-menu" aria-label="Abrir menú móvil" aria-expanded="false">
@@ -89,7 +88,6 @@
       <h2 id="mobile-menu-title" class="sr-only">Menú de navegación</h2>
       <a href="#inicio">Inicio</a>
       <a href="#locales">Locales</a>
-      <a href="#ofertas">Ofertas</a>
       <a href="#contacto">Contacto</a>
     </nav>
   </div>
@@ -130,7 +128,6 @@
 
         <div class="flex flex-wrap gap-3 justify-center mb-4" data-aos="fade-up" data-aos-delay="500">
           <a href="#locales" class="btn btn-primary"><i class="fas fa-store mr-2"></i>Ver Locales</a>
-          <a href="#ofertas" class="btn btn-outline"><i class="fas fa-percentage mr-2"></i>Ofertas</a>
         </div>
       </div>
     </div>
@@ -187,7 +184,6 @@
       </div>
       <div class="cta-bar mt-4" data-aos="fade-up" data-aos-delay="350">
         <div class="btn-row">
-          <a class="btn btn-primary btn--shine" href="#ofertas"><i class="fas fa-percentage mr-2"></i>Ver Ofertas de Hoy</a>
           <a class="btn btn-outline btn--ghost" href="#locales"><i class="fas fa-location-dot mr-2"></i>Elegir Local</a>
         </div>
       </div>
@@ -207,7 +203,6 @@
           <p class="location-card__meta">Calle Aragón, 323A • 07009 Palma</p>
           <div class="location-card__actions">
             <a class="btn btn-primary btn--shine" href="./locations/llevant/"><i class="fas fa-arrow-right mr-2"></i>Ver local</a>
-            <a class="btn btn-outline btn--ghost" href="./ofertas/?local=llevant"><i class="fas fa-percentage mr-2"></i>Ofertas</a>
           </div>
         </div>
         <div class="card card-premium" data-aos="fade-up" data-aos-delay="200">
@@ -216,48 +211,13 @@
           <p class="location-card__meta">Av. Tomás de Villanueva Cortés, 11, esq. Isaac Albéniz, 3 • 07010 Palma</p>
           <div class="location-card__actions">
             <a class="btn btn-primary btn--shine" href="./locations/son-oliva/"><i class="fas fa-arrow-right mr-2"></i>Ver local</a>
-            <a class="btn btn-outline btn--ghost" href="./ofertas/?local=son-oliva"><i class="fas fa-percentage mr-2"></i>Ofertas</a>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="ofertas" class="section section-dark">
-    <div class="container">
-      <div class="text-center" data-aos="fade-up">
-        <div class="card-glass max-w-2xl mx-auto p-8">
-          <div class="flex items-center justify-center gap-4 mb-6">
-            <div class="w-16 h-16 bg-gradient-gold rounded-full flex items-center justify-center shadow-gold">
-              <i class="fas fa-percentage text-charcoal text-2xl"></i>
-            </div>
-            <div>
-              <h3 class="font-serif text-3xl font-bold text-gold mb-0 leading-tight">Ofertas por Local</h3>
-              <p class="text-light-gold mb-0 text-base font-medium">Escanea para ver ofertas en tu MASSA</p>
-            </div>
-          </div>
 
-          <div class="desktop-only qr-grid">
-            <div class="qr-item">
-              <div class="qr-box"><div class="qr-code" data-local="llevant"></div></div>
-              <div class="qr-caption">Calle Aragón 323A</div>
-              <a class="qr-link" href="https://maps.google.com/?q=Calle+Arag%C3%B3n+323A+Palma" target="_blank" rel="noopener">Cómo llegar</a>
-            </div>
-            <div class="qr-item">
-              <div class="qr-box"><div class="qr-code" data-local="son-oliva"></div></div>
-              <div class="qr-caption">Son Oliva</div>
-              <a class="qr-link" href="https://maps.google.com/?q=Av.+Tom%C3%A1s+de+Villanueva+Cort%C3%A9s+11+Palma" target="_blank" rel="noopener">Cómo llegar</a>
-            </div>
-          </div>
-
-          <div class="mobile-only text-center mt-4">
-            <a href="ofertas/?local=llevant" class="btn btn-primary mb-3"><i class="fas fa-store mr-2"></i>Ver ofertas Llevant</a>
-            <a href="ofertas/?local=son-oliva" class="btn btn-outline"><i class="fas fa-store mr-2"></i>Ver ofertas Son Oliva</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <section id="contacto" class="section section-cream">
     <div class="container">

@@ -71,7 +71,7 @@ class ConvenioAnualManager {
         // Cargar empleados (excluir admins)
         const { data: empleados } = await this.supabase
             .from('employees')
-            .select('id, name, role')
+            .select('id, name, role, fecha_alta')
             .neq('role', 'admin')
             .order('name');
         
@@ -222,8 +222,8 @@ class ConvenioAnualManager {
             console.log(`\n\n============== 📊 ANALIZANDO A ${empleado.name.toUpperCase()} ==============`);
             
             // Determinar fecha de inicio real para este empleado
-            const fechaAltaEmpleado = this.convenio.fechas_alta_empleados[empleado.name.toUpperCase()];
-            const fechaInicioReal = fechaAltaEmpleado ? new Date(fechaAltaEmpleado) : inicioReales;
+            // ¡NUEVO! Leemos la fecha_alta directamente del objeto empleado
+            const fechaInicioReal = empleado.fecha_alta ? new Date(empleado.fecha_alta) : inicioReales;
             
             // Debug específico para María José
             // if (empleado.name.toUpperCase().includes('MARIA')) {
@@ -300,7 +300,7 @@ class ConvenioAnualManager {
             this.analizarCumplimientoConvenio(stats, empleado);
             
             // Calcular proyección para resto del año
-            this.calcularProyeccion(stats, hoy);
+            this.calcularProyeccion(stats, hoy, empleado);
             
             this.stats_anuales[empleado.id] = stats;
             
@@ -599,7 +599,7 @@ class ConvenioAnualManager {
         }
     }
 
-    calcularProyeccion(stats, fechaActual) {
+    calcularProyeccion(stats, fechaActual, empleado) {
         const finAño = new Date('2025-12-31');
         const diasRestantes = Math.floor((finAño - fechaActual) / (1000 * 60 * 60 * 24));
         const semanasRestantes = Math.floor(diasRestantes / 7);
@@ -715,8 +715,18 @@ class ConvenioAnualManager {
         
         // ====== ANÁLISIS DE COMPENSACIÓN HISTÓRICA ======
         // Calcular cuánto ha trabajado comparado con el ideal desde la fecha de alta del empleado
-        const fechaAltaEmpleado = this.convenio.fechas_alta_empleados[stats.empleado_nombre.toUpperCase()];
-        const fechaInicioReal = fechaAltaEmpleado ? new Date(fechaAltaEmpleado) : new Date(this.convenio.inicio_datos_reales);
+        const fechaInicioReal = empleado.fecha_alta ? new Date(empleado.fecha_alta) : new Date(this.convenio.inicio_datos_reales);
+        
+        // Si la fecha de alta es futura, los días trabajados hasta hoy son 0 o negativos.
+        // En este caso, el balance debe ser 0.
+        if (fechaInicioReal > fechaActual) {
+            stats.diferencia_carga_trabajo = 0;
+            stats.horas_ideales_desde_junio = 0;
+            stats.estado_semanal = 'futuro';
+            stats.recomendacion_compensacion = 'El empleado empieza en el futuro';
+            return;
+        }
+
         const diasTotalesDesdeInicio = Math.floor((fechaActual - fechaInicioReal) / (1000 * 60 * 60 * 24));
         
         // Calcular días que estuvo ausente (no disponible para trabajar)
@@ -868,7 +878,10 @@ class ConvenioAnualManager {
         }
         
         // Clasificar según la carga de trabajo histórica (solo para empleados activos)
-        if (Math.abs(diferenciaCargaTrabajo) <= 1) {
+        if (stats.diferencia_carga_trabajo === 0 && diasTotalesDesdeInicio <= 0) {
+            stats.estado_semanal = 'futuro';
+            stats.recomendacion_compensacion = `Empieza el ${new Date(empleado.fecha_alta).toLocaleDateString()}`;
+        } else if (Math.abs(diferenciaCargaTrabajo) <= 1) {
             stats.estado_semanal = 'equilibrado';
             stats.recomendacion_compensacion = `Equilibrio perfecto (${diferenciaCargaTrabajo >= 0 ? '+' : ''}${diferenciaCargaTrabajo.toFixed(0)}h vs ideal)`;
         } else if (diferenciaCargaTrabajo > 1) {

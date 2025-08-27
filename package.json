@@ -10,7 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@supabase/supabase-js": "^2.50.0"
+    "@supabase/supabase-js": "^2.50.0",
+    "sweetalert2": "^11.22.5"
   },
   "devDependencies": {
     "http-server": "^14.1.1",

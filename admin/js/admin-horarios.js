@@ -98,6 +98,8 @@ let DAYS = generateDaysForWeek(currentWeekStart);
 
 let employees = [];
 let scheduleData = {}; 
+let originalScheduleBeforeDraft = null; // Para guardar el estado antes de un borrador
+let isInDraftMode = false; // Para saber si estamos en modo borrador
 let currentModalEmployee = null;
 let currentModalDay = null;
 let employeesOnVacation = new Set(); // IDs de empleados de vacaciones
@@ -133,7 +135,7 @@ async function initApp() {
     
     setupWeekSelector();
     updateWeekDisplay();
-    loadVacationState(); // Cargar estado de vacaciones
+    // loadVacationState(); // ELIMINADO - Ya no se usa el sistema antiguo
     
     await loadEmployees();
     await loadCurrentSchedules();
@@ -177,10 +179,7 @@ function setupEventListeners() {
     
     // Vista única de semana - sin cambios de vista
     
-    // Gestión de vacaciones
-    document.getElementById('vacationsBtn').addEventListener('click', openVacationModal);
-    document.getElementById('closeVacationModal').addEventListener('click', closeVacationModal);
-    document.getElementById('cancelVacationModal').addEventListener('click', closeVacationModal);
+    // Gestión de vacaciones ELIMINADA
     
     // Logout
     document.getElementById('logoutButton').addEventListener('click', logout);
@@ -189,15 +188,25 @@ function setupEventListeners() {
         if (e.target.id === 'shiftModal') closeModal();
     });
     
-    document.getElementById('vacationModal').addEventListener('click', (e) => {
-        if (e.target.id === 'vacationModal') closeVacationModal();
-    });
+    // El modal de vacaciones ya no existe
     
     // ✅ DETECTAR CAMBIOS DE ORIENTACIÓN Y REDIMENSIONAMIENTO
     window.addEventListener('resize', debounce(forceGridReflow, 300));
     window.addEventListener('orientationchange', () => {
         setTimeout(forceGridReflow, 500); // Delay para orientación
     });
+    
+    // Generador automático
+    const btnSugerirHorario = document.getElementById('btnSugerirHorario');
+    if (btnSugerirHorario) {
+        btnSugerirHorario.addEventListener('click', handleSugerirHorario);
+    }
+    
+    // Botones del modo borrador
+    document.getElementById('btnSaveDraft')?.addEventListener('click', handleSaveDraft);
+    document.getElementById('btnDiscardDraft')?.addEventListener('click', handleDiscardDraft);
+    // Ajustes del generador
+    document.getElementById('btnGeneratorSettings')?.addEventListener('click', openGeneratorSettings);
     
     console.log('✅ Event listeners configurados con detección de resize');
 }
@@ -364,7 +373,8 @@ function renderEmployees() {
 
 // Función helper para filtrar empleados que no están de vacaciones
 function getActiveEmployees() {
-    return employees.filter(emp => !employeesOnVacation.has(emp.id));
+    // AHORA MOSTRAMOS A TODOS, las ausencias se visualizan en la parrilla.
+    return employees;
 }
 
 function getTotalShifts(empId) {
@@ -388,6 +398,14 @@ function getTotalHours(empId) {
 // Funciones de vista por días eliminadas - solo vista de semana
 
 function openShiftModal(empId, day, empName, dayName, shiftToEdit = null, shiftIndex = null) {
+    // ALERTA SEMANA PASADA
+    const thisMonday = getThisMondayISO();
+    if (currentWeekStart < thisMonday) {
+        if (!confirm(`⚠️ ¡Estás editando una semana pasada! ⚠️\n\n¿Estás seguro de que quieres modificar los horarios del ${dayName}?`)) {
+            return; // Abortar si el usuario cancela
+        }
+    }
+
     currentModalEmployee = empId;
     currentModalDay = day;
     isEditingShift = !!shiftToEdit || shiftIndex !== null;
@@ -698,6 +716,14 @@ function getShiftDescription(type) {
 }
 
 function removeShift(empId, day, index) {
+    // ALERTA SEMANA PASADA
+    const thisMonday = getThisMondayISO();
+    if (currentWeekStart < thisMonday) {
+        if (!confirm(`⚠️ ¡Estás eliminando un turno de una semana pasada! ⚠️\n\n¿Estás seguro de que quieres continuar?`)) {
+            return; // Abortar si el usuario cancela
+        }
+    }
+    
     const shiftToRemove = scheduleData[empId][day][index];
     
     // Remover del estado local
@@ -822,10 +848,11 @@ async function rebuildDaySchedule(empId, day) {
 }
 
 async function saveAllSchedules(isAutoSave = false) {
-    const saveBtn = document.getElementById('saveAll');
-    const originalText = saveBtn.innerHTML;
+    const saveBtn = document.getElementById('saveAll'); // Puede ser null
+    let originalText = '';
     
-    if (!isAutoSave) {
+    if (!isAutoSave && saveBtn) {
+        originalText = saveBtn.innerHTML;
         saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...';
         saveBtn.disabled = true;
     }
@@ -932,7 +959,7 @@ async function saveAllSchedules(isAutoSave = false) {
         alert('Error al guardar horarios');
         updateStatus('Error ❌');
     } finally {
-        if (!isAutoSave) {
+        if (!isAutoSave && saveBtn) {
             saveBtn.innerHTML = originalText;
             saveBtn.disabled = false;
         }
@@ -1076,6 +1103,24 @@ async function onWeekSelectChange(event) {
 
 async function changeToWeek(newWeekStart) {
     if (newWeekStart === currentWeekStart) return;
+    
+    if (isInDraftMode) {
+        const result = await Swal.fire({
+            title: 'Descartar borrador',
+            text: "Tienes un borrador sin guardar. Si cambias de semana, se perderá. ¿Continuar?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, descartar',
+            cancelButtonText: 'Cancelar'
+        });
+        if (!result.isConfirmed) {
+            // Sincronizar el selector de semana con la semana actual si cancela
+            document.getElementById('weekSelector').value = currentWeekStart;
+            return;
+        }
+        // Si confirma, salir del modo borrador
+        handleDiscardDraft(true); // true para modo silencioso
+    }
     
     console.log(`🔄 Cambiando a semana: ${newWeekStart}`);
     updateStatus('Cambiando semana...');
@@ -1740,60 +1785,65 @@ function createWeekDayColumn(day) {
     const content = document.createElement('div');
     content.className = 'week-day-content';
     
-    // Separar empleados que trabajan de los que están libres (CON LÓGICA MEJORADA)
+    const currentDate = new Date(currentWeekStart);
+    const dayIndex = DAYS.findIndex(d => d.key === day.key);
+    currentDate.setDate(currentDate.getDate() + dayIndex);
+
     const workingShifts = [];
     const freeEmployees = [];
-    
+    const absentEmployees = [];
+
     getActiveEmployees().forEach(employee => {
-        const shifts = scheduleData[employee.id][day.key] || [];
-        if (shifts.length === 0) {
-            freeEmployees.push(employee);
-            return;
-        }
-        let hasWorkShift = false;
-        let hasFreeShift = false;
-        shifts.forEach((shift, idx) => {
-            if (shift.isFree) {
-                hasFreeShift = true;
-                return;
+        const ausenciaInfo = window.ausenciasManager?.getAusenciaEmpleado(employee.id, currentDate);
+
+        if (ausenciaInfo) {
+            absentEmployees.push({ employee, ausenciaInfo });
+        } else {
+            const shifts = scheduleData[employee.id]?.[day.key] || [];
+            const workShiftsForEmployee = shifts.filter(s => !s.isFree);
+
+            if (workShiftsForEmployee.length > 0) {
+                workShiftsForEmployee.forEach(shift => {
+                    const originalIndex = shifts.findIndex(s => s.id === shift.id);
+                    workingShifts.push({ employee, shift, indexInSchedule: originalIndex });
+                });
+            } else {
+                freeEmployees.push(employee);
             }
-            hasWorkShift = true;
-            workingShifts.push({ employee: employee, shift: shift, indexInSchedule: idx });
-        });
-        if (!hasWorkShift) {
-            freeEmployees.push(employee);
-        } else if (hasFreeShift) {
-            console.warn(`⚠️ VISTA SEMANAL: ${employee.name} tiene TANTO turnos de trabajo COMO días libres en ${day.key} - priorizando turnos de trabajo`);
         }
     });
-    
+
     // Ordenar turnos de trabajo por hora de inicio
     workingShifts.sort((a, b) => {
         if (!a.shift.start || !b.shift.start) return 0;
         return a.shift.start.localeCompare(b.shift.start);
     });
-    
-    // Renderizar primero los turnos de trabajo
+
+    // 1. Renderizar turnos de trabajo
     workingShifts.forEach(({ employee, shift, indexInSchedule }) => {
         const shiftElement = createWeekShiftElement(employee, day, shift, indexInSchedule);
         content.appendChild(shiftElement);
     });
-    
-    // Separador visual si hay empleados libres
-    if (freeEmployees.length > 0 && workingShifts.length > 0) {
+
+    // 2. Separador visual si hay empleados libres o ausentes
+    if (workingShifts.length > 0 && (freeEmployees.length > 0 || absentEmployees.length > 0)) {
         const separator = document.createElement('div');
-        separator.style.cssText = 'height: 8px; border-bottom: 1px dashed #d1d5db; margin: 8px 0;';
+        separator.style.cssText = 'height: 8px; border-bottom: 1px dashed #d1d5db; margin: 8px 4px 4px;';
         content.appendChild(separator);
     }
-    
-    // Renderizar empleados libres al final (solo empleados que REALMENTE están libres)
+
+    // 3. Renderizar empleados ausentes
+    absentEmployees.forEach(({ employee, ausenciaInfo }) => {
+        const absenceElement = createAbsenceElement(employee, ausenciaInfo);
+        content.appendChild(absenceElement);
+    });
+
+    // 4. Renderizar empleados libres
     freeEmployees.forEach(employee => {
         const freeElement = createWeekShiftElement(employee, day, { isFree: true });
         content.appendChild(freeElement);
     });
-    
-    // No necesitamos botón extra - los empleados libres ya son clickeables
-    
+
     column.appendChild(header);
     column.appendChild(content);
     
@@ -1803,10 +1853,26 @@ function createWeekDayColumn(day) {
 function createWeekShiftElement(employee, day, shift, indexInSchedule = null) {
     const element = document.createElement('div');
     
+    const convenioStatus = window.controlAnualSimple?.convenioAnual?.getEstadoEmpleado(employee.id);
+    let statusIcon = '';
+    if (convenioStatus) {
+        switch (convenioStatus.estado_semanal) {
+            case 'sobrecarga':
+                statusIcon = '<span class="ml-2 text-red-500" title="Necesita menos horas">🔻</span>';
+                break;
+            case 'subcarga':
+                statusIcon = '<span class="ml-2 text-blue-500" title="Necesita más horas">🔺</span>';
+                break;
+            case 'equilibrado':
+                statusIcon = '<span class="ml-2 text-green-500" title="Carga de trabajo equilibrada">✅</span>';
+                break;
+        }
+    }
+
     if (shift.isFree) {
         element.className = 'week-shift-compact free';
         element.innerHTML = `
-            <div class="week-employee-name">${employee.name}</div>
+            <div class="week-employee-name">${employee.name}${statusIcon}</div>
             <div class="week-shift-time">Día libre</div>
             <div style="font-size: 8px; opacity: 0.7; margin-top: 2px;">👆 Toca para asignar</div>
         `;
@@ -1820,7 +1886,7 @@ function createWeekShiftElement(employee, day, shift, indexInSchedule = null) {
         `;
         
         element.innerHTML = `
-            <div class="week-employee-name">${employee.name}</div>
+            <div class="week-employee-name">${employee.name}${statusIcon}</div>
             <div class="week-shift-time">${shift.start?.slice(0,5)} - ${shift.end?.slice(0,5)}</div>
             <div class="week-shift-delete" onclick="removeWeekShift(event, '${employee.id}', '${day.key}', ${JSON.stringify(shift).replace(/"/g, '&quot;')})">
                 <i class="fas fa-times"></i>
@@ -1834,6 +1900,34 @@ function createWeekShiftElement(employee, day, shift, indexInSchedule = null) {
         e.stopPropagation();
         openShiftModal(employee.id, day.key, employee.name, day.fullName, shift.isFree ? null : shift, indexInSchedule);
     };
+    
+    return element;
+}
+
+function createAbsenceElement(employee, absenceInfo) {
+    const element = document.createElement('div');
+    element.className = 'week-shift-compact absence';
+    
+    const iconos = {
+        'vacaciones': '🏖️',
+        'baja_medica': '🏥',
+        'permiso': '📋',
+        'maternidad': '👶',
+        'convenio': '📋',
+        'asuntos_propios': '📝',
+        'festivo_local': '🎉'
+    };
+    
+    const tipoCapitalizado = (absenceInfo.tipo || '').replace('_', ' ');
+    
+    element.innerHTML = `
+        <div class="week-employee-name">${employee.name}</div>
+        <div class="week-shift-time">
+            <span class="text-lg">${iconos[absenceInfo.tipo] || '📋'}</span>
+            <span class="capitalize">${tipoCapitalizado}</span>
+        </div>
+    `;
+    element.title = `Ausente por ${tipoCapitalizado}`;
     
     return element;
 }
@@ -1931,132 +2025,7 @@ function removeWeekShift(event, empId, dayKey, shiftData) {
     }, 100);
 }
 
-// === FUNCIONES DE GESTIÓN DE VACACIONES ===
-
-function loadVacationState() {
-    try {
-        const savedVacations = localStorage.getItem('fornverge_vacations');
-        if (savedVacations) {
-            const vacationArray = JSON.parse(savedVacations);
-            employeesOnVacation = new Set(vacationArray);
-            // console.log('✅ Estado de vacaciones cargado:', employeesOnVacation);
-        }
-    } catch (error) {
-        console.error('❌ Error cargando estado de vacaciones:', error);
-        employeesOnVacation = new Set();
-    }
-}
-
-function saveVacationState() {
-    try {
-        const vacationArray = Array.from(employeesOnVacation);
-        localStorage.setItem('fornverge_vacations', JSON.stringify(vacationArray));
-        console.log('💾 Estado de vacaciones guardado:', vacationArray);
-    } catch (error) {
-        console.error('❌ Error guardando estado de vacaciones:', error);
-    }
-}
-
-function openVacationModal() {
-    renderVacationList();
-    document.getElementById('vacationModal').classList.add('show');
-}
-
-function closeVacationModal() {
-    document.getElementById('vacationModal').classList.remove('show');
-}
-
-function renderVacationList() {
-    const container = document.getElementById('employeeVacationList');
-    container.innerHTML = '';
-    
-    employees.forEach(employee => {
-        const isOnVacation = employeesOnVacation.has(employee.id);
-        
-        const item = document.createElement('div');
-        item.className = `vacation-employee-item ${isOnVacation ? 'on-vacation' : ''}`;
-        
-        item.innerHTML = `
-            <div class="vacation-employee-info">
-                <span class="text-2xl">${isOnVacation ? '🏖️' : '👤'}</span>
-                <span class="vacation-employee-name">${employee.name}</span>
-                <span class="vacation-status ${isOnVacation ? 'active' : 'inactive'} ml-2">
-                    ${isOnVacation ? 'De vacaciones' : 'Disponible'}
-                </span>
-            </div>
-            <button 
-                class="vacation-toggle ${isOnVacation ? 'on-vacation' : ''}"
-                onclick="toggleEmployeeVacation('${employee.id}')"
-            >
-                ${isOnVacation ? '🏖️ Quitar vacaciones' : '✈️ Poner de vacaciones'}
-            </button>
-        `;
-        
-        container.appendChild(item);
-    });
-}
-
-function toggleEmployeeVacation(employeeId) {
-    if (employeesOnVacation.has(employeeId)) {
-        // Quitar de vacaciones
-        employeesOnVacation.delete(employeeId);
-        // console.log(`✅ ${getEmployeeName(employeeId)} ya no está de vacaciones`);
-    } else {
-        // Poner de vacaciones
-        employeesOnVacation.add(employeeId);
-        // console.log(`🏖️ ${getEmployeeName(employeeId)} está ahora de vacaciones`);
-    }
-    
-    // Guardar estado y actualizar interfaz
-    saveVacationState();
-    renderVacationList();
-    renderEmployees(); // Actualizar las vistas de horarios
-    
-    // Mostrar notificación
-    const employee = employees.find(emp => emp.id === employeeId);
-    const isNowOnVacation = employeesOnVacation.has(employeeId);
-    showVacationNotification(employee.name, isNowOnVacation);
-}
-
-function getEmployeeName(employeeId) {
-    const employee = employees.find(emp => emp.id === employeeId);
-    return employee ? employee.name : 'Empleado desconocido';
-}
-
-function showVacationNotification(employeeName, isOnVacation) {
-    const notification = document.createElement('div');
-    notification.className = 'fixed top-4 right-4 bg-orange-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 transform translate-x-full opacity-0 transition-all duration-500';
-    
-    const icon = isOnVacation ? '🏖️' : '👤';
-    const action = isOnVacation ? 'puesto de vacaciones' : 'quitado de vacaciones';
-    
-    notification.innerHTML = `
-        <div class="flex items-center">
-            <span class="text-2xl mr-3">${icon}</span>
-            <div>
-                <div class="font-semibold">${employeeName}</div>
-                <div class="text-sm opacity-90">Ha sido ${action}</div>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Animar entrada
-    setTimeout(() => {
-        notification.classList.remove('translate-x-full', 'opacity-0');
-    }, 100);
-    
-    // Animar salida después de 3 segundos
-    setTimeout(() => {
-        notification.classList.add('translate-x-full', 'opacity-0');
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 500);
-    }, 3000);
-}
+// === FUNCIONES DE GESTIÓN DE VACACIONES (ELIMINADAS) ===
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', initApp);
@@ -2676,3 +2645,263 @@ function detectarTipoTurno(inicio, fin) {
     if (hora < 18) return 'afternoon'; 
     return 'evening';
 }
+
+async function handleSugerirHorario() {
+    const result = await Swal.fire({
+        title: '¿Generar un borrador de horario?',
+        text: "Esto creará una sugerencia visual que podrás guardar o descartar.",
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, generar',
+        cancelButtonText: 'Cancelar',
+        showDenyButton: true,
+        denyButtonText: '<i class="fas fa-cog"></i> Ajustes'
+    });
+
+    if (result.isDenied) {
+        openGeneratorSettings();
+        return;
+    }
+
+    if (!result.isConfirmed) {
+        return;
+    }
+
+    // Guardar el estado actual antes de generar el borrador
+    originalScheduleBeforeDraft = JSON.parse(JSON.stringify(scheduleData));
+
+    const suggestButton = document.getElementById('btnSugerirHorario');
+    const originalButtonText = suggestButton.innerHTML;
+    suggestButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
+    suggestButton.disabled = true;
+
+    try {
+        if (!window.controlAnualSimple || !window.ausenciasManager) {
+            throw new Error('Los módulos de convenio y ausencias no están listos.');
+        }
+
+        const generator = new HorarioGenerator(
+            supabase,
+            employees,
+            window.ausenciasManager,
+            window.controlAnualSimple.convenioAnual
+        );
+
+        const nuevoScheduleData = await generator.generate(currentWeekStart);
+
+        // Aplicar el borrador a la vista
+        scheduleData = nuevoScheduleData;
+        renderEmployees();
+        actualizarContadorHorasTeoricas();
+
+        // Activar modo borrador
+        isInDraftMode = true;
+        document.getElementById('draftModeBar').classList.remove('hidden');
+
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'Borrador generado',
+            text: 'Revisa y guarda o descarta los cambios.',
+            showConfirmButton: false,
+            timer: 4000
+        });
+
+    } catch (error) {
+        console.error('❌ Error generando el horario:', error);
+        // Si hay error, restaurar el estado original
+        if (originalScheduleBeforeDraft) {
+            scheduleData = originalScheduleBeforeDraft;
+            originalScheduleBeforeDraft = null;
+        }
+        Swal.fire(
+            'Error',
+            `No se pudo generar el horario: ${error.message}`,
+            'error'
+        );
+    } finally {
+        suggestButton.innerHTML = originalButtonText;
+        suggestButton.disabled = false;
+    }
+}
+
+async function handleSaveDraft() {
+    const saveButton = document.getElementById('btnSaveDraft');
+    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...';
+    saveButton.disabled = true;
+
+    // El scheduleData actual ya es el borrador, simplemente lo guardamos
+    await saveAllSchedules(false); // false para que muestre el feedback visual
+
+    // Salir del modo borrador
+    isInDraftMode = false;
+    originalScheduleBeforeDraft = null;
+    document.getElementById('draftModeBar').classList.add('hidden');
+
+    saveButton.innerHTML = '<i class="fas fa-save mr-2"></i>Guardar Horario';
+    saveButton.disabled = false;
+
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Horario guardado correctamente',
+        showConfirmButton: false,
+        timer: 3000
+    });
+}
+
+async function handleDiscardDraft(silent = false) {
+    // Restaurar el horario original
+    if (originalScheduleBeforeDraft) {
+        scheduleData = originalScheduleBeforeDraft;
+    }
+
+    // Salir del modo borrador
+    isInDraftMode = false;
+    originalScheduleBeforeDraft = null;
+    document.getElementById('draftModeBar').classList.add('hidden');
+
+    // Re-renderizar para mostrar el horario restaurado
+    renderEmployees();
+    actualizarContadorHorasTeoricas();
+
+    if (!silent) {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'info',
+            title: 'Borrador descartado',
+            showConfirmButton: false,
+            timer: 3000
+        });
+    }
+}
+
+// --- LÓGICA DE AJUSTES DEL GENERADOR ---
+
+const settingsModal = document.getElementById('generatorSettingsModal');
+const settingsConfig = {
+    weekday: [
+        { start: '06:30', end: '14:00', count: 2 },
+        { start: '14:00', end: '21:30', count: 2 }
+    ],
+    saturday: [
+        { start: '07:00', end: '14:00', count: 3 },
+        { start: '14:00', end: '22:00', count: 3 }
+    ],
+    sunday: [
+        { start: '07:00', end: '14:00', count: 2 },
+        { start: '14:00', end: '22:00', count: 2 }
+    ]
+};
+
+function openGeneratorSettings() {
+    loadSettings();
+    settingsModal.style.display = 'block';
+}
+
+function closeGeneratorSettings() {
+    saveSettings();
+    settingsModal.style.display = 'none';
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Ajustes guardados',
+        showConfirmButton: false,
+        timer: 2000
+    });
+}
+
+function loadSettings() {
+    const savedSettings = JSON.parse(localStorage.getItem('fornverge_generator_settings'));
+    const settings = savedSettings || settingsConfig;
+
+    for (const dayType in settingsConfig) { // Iterar siempre sobre la configuración base para seguridad
+        const container = document.getElementById(`${dayType}-shifts-container`);
+        if (container) {
+            container.innerHTML = '';
+            const shiftsToRender = settings[dayType] || []; // Usar los turnos guardados si existen
+            shiftsToRender.forEach(shift => {
+                container.appendChild(createShiftInputRow(dayType, shift));
+            });
+        }
+    }
+}
+
+function saveSettings() {
+    const newSettings = {};
+    for (const dayType in settingsConfig) {
+        newSettings[dayType] = [];
+        const container = document.getElementById(`${dayType}-shifts-container`);
+        container.querySelectorAll('.flex.items-center.space-x-2').forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            if (inputs.length === 3) {
+                newSettings[dayType].push({
+                    start: inputs[0].value,
+                    end: inputs[1].value,
+                    count: parseInt(inputs[2].value, 10) || 1
+                });
+            }
+        });
+    }
+    localStorage.setItem('fornverge_generator_settings', JSON.stringify(newSettings));
+}
+
+document.querySelectorAll('.add-shift-btn-small').forEach(button => {
+    button.addEventListener('click', (e) => {
+        const dayType = e.currentTarget.dataset.dayType;
+        const container = document.getElementById(`${dayType}-shifts-container`);
+        container.appendChild(createShiftInputRow(dayType));
+    });
+});
+
+document.getElementById('closeGeneratorSettingsModal')?.addEventListener('click', closeGeneratorSettings);
+document.getElementById('doneGeneratorSettings')?.addEventListener('click', closeGeneratorSettings);
+
+function createShiftInputRow(dayType, shift = { start: '07:00', end: '14:00', count: 1 }) {
+    const row = document.createElement('div');
+    row.className = 'flex items-center space-x-2';
+    
+    row.innerHTML = `
+        <input type="time" value="${shift.start}" class="border rounded px-2 py-1 w-1/3">
+        <span>-</span>
+        <input type="time" value="${shift.end}" class="border rounded px-2 py-1 w-1/3">
+        <div class="flex items-center w-1/4">
+             <i class="fas fa-users text-gray-500 mr-2"></i>
+             <input type="number" value="${shift.count || 1}" min="1" max="5" class="border rounded px-2 py-1 w-full text-center">
+        </div>
+        <button class="text-red-500 hover:text-red-700 remove-shift-btn text-2xl">&times;</button>
+    `;
+
+    row.querySelector('.remove-shift-btn').addEventListener('click', () => {
+        row.remove();
+    });
+
+    return row;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // ...
+    // Otros inicializadores
+    
+    settingsModal.addEventListener('click', (e) => {
+        if (e.target.classList.contains('add-shift-btn-small')) {
+            const dayType = e.target.dataset.dayType;
+            const container = document.getElementById(`${dayType}-shifts-container`);
+            if (container) {
+                container.appendChild(createShiftInputRow(dayType));
+            }
+        }
+
+        if (e.target.id === 'closeGeneratorSettingsModal' || e.target.id === 'doneGeneratorSettings') {
+            closeGeneratorSettings();
+        }
+    });
+
+    initialize();
+});

@@ -401,6 +401,16 @@ class AusenciasManager {
         return ausenciasActivas.some(ausencia => ausencia.empleado_id === empleadoId);
     }
 
+    getAusenciaEmpleado(empleadoId, fecha = new Date()) {
+        const fechaStr = fecha.toISOString().split('T')[0];
+        return this.ausencias.find(ausencia => 
+            ausencia.empleado_id === empleadoId &&
+            ausencia.fecha_inicio <= fechaStr && 
+            ausencia.fecha_fin >= fechaStr &&
+            ausencia.estado === 'aprobado'
+        );
+    }
+
     renderAusenciasList(ausencias) {
         const container = document.getElementById('listaAusencias');
         if (!container) return;

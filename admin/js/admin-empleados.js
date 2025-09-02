@@ -72,7 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <small class="text-gray-500">Login ID: ${employee.employee_id}</small>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <button class="text-red-500 hover:text-red-700" onclick="deleteEmployee('${employee.id}', '${employee.name}')">
+                    <button class="text-blue-500 hover:text-blue-700" title="Editar Preferencias" onclick="openPreferencesModal('${employee.id}', '${employee.name}')">
+                        <i class="fas fa-sliders-h"></i>
+                    </button>
+                    <button class="text-red-500 hover:text-red-700" title="Eliminar Empleada" onclick="deleteEmployee('${employee.id}', '${employee.name}')">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
@@ -100,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
             name,
             fecha_alta,
             employee_id,
-            access_code
+            access_code: btoa(access_code)
         };
         
         try {
@@ -162,4 +165,74 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
+
+    // --- LÓGICA DE PREFERENCIAS ---
+    const preferencesModal = document.getElementById('preferencesModal');
+    const closePreferencesModal = document.getElementById('closePreferencesModal');
+    const cancelPreferences = document.getElementById('cancelPreferences');
+    const preferencesForm = document.getElementById('preferencesForm');
+    const preferenceEmployeeId = document.getElementById('preferenceEmployeeId');
+    const preferenceEmployeeName = document.getElementById('preferenceEmployeeName');
+    const turnoPreferencia = document.getElementById('turnoPreferencia');
+    const partidoPreferencia = document.getElementById('partidoPreferencia');
+    const notasPreferencia = document.getElementById('notasPreferencia');
+    const fixedDayOffPreferencia = document.getElementById('fixedDayOffPreferencia');
+
+    window.openPreferencesModal = async (employeeId, employeeName) => {
+        preferenceEmployeeId.value = employeeId;
+        preferenceEmployeeName.textContent = employeeName;
+
+        // Cargar preferencias existentes
+        const { data, error } = await supabase
+            .from('employees')
+            .select('schedule_preferences')
+            .eq('id', employeeId)
+            .single();
+
+        if (error) {
+            console.error('Error cargando preferencias:', error);
+            Swal.fire('Error', 'No se pudieron cargar las preferencias.', 'error');
+            return;
+        }
+
+        const prefs = data.schedule_preferences || {};
+        turnoPreferencia.value = prefs.availability || 'any';
+        partidoPreferencia.value = prefs.split_shifts || 'yes';
+        fixedDayOffPreferencia.value = prefs.fixed_day_off || 'none';
+        notasPreferencia.value = prefs.notes || '';
+
+        preferencesModal.style.display = 'block';
+    };
+
+    const closePrefsModal = () => {
+        preferencesModal.style.display = 'none';
+    };
+
+    closePreferencesModal.addEventListener('click', closePrefsModal);
+    cancelPreferences.addEventListener('click', closePrefsModal);
+
+    preferencesForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const employeeId = preferenceEmployeeId.value;
+
+        const newPrefs = {
+            availability: turnoPreferencia.value,
+            split_shifts: partidoPreferencia.value,
+            fixed_day_off: fixedDayOffPreferencia.value,
+            notes: notasPreferencia.value.trim()
+        };
+
+        const { error } = await supabase
+            .from('employees')
+            .update({ schedule_preferences: newPrefs })
+            .eq('id', employeeId);
+
+        if (error) {
+            console.error('Error guardando preferencias:', error);
+            Swal.fire('Error', 'No se pudieron guardar las preferencias.', 'error');
+        } else {
+            Swal.fire('¡Guardado!', 'Las preferencias se han actualizado.', 'success');
+            closePrefsModal();
+        }
+    });
 });

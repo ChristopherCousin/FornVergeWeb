@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Define base colors for the theme */
+    --color-cream: #FDF8F2;
+    --color-brown: #4F4239;
+    --color-gold: #B88A58;
+    --color-light-gold: #D4A574;
+    --color-dark-brown: #2A231F;
+    --color-white: #FFFFFF;
+    
+    /* These can be used in tailwind.config.js */
+    --background: var(--color-cream);
+    --foreground: var(--color-brown);
+  }
+}

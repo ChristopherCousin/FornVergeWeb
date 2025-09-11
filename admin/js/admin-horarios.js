@@ -644,6 +644,9 @@ function addShiftFromModal() {
             }
         ];
         
+        // --- FIX: Limpiar día libre si existe antes de añadir turnos de trabajo ---
+        scheduleData[currentModalEmployee][currentModalDay] = (scheduleData[currentModalEmployee][currentModalDay] || []).filter(shift => !shift.isFree);
+
         if (isEditingShift && currentEditingShiftIndex !== null) {
             // Reemplazar el turno editado por dos turnos (partido)
             scheduleData[currentModalEmployee][currentModalDay].splice(currentEditingShiftIndex, 1, ...shifts);
@@ -679,6 +682,9 @@ function addShiftFromModal() {
             description: getShiftDescription(shiftType)
         };
         
+        // --- FIX: Limpiar día libre si existe antes de añadir un turno de trabajo ---
+        scheduleData[currentModalEmployee][currentModalDay] = (scheduleData[currentModalEmployee][currentModalDay] || []).filter(shift => !shift.isFree);
+
         if (isEditingShift && currentEditingShiftIndex !== null) {
             // Reemplazar el turno existente
             scheduleData[currentModalEmployee][currentModalDay][currentEditingShiftIndex] = newShift;

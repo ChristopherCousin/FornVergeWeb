@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.deleteEmployee = async (id, name) => {
         const result = await Swal.fire({
             title: `¿Seguro que quieres eliminar a ${name}?`,
-            text: "Esta acción no se puede deshacer.",
+            text: "Esta acción eliminará también todos sus fichajes. No se puede deshacer.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -149,19 +149,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (result.isConfirmed) {
             try {
-                const { error } = await supabase
+                // Paso 1: Eliminar los registros de fichajes asociados al empleado.
+                // La columna en 'fichajes' que referencia a 'employees' es 'empleado_id'.
+                const { error: fichajesError } = await supabase
+                    .from('fichajes')
+                    .delete()
+                    .eq('empleado_id', id);
+
+                if (fichajesError) {
+                    // Si hay un error aquí, lo lanzamos para que lo capture el bloque catch.
+                    throw fichajesError;
+                }
+
+                // Paso 2: Una vez eliminados los fichajes, eliminar al empleado.
+                const { error: employeeError } = await supabase
                     .from('employees')
                     .delete()
                     .eq('id', id);
 
-                if (error) throw error;
+                if (employeeError) {
+                    throw employeeError;
+                }
 
-                Swal.fire('Eliminada', `${name} ha sido eliminada.`, 'success');
+                Swal.fire('Eliminada', `${name} y todos sus fichajes han sido eliminados.`, 'success');
                 loadEmployees(); // Recargar la lista
 
             } catch (error) {
                 console.error('Error al eliminar empleada:', error.message);
-                Swal.fire('Error', `No se pudo eliminar a ${name}.`, 'error');
+                Swal.fire(
+                    'Error', 
+                    `No se pudo eliminar a ${name}.<br><small>Detalles: ${error.message}</small>`, 
+                    'error'
+                );
             }
         }
     }

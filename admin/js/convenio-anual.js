@@ -68,11 +68,14 @@ class ConvenioAnualManager {
     async cargarDatos() {
         // console.log('🔍 Cargando datos para análisis anual...');
         
-        // Cargar empleados (excluir admins)
+        // Cargar empleados (excluir admins) - Solo MASSA Llevant
+        const LLEVANT_LOCATION_ID = 'b1cd939f-2d99-4856-8c15-7926e95d4cbd';
+        
         const { data: empleados } = await this.supabase
             .from('employees')
             .select('id, name, role, fecha_alta')
             .neq('role', 'admin')
+            .eq('location_id', LLEVANT_LOCATION_ID)
             .order('name');
         
         this.empleados = empleados || [];
@@ -795,8 +798,8 @@ class ConvenioAnualManager {
         // ✅ NUEVA LÓGICA DE CÁLCULO (Opción 1 del usuario - 25/11/2025)
         // Se calcula la obligación real de trabajo y se compara con las horas fichadas.
 
-        const esMediaJornada = stats.empleado_nombre.toUpperCase().includes('GABY');
-        const HORAS_SEMANALES_CONVENIO = esMediaJornada ? 25 : 40;
+        // const esMediaJornada = stats.empleado_nombre.toUpperCase().includes('GABY'); // Ya no es necesario
+        const HORAS_SEMANALES_CONVENIO = 40; // Todas las empleadas a 40h
         const PROMEDIO_DIARIO_LEGAL = HORAS_SEMANALES_CONVENIO / 7;
 
         // Horas que teóricamente debería haber trabajado en los días que estuvo disponible

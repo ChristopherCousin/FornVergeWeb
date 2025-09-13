@@ -39,6 +39,8 @@ FornVergeWeb/
 - ✅ Creación de nuevos empleados
 - ✅ Gestión de horarios
 - ✅ Gestión de ausencias
+- ✅ Control de convenio anual
+- ✅ Estadísticas anuales
 
 ### Aplicación Empleados (1 versión para ambos)
 - **`/empleados/`**: Funciona para empleados de cualquier local

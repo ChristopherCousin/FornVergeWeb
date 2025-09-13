@@ -82,10 +82,14 @@ class AusenciasManager {
     }
 
     async cargarEmpleados() {
+        // ID del local MASSA Son Oliva
+        const SON_OLIVA_LOCATION_ID = '781fd5a8-c486-4224-bd2a-bc968ad3f58c';
+        
         const { data: empleados } = await this.supabase
             .from('employees')
             .select('id, name, role')
             .neq('role', 'admin')
+            .eq('location_id', SON_OLIVA_LOCATION_ID)
             .order('name');
         
         this.empleados = empleados || [];

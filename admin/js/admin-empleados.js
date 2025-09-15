@@ -1,7 +1,7 @@
 // admin/js/admin-empleados.js
 
 document.addEventListener('DOMContentLoaded', () => {
-    const LOCATION_ID = '781fd5a8-c486-4224-bd2a-bc968ad3f58c'; // ID para Forn Verge ARAGON
+    const LOCATION_ID = 'b1cd939f-2d99-4856-8c15-7926e95d4cbd'; // ID para Forn Verge ARAGON (Llevant)
 
     // --- ELEMENTOS DEL DOM ---
     const employeesModal = document.getElementById('employeesModal');

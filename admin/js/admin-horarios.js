@@ -97,12 +97,16 @@ function generateDaysForWeek(weekStart) {
 let DAYS = generateDaysForWeek(currentWeekStart);
 
 let employees = [];
-let scheduleData = {}; 
-let originalScheduleBeforeDraft = null; // Para guardar el estado antes de un borrador
-let isInDraftMode = false; // Para saber si estamos en modo borrador
-let currentModalEmployee = null;
-let currentModalDay = null;
+let absences = []; // Almacenará las ausencias
+let festivos = []; // Almacenará los festivos
+let convenios = {}; // Almacenará los datos de convenio
 let employeesOnVacation = new Set(); // IDs de empleados de vacaciones
+
+const MAX_WEEKLY_HOURS = 205; // Límite de horas semanales para la alarma
+
+// ID de ubicación para filtrar empleados
+const LLEVANT_LOCATION_ID = 'b1cd939f-2d99-4856-8c15-7926e95d4cbd';
+
 // Estado de edición de turnos
 let isEditingShift = false;
 let currentEditingShiftIndex = null;
@@ -110,6 +114,12 @@ let currentEditingShiftIndex = null;
 // Configuración de autenticación
 const ADMIN_PASSWORD_HASH = 'c02c130935092678750a1396e519f523c8df545464f46ffd27729f2d9cde6f35'; // SHA-256 de 'fornverge2025'
 let isAuthenticated = false;
+
+let scheduleData = {};
+let originalScheduleBeforeDraft = null; // Para guardar el estado antes de un borrador
+isInDraftMode = false; // Para saber si estamos en modo borrador
+let currentModalEmployee = null;
+let currentModalDay = null;
 
 async function initApp() {
     // console.log('🚀 Iniciando Gestión de Horarios...');
@@ -216,6 +226,7 @@ async function loadEmployees() {
         const { data, error } = await supabase
             .from('employees')
             .select('*')
+            .eq('location_id', LLEVANT_LOCATION_ID) // Filtrar por ubicación
             .neq('role', 'admin')
             .order('name');
 

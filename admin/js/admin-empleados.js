@@ -1,6 +1,8 @@
 // admin/js/admin-empleados.js
 
 document.addEventListener('DOMContentLoaded', () => {
+    const LOCATION_ID = '781fd5a8-c486-4224-bd2a-bc968ad3f58c'; // ID para Forn Verge ARAGON
+
     // --- ELEMENTOS DEL DOM ---
     const employeesModal = document.getElementById('employeesModal');
     const employeesBtn = document.getElementById('employeesBtn');
@@ -43,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const { data, error } = await supabase
                 .from('employees')
                 .select('*')
+                .eq('location_id', LOCATION_ID)
                 .order('name', { ascending: true });
 
             if (error) throw error;
@@ -103,7 +106,8 @@ document.addEventListener('DOMContentLoaded', () => {
             name,
             fecha_alta,
             employee_id,
-            access_code: btoa(access_code)
+            access_code: btoa(access_code),
+            location_id: LOCATION_ID
         };
         
         try {

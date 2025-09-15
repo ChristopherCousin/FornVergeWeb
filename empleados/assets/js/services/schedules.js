@@ -207,8 +207,10 @@ window.ScheduleService = (function(){
 
       const { data: allSchedules, error: allError } = await supabase()
         .from('schedules')
-        .select(`*, employees!inner(name)`) 
-        .eq('week_start', window.AppState.currentWeekStart);
+        .select(`*, employees!inner(name, location_id)`) 
+        .eq('week_start', window.AppState.currentWeekStart)
+        .eq('employees.location_id', window.AppState.currentEmployee.location_id);
+        
       if (!allError && allSchedules) processAllEmployeesSchedules(allSchedules);
       processScheduleData(mySchedules || []);
       // Adjuntar tareas por día

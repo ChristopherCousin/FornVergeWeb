@@ -56,6 +56,14 @@ section[id] { scroll-margin-top: 90px; }
 .section-cream::before { content: ''; position: absolute; top:0;left:0;right:0;bottom:0; opacity: .5; z-index:1; pointer-events: none; }
 .section-dark { background: linear-gradient(135deg, var(--charcoal) 0%, var(--dark-brown) 100%); position: relative; }
 .section-dark::before { content: ''; position: absolute; top:0;left:0;right:0;bottom:0; opacity:.3; z-index:1; pointer-events: none; }
+
+.section-locales {
+    background-color: var(--cream);
+    background-image:
+        radial-gradient(at 80% 100%, hsla(30, 47%, 64%, 0.15) 0px, transparent 50%),
+        radial-gradient(at 0% 5%, hsla(30, 47%, 64%, 0.1) 0px, transparent 50%);
+}
+
 .font-serif{ font-family: var(--font-serif); }
 .text-brown{ color: var(--warm-brown); }
 .text-charcoal{ color: var(--charcoal); }

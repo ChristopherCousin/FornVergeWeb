@@ -4,6 +4,7 @@
     {
       "slug": "llevant",
       "name": "MASSA Calle Aragón 323A",
+      "imageUrl": "assets/images/desayuno3.jpeg",
       "address": {
         "street": "Calle Aragón, 323A",
         "city": "Palma",
@@ -20,6 +21,7 @@
     {
       "slug": "son-oliva",
       "name": "MASSA Son Oliva",
+      "imageUrl": "assets/images/desayuno_completo.png",
       "address": {
         "street": "Av. Tomás de Villanueva Cortés, 11, esq. Isaac Albéniz, 3",
         "city": "Palma",

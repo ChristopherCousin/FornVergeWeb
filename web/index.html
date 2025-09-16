@@ -136,41 +136,76 @@
       </div>
   </section>
 
-  <section id="locales" class="section section-cream" style="position:relative; z-index:2;">
+  <section id="locales" class="section section-locales">
     <div class="container">
-      <div class="text-center mb-8" data-aos="fade-up">
+      <div class="text-center mb-12" data-aos="fade-up">
         <h2 class="section-title font-serif">Nuestros Locales</h2>
-        <p class="text-brown text-lg max-w-4xl mx-auto leading-relaxed">Misma esencia, distinta personalidad. Elige tu MASSA más cercano y déjate sorprender.</p>
+        <div class="title-decoration"></div>
+        <p class="text-brown text-lg max-w-3xl mx-auto leading-relaxed mt-6">Misma esencia, distinta personalidad. Elige tu MASSA más cercano y déjate sorprender.</p>
       </div>
-      <div class="grid grid-auto-fit gap-6" id="locations-container">
-        <!-- Las tarjetas de locales se cargarán aquí desde locations.json -->
+      
+      <!-- Contenedor de locales con diseño mejorado -->
+      <div class="locations-grid" id="locations-container">
+        <!-- Las tarjetas se cargarán aquí dinámicamente -->
       </div>
     </div>
   </section>
 
-
-
-  <section id="contacto" class="section section-cream">
-    <div class="container">
-      <div class="text-center mb-8" data-aos="fade-up">
-        <h2 class="section-title font-serif">Contacto</h2>
-        <p class="text-brown text-lg max-w-2xl mx-auto leading-relaxed">Estamos en Palma de Mallorca. Horario continuo todos los días: 7:00 - 21:00.</p>
+  <script id="location-template" type="text/template">
+    <div class="location-card" data-aos="fade-up" data-aos-delay="{{delay}}">
+      <div class="location-card__image-container">
+        <img src="{{imageUrl}}" alt="{{name}}" class="location-card__image">
+        <div class="location-card__overlay">
+          <div class="location-card__hours">
+            <i class="fas fa-clock"></i>
+            <span>{{hours}}</span>
+          </div>
+        </div>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="card">
-          <h3 class="font-serif text-xl text-gold mb-3">Calle Aragón 323A</h3>
-          <p class="text-brown">07009 Palma</p>
-          <a class="btn btn-small mt-3" href="https://maps.app.goo.gl/aksYA3dWFFWq54qbA" target="_blank" rel="noopener"><i class="fas fa-directions mr-2"></i>Cómo llegar</a>
+      <div class="location-card__content">
+        <h3 class="location-card__title">{{name}}</h3>
+        <p class="location-card__address">
+          <i class="fas fa-map-marker-alt"></i>
+          {{address}}
+        </p>
+        <div class="location-card__description">{{description}}</div>
+        <div class="location-card__actions">
+          <a href="{{mapsUrl}}" class="btn btn-maps" target="_blank" rel="noopener">
+            <i class="fas fa-map-marked-alt"></i>
+            Ver en Google Maps
+          </a>
+          <a href="./locations/?local={{slug}}" class="btn btn-outline">
+            <i class="fas fa-info-circle"></i>
+            Más información
+          </a>
         </div>
-        <div class="card">
-          <h3 class="font-serif text-xl text-gold mb-3">Son Oliva</h3>
-          <p class="text-brown">Av. Tomás de Villanueva Cortés, 11, esq. Isaac Albéniz, 3</p>
-          <a class="btn btn-small mt-3" href="https://maps.app.goo.gl/jk8BnW6iUaic6ep8A" target="_blank" rel="noopener"><i class="fas fa-directions mr-2"></i>Cómo llegar</a>
-        </div>
-        <div class="card">
-          <h3 class="font-serif text-xl text-gold mb-3">Síguenos</h3>
-          <p class="text-brown">Muy pronto nuestras redes sociales</p>
-        </div>
+      </div>
+    </div>
+  </script>
+
+
+
+  <section id="contacto" class="section section-dark">
+    <div class="container text-center">
+      <div class="mb-8" data-aos="fade-up">
+        <h2 class="section-title font-serif" style="color: var(--cream);">¿Hablamos?</h2>
+        <p class="text-light-gold text-lg max-w-2xl mx-auto leading-relaxed">Para cualquier consulta, sugerencia o simplemente para saludar. ¡Nos encantará escucharte!</p>
+      </div>
+      <div class="contact-card" data-aos="fade-up" data-aos-delay="200">
+          <div class="contact-card__item">
+              <i class="fas fa-envelope contact-card__icon"></i>
+              <h3 class="contact-card__title">Escríbenos</h3>
+              <p class="contact-card__text">Para colaboraciones, sugerencias o cualquier consulta.</p>
+              <a href="mailto:contact@massa-palma.com" class="btn btn-outline-light">contact@massa-palma.com</a>
+          </div>
+          <div class="contact-card__item">
+              <i class="fas fa-share-alt contact-card__icon"></i>
+              <h3 class="contact-card__title">Síguenos</h3>
+              <p class="contact-card__text">Descubre nuestras creaciones y el día a día en nuestro Instagram.</p>
+              <div class="social-icons">
+                  <a href="https://www.instagram.com/massa_palma/" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+              </div>
+          </div>
       </div>
     </div>
   </section>
@@ -220,20 +255,38 @@
             card.setAttribute('data-aos-delay', (index + 1) * 100);
 
             card.innerHTML = `
-              <div class="location-card__header">
-                  <i class="fas fa-store location-card__icon"></i>
+              <div class="location-card__image-container">
+                  <img src="${loc.imageUrl}" alt="Imagen de ${loc.name}" class="location-card__image">
+                  <div class="location-card__overlay">
+                      <div class="location-card__hours">
+                          <i class="fas fa-clock"></i>
+                          <span>${loc.hours}</span>
+                      </div>
+                  </div>
+              </div>
+              <div class="location-card__content">
                   <h3 class="location-card__title">${loc.name}</h3>
-              </div>
-              <p class="location-card__address">${loc.address.street}</p>
-              <div class="location-card__description">
-                ${loc.description || 'Tu espacio ideal para empezar el día, hacer una pausa o disfrutar de una merienda artesanal.'}
-              </div>
-              <div class="location-card__hours">
-                  <i class="fas fa-clock"></i>
-                  <span>${loc.hours}</span>
-              </div>
-              <div class="location-card__actions">
-                  <a class="btn btn-primary btn--shine" href="./locations/?local=${loc.slug}"><i class="fas fa-arrow-right mr-2"></i>Ver Local</a>
+                  <p class="location-card__address">
+                      <i class="fas fa-map-marker-alt"></i>
+                      ${loc.address.street}
+                  </p>
+                  <div class="location-card__description">
+                      ${loc.description || 'Tu espacio ideal para empezar el día, hacer una pausa o disfrutar de una merienda artesanal.'}
+                  </div>
+                  <div class="location-card__actions">
+                      <a href="${loc.slug === 'llevant' ? 'https://maps.app.goo.gl/aksYA3dWFFWq54qbA' : 'https://maps.app.goo.gl/jk8BnW6iUaic6ep8A'}" 
+                         class="btn btn-maps" 
+                         target="_blank" 
+                         rel="noopener">
+                          <i class="fas fa-map-marked-alt"></i>
+                          Ver en Google Maps
+                      </a>
+                      <a href="./locations/?local=${loc.slug}" 
+                         class="btn btn-outline">
+                          <i class="fas fa-info-circle"></i>
+                          Más información
+                      </a>
+                  </div>
               </div>
             `;
             container.appendChild(card);

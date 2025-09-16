@@ -1,33 +1,186 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Locales - MASSA</title>
-  <link rel="stylesheet" href="../assets/css/base.css" />
-  <link rel="stylesheet" href="../assets/css/components.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nuestros Locales - MASSA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="../assets/css/base.css" />
+    <link rel="stylesheet" href="../assets/css/components.css" />
+    <style>
+        .location-header {
+            padding: 120px 0 60px;
+            background: var(--gradient-hero);
+            color: #fff;
+            text-align: center;
+        }
+        .location-title {
+            font-family: var(--font-serif);
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            margin-bottom: var(--spacing-sm);
+        }
+        .location-address {
+            font-size: 1.25rem;
+            color: var(--light-gold);
+            margin-bottom: var(--spacing-lg);
+        }
+        .specialties-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-lg);
+        }
+        .specialty-card {
+            background: var(--soft-white);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+        .specialty-card i {
+            font-size: 2.5rem;
+            color: var(--primary-gold);
+            margin-bottom: var(--spacing-sm);
+        }
+        .specialty-card h3 {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            color: var(--charcoal);
+        }
+        .map-container {
+            overflow: hidden;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            height: 400px;
+            margin-top: var(--spacing-lg);
+        }
+
+        @media (max-width: 768px) {
+            .map-container {
+                margin-top: 0;
+            }
+        }
+    </style>
 </head>
 <body>
-  <nav class="navbar"><div class="navbar__container"><div class="navbar__brand"><div class="navbar__logo"><i class="fas fa-wheat-awn"></i></div><div><h1 class="navbar__title font-serif">MASSA</h1><p class="navbar__subtitle">Locales</p></div></div></div></nav>
-  <section class="section section-cream" style="padding-top:140px">
-    <div class="container">
-      <h2 class="section-title font-serif">Elige tu local</h2>
-      <div id="locations-grid" class="grid grid-auto-fit gap-6"></div>
-    </div>
-  </section>
-  <script>
-  fetch('../data/locations.json').then(r=>r.json()).then(data=>{
-    const grid=document.getElementById('locations-grid');
-    data.locations.forEach(loc=>{
-      const card=document.createElement('div'); card.className='card card-premium';
-      card.innerHTML=`<div class="card__icon"><i class="fas fa-location-dot"></i></div>
-        <h3 class="card__title">${loc.name}</h3>
-        <p class="card__description">${loc.address.street} • ${loc.address.postalCode} ${loc.address.city}</p>
-        <div class="text-center"><a class="btn btn-primary" href="${loc.slug}/">Ir a ${loc.name}</a></div>`;
-      grid.appendChild(card);
+    <nav class="navbar" id="navbar">
+        <div class="navbar__container">
+          <div class="navbar__brand">
+            <a href="/web/" class="navbar__logo-link">
+              <img src="../assets/LOGO-massa.svg" alt="Logo de MASSA" class="navbar__logo-img navbar__logo-img--inverted" style="height: 40px;">
+            </a>
+          </div>
+          <div class="navbar__nav" role="menubar">
+            <a href="/web/" class="navbar__link" role="menuitem">Inicio</a>
+            <a href="/web/#locales" class="navbar__link" role="menuitem">Locales</a>
+          </div>
+        </div>
+    </nav>
+
+    <main id="location-details">
+        <!-- El contenido se cargará aquí -->
+    </main>
+
+    <footer class="section-dark py-8">
+      <div class="container text-center">
+        <p class="text-cream text-sm">© 2025 MASSA. Todos los derechos reservados.</p>
+      </div>
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const slug = urlParams.get('local');
+
+        if (slug) {
+            fetch('../data/locations.json')
+                .then(response => response.json())
+                .then(data => {
+                    const location = data.locations.find(loc => loc.slug === slug);
+                    if (location) {
+                        renderLocationDetails(location);
+                    } else {
+                        document.getElementById('location-details').innerHTML = '<p class="text-center section">Local no encontrado.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar datos del local:', error);
+                    document.getElementById('location-details').innerHTML = '<p class="text-center section">No se pudo cargar la información del local.</p>';
+                });
+        } else {
+            window.location.href = '/web/'; // Redirigir si no hay slug
+        }
     });
-  });
-  </script>
+
+    function renderLocationDetails(location) {
+        document.title = `${location.name} - MASSA`;
+        const container = document.getElementById('location-details');
+        
+        let specialtiesHTML = '';
+        if (location.specialties && location.specialties.length > 0) {
+            const icons = ['fa-cookie-bite', 'fa-bacon', 'fa-star']; // Iconos de ejemplo
+            specialtiesHTML = `
+                <section id="specialties" class="section section-cream">
+                    <div class="container">
+                        <div class="text-center mb-8">
+                            <h2 class="section-title font-serif">Especialidades del Local</h2>
+                        </div>
+                        <div class="specialties-grid">
+                            ${location.specialties.map((item, index) => `
+                                <div class="specialty-card">
+                                    <i class="fas ${icons[index % icons.length]}"></i>
+                                    <h3>${item}</h3>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </section>
+            `;
+        }
+
+        container.innerHTML = `
+            <header class="location-header">
+                <div class="container">
+                    <h1 class="location-title">${location.name}</h1>
+                    <p class="location-address">${location.address.street}</p>
+                    <div class="location-card__hours" style="max-width: 400px; margin: 0 auto; background: rgba(255,255,255,0.1);">
+                        <i class="fas fa-clock"></i>
+                        <span>${location.hours}</span>
+                    </div>
+                </div>
+            </header>
+
+            <section id="location-info" class="section">
+                <div class="container">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div>
+                            <h2 class="section-title font-serif">Bienvenido</h2>
+                            <p class="text-brown text-lg leading-relaxed">${location.description}</p>
+                            <a href="${location.mapsUrl}" class="btn btn-primary mt-4" target="_blank" rel="noopener">
+                                <i class="fas fa-directions mr-2"></i>Cómo llegar
+                            </a>
+                        </div>
+                        <div class="map-container">
+                          <iframe 
+                               src="${location.embedMapUrl}" 
+                               width="100%" 
+                               height="100%" 
+                               style="border:0;" 
+                               allowfullscreen="" 
+                               loading="lazy" 
+                               referrerpolicy="no-referrer-when-downgrade">
+                          </iframe>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            ${specialtiesHTML}
+        `;
+    }
+    </script>
 </body>
 </html>
 

@@ -11,8 +11,11 @@
         "postalCode": "07009",
         "country": "ES"
       },
-      "hours": "Mo-Su 07:00-21:00",
-      "mapsUrl": "https://maps.google.com/?q=Calle+Arag%C3%B3n+323A+Palma"
+      "hours": "Lun-Dom: 07:00-21:00",
+      "mapsUrl": "https://maps.app.goo.gl/aksYA3dWFFWq54qbA",
+      "embedMapUrl": "https://maps.google.com/maps?q=Carrer%20d'Arag%C3%B3%2C%20323%2C%2007008%20Palma%2C%20Illes%20Balears&t=&z=17&ie=UTF8&iwloc=&output=embed",
+      "description": "Tu parada ideal para un café y pan recién hecho en la zona de Llevant. Un ambiente acogedor perfecto para cualquier momento del día.",
+      "specialties": ["Panadería Tradicional", "Café para llevar", "Bocadillos del día"]
     },
     {
       "slug": "son-oliva",
@@ -24,8 +27,11 @@
         "postalCode": "07010",
         "country": "ES"
       },
-      "hours": "Mo-Su 07:00-21:00",
-      "mapsUrl": "https://maps.google.com/?q=Av.+Tom%C3%A1s+de+Villanueva+Cort%C3%A9s+11+Palma"
+      "hours": "Lun-Vie: 07:30-20:30 • Sáb-Dom: 08:00-21:00",
+      "mapsUrl": "https://maps.app.goo.gl/jk8BnW6iUaic6ep8A",
+      "embedMapUrl": "https://maps.google.com/maps?q=Avinguda%20de%20Tom%C3%A0s%20de%20Villanueva%20Cort%C3%A8s%2C%2011%2C%2007010%20Palma%2C%20Illes%20Balears&t=&z=17&ie=UTF8&iwloc=&output=embed",
+      "description": "El rincón perfecto para desayunos premium, meriendas especiales y tapeo. Descubre nuestros famosos churros con chocolate en Son Oliva.",
+      "specialties": ["Desayunos con Churros", "Tapeo Variado", "Desayunos Premium"]
     }
   ]
 }

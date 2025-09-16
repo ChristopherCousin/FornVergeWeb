@@ -61,13 +61,9 @@
   <nav class="navbar" id="navbar" role="navigation" aria-label="Navegación principal">
     <div class="navbar__container">
       <div class="navbar__brand">
-        <div class="navbar__logo" aria-hidden="true">
-          <i class="fas fa-wheat-awn"></i>
-        </div>
-        <div>
-          <h1 class="navbar__title font-serif">MASSA</h1>
-          <p class="navbar__subtitle">Cafeterías & Panaderías</p>
-        </div>
+        <a href="/web/" class="navbar__logo-link">
+          <img src="assets/LOGO-massa.svg" alt="Logo de MASSA" class="navbar__logo-img navbar__logo-img--inverted">
+        </a>
       </div>
       <div class="navbar__nav" role="menubar">
         <a href="#inicio" class="navbar__link" role="menuitem">Inicio</a>
@@ -94,37 +90,9 @@
 
   <section id="inicio" class="hero angled-separator" role="banner">
     <div class="container">
-      <div class="hero__content">
-        <h1 class="hero__title font-serif">MASSA</h1>
-        <p class="hero__subtitle">Cadena de Cafeterías & Panaderías Artesanales</p>
-        <p class="hero__description">Dos locales en Palma: Llevant y Son Oliva. Tradición, café de especialidad y una terraza para cada momento del día.</p>
-
-        <div class="grid grid-auto-fit gap-3 mb-6">
-          <div class="info-card" data-aos="fade-up" data-aos-delay="100">
-            <div class="info-card__content">
-              <i class="fas fa-sun info-card__icon" aria-hidden="true"></i>
-              <h3 class="info-card__title">Horario Continuo</h3>
-              <p class="text-cream font-semibold mb-1">7:00 - 21:00</p>
-              <p class="text-cream opacity-75">Abierto todos los días</p>
-            </div>
-          </div>
-          <div class="info-card" data-aos="fade-up" data-aos-delay="200">
-            <div class="info-card__content">
-              <i class="fas fa-mug-hot info-card__icon" aria-hidden="true"></i>
-              <h3 class="info-card__title">Café & Pan</h3>
-              <p class="text-cream font-semibold mb-1">Artesanal</p>
-              <p class="text-cream opacity-75">Ingredientes locales</p>
-            </div>
-          </div>
-          <div class="info-card" data-aos="fade-up" data-aos-delay="300">
-            <div class="info-card__content">
-              <i class="fas fa-location-dot info-card__icon" aria-hidden="true"></i>
-              <h3 class="info-card__title">2 Locales</h3>
-              <p class="text-cream font-semibold mb-1">Llevant • Son Oliva</p>
-              <p class="text-cream opacity-75">Palma de Mallorca</p>
-            </div>
-          </div>
-        </div>
+      <div class="hero__content" style="padding-top: 5rem;">
+        <p class="hero__subtitle">CAFETERIA Y HORNO DE ELABORACIÓN ARTESANAL</p>
+        <p class="hero__description">Donde la tradición se encuentra con el café de especialidad.</p>
 
         <div class="flex flex-wrap gap-3 justify-center mb-4" data-aos="fade-up" data-aos-delay="500">
           <a href="#locales" class="btn btn-primary"><i class="fas fa-store mr-2"></i>Ver Locales</a>
@@ -141,78 +109,41 @@
     <svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path fill="rgba(212,165,116,0.15)" d="M0,64L60,69.3C120,75,240,85,360,69.3C480,53,600,11,720,10.7C840,11,960,53,1080,64C1200,75,1320,53,1380,42.7L1440,32L1440,0L1380,0C1320,0,1200,0,1080,0C960,0,840,0,720,0C600,0,480,0,360,0C240,0,120,0,60,0L0,0Z"></path></svg>
   </div>
 
-  <!-- CARTA MASSA / HIGHLIGHTS -->
-  <section id="carta" class="section section-cream">
-    <div class="container">
-      <div class="menu-section-intro" data-aos="fade-up">
-        <h2 class="section-title font-serif">Carta MASSA</h2>
-        <p class="text-brown text-lg max-w-4xl mx-auto leading-relaxed">Selección artesanal pensada para cada momento del día. Ingredientes locales, pan de masa madre y café de especialidad.</p>
-      </div>
-      <div class="menu-grid">
-        <div class="menu-card" data-aos="fade-up" data-aos-delay="50">
-          <div class="badge">Nuevo</div>
-          <h3 class="menu-card__title">Ensaïmada Clásica</h3>
-          <p class="menu-card__desc">Hojaldre suave, manteca y azúcar glas. Tradición mallorquina.</p>
-          <div class="menu-card__meta"><div class="chip-row"><span class="chip">Dulce</span><span class="chip">Artesanal</span></div><div class="price"><sup>€</sup>2.80</div></div>
+  <!-- SECCIÓN FILOSOFÍA -->
+  <section id="filosofia" class="section section-cream">
+      <div class="container">
+        <div class="text-center mb-8" data-aos="fade-up">
+            <h2 class="section-title font-serif">Nuestra Filosofía</h2>
+            <p class="text-brown text-lg max-w-4xl mx-auto leading-relaxed">En MASSA, cada detalle cuenta. Creemos en el producto local, el café de especialidad y el pan hecho con masa madre, tiempo y dedicación. La misma pasión en todos nuestros locales.</p>
         </div>
-        <div class="menu-card" data-aos="fade-up" data-aos-delay="100">
-          <h3 class="menu-card__title">Bocata MASSA</h3>
-          <p class="menu-card__desc">Jamón, queso y tomate de ramallet en pan de masa madre.</p>
-          <div class="menu-card__meta"><div class="chip-row"><span class="chip">Salado</span><span class="chip">Km0</span></div><div class="price"><sup>€</sup>5.50</div></div>
-        </div>
-        <div class="menu-card" data-aos="fade-up" data-aos-delay="150">
-          <h3 class="menu-card__title">Café Especialidad</h3>
-          <p class="menu-card__desc">Blend propio tostado localmente. Espresso, latte o capuccino.</p>
-          <div class="menu-card__meta"><div class="chip-row"><span class="chip">Café</span><span class="chip">Origen</span></div><div class="price"><sup>€</sup>1.80</div></div>
-        </div>
-        <div class="menu-card" data-aos="fade-up" data-aos-delay="200">
-          <h3 class="menu-card__title">Tostada Mediterránea</h3>
-          <p class="menu-card__desc">AOVE, tomate y sal en pan recién horneado. Simple y perfecta.</p>
-          <div class="menu-card__meta"><div class="chip-row"><span class="chip">Veggie</span><span class="chip">Pan del día</span></div><div class="price"><sup>€</sup>3.20</div></div>
-        </div>
-        <div class="menu-card" data-aos="fade-up" data-aos-delay="250">
-          <h3 class="menu-card__title">Croissant Mantequilla</h3>
-          <p class="menu-card__desc">Hojaldre crujiente con mantequilla francesa. Cada mañana.</p>
-          <div class="menu-card__meta"><div class="chip-row"><span class="chip">Horno</span><span class="chip">Diario</span></div><div class="price"><sup>€</sup>2.00</div></div>
-        </div>
-        <div class="menu-card" data-aos="fade-up" data-aos-delay="300">
-          <div class="badge">Top</div>
-          <h3 class="menu-card__title">Cold Brew MASSA</h3>
-          <p class="menu-card__desc">Infusión en frío 16h. Notas a cacao y caramelo.</p>
-          <div class="menu-card__meta"><div class="chip-row"><span class="chip">Frío</span><span class="chip">Especialidad</span></div><div class="price"><sup>€</sup>2.90</div></div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+            <div class="card" data-aos="fade-up" data-aos-delay="100">
+                <div class="card__icon"><i class="fas fa-bread-slice"></i></div>
+                <h3 class="font-serif text-xl text-gold mb-3">Pan de Masa Madre</h3>
+                <p class="text-brown">Elaboración diaria, fermentación lenta y los mejores ingredientes.</p>
+            </div>
+            <div class="card" data-aos="fade-up" data-aos-delay="200">
+                <div class="card__icon"><i class="fas fa-coffee"></i></div>
+                <h3 class="font-serif text-xl text-gold mb-3">Café de Especialidad</h3>
+                <p class="text-brown">Selección de granos de origen y tostado local para un sabor único.</p>
+            </div>
+            <div class="card" data-aos="fade-up" data-aos-delay="300">
+                <div class="card__icon"><i class="fas fa-leaf"></i></div>
+                <h3 class="font-serif text-xl text-gold mb-3">Producto Local</h3>
+                <p class="text-brown">Apoyamos a los productores de aquí para garantizar la máxima frescura y calidad.</p>
+            </div>
         </div>
       </div>
-      <div class="cta-bar mt-4" data-aos="fade-up" data-aos-delay="350">
-        <div class="btn-row">
-          <a class="btn btn-outline btn--ghost" href="#locales"><i class="fas fa-location-dot mr-2"></i>Elegir Local</a>
-        </div>
-      </div>
-    </div>
   </section>
 
   <section id="locales" class="section section-cream" style="position:relative; z-index:2;">
     <div class="container">
       <div class="text-center mb-8" data-aos="fade-up">
         <h2 class="section-title font-serif">Nuestros Locales</h2>
-        <p class="text-brown text-lg max-w-4xl mx-auto leading-relaxed">Elige tu MASSA más cercano. Misma esencia, dos ubicaciones: Llevant y Son Oliva.</p>
+        <p class="text-brown text-lg max-w-4xl mx-auto leading-relaxed">Misma esencia, distinta personalidad. Elige tu MASSA más cercano y déjate sorprender.</p>
       </div>
-      <div class="grid grid-auto-fit gap-6">
-        <div class="card card-premium" data-aos="fade-up" data-aos-delay="100">
-          <div class="card__icon"><i class="fas fa-location-dot"></i></div>
-          <h3 class="card__title">MASSA Calle Aragón 323A</h3>
-          <p class="location-card__meta">Calle Aragón, 323A • 07009 Palma</p>
-          <div class="location-card__actions">
-            <a class="btn btn-primary btn--shine" href="./locations/llevant/"><i class="fas fa-arrow-right mr-2"></i>Ver local</a>
-          </div>
-        </div>
-        <div class="card card-premium" data-aos="fade-up" data-aos-delay="200">
-          <div class="card__icon"><i class="fas fa-location-dot"></i></div>
-          <h3 class="card__title">MASSA Son Oliva</h3>
-          <p class="location-card__meta">Av. Tomás de Villanueva Cortés, 11, esq. Isaac Albéniz, 3 • 07010 Palma</p>
-          <div class="location-card__actions">
-            <a class="btn btn-primary btn--shine" href="./locations/son-oliva/"><i class="fas fa-arrow-right mr-2"></i>Ver local</a>
-          </div>
-        </div>
+      <div class="grid grid-auto-fit gap-6" id="locations-container">
+        <!-- Las tarjetas de locales se cargarán aquí desde locations.json -->
       </div>
     </div>
   </section>
@@ -229,12 +160,12 @@
         <div class="card">
           <h3 class="font-serif text-xl text-gold mb-3">Calle Aragón 323A</h3>
           <p class="text-brown">07009 Palma</p>
-          <a class="btn btn-small mt-3" href="https://maps.google.com/?q=Calle+Arag%C3%B3n+323A+Palma" target="_blank" rel="noopener"><i class="fas fa-directions mr-2"></i>Cómo llegar</a>
+          <a class="btn btn-small mt-3" href="https://maps.app.goo.gl/aksYA3dWFFWq54qbA" target="_blank" rel="noopener"><i class="fas fa-directions mr-2"></i>Cómo llegar</a>
         </div>
         <div class="card">
           <h3 class="font-serif text-xl text-gold mb-3">Son Oliva</h3>
           <p class="text-brown">Av. Tomás de Villanueva Cortés, 11, esq. Isaac Albéniz, 3</p>
-          <a class="btn btn-small mt-3" href="https://maps.google.com/?q=Av.+Tom%C3%A1s+de+Villanueva+Cort%C3%A9s+11+Palma" target="_blank" rel="noopener"><i class="fas fa-directions mr-2"></i>Cómo llegar</a>
+          <a class="btn btn-small mt-3" href="https://maps.app.goo.gl/jk8BnW6iUaic6ep8A" target="_blank" rel="noopener"><i class="fas fa-directions mr-2"></i>Cómo llegar</a>
         </div>
         <div class="card">
           <h3 class="font-serif text-xl text-gold mb-3">Síguenos</h3>
@@ -257,7 +188,7 @@
         </div>
         <div>
           <h4 class="text-gold font-semibold mb-3">Horario</h4>
-          <p class="text-light-gold font-semibold">7:00 - 21:00</p>
+          <p class="text-light-gold">Consulta el horario de cada local</p>
         </div>
       </div>
       <div class="border-t border-brown mt-6 pt-6 text-center">
@@ -273,9 +204,44 @@
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <script src="assets/js/app.js"></script>
   <script src="assets/js/mobile-menu.js"></script>
-  <script src="assets/js/qr.js"></script>
   <script>
     AOS.init({ duration: 800, once: true, offset: 100 });
+
+    // Cargar locales dinámicamente
+    fetch('data/locations.json')
+      .then(response => response.json())
+      .then(data => {
+        const container = document.getElementById('locations-container');
+        if(container) {
+          data.locations.forEach((loc, index) => {
+            const card = document.createElement('div');
+            card.className = 'location-card';
+            card.setAttribute('data-aos', 'fade-up');
+            card.setAttribute('data-aos-delay', (index + 1) * 100);
+
+            card.innerHTML = `
+              <div class="location-card__header">
+                  <i class="fas fa-store location-card__icon"></i>
+                  <h3 class="location-card__title">${loc.name}</h3>
+              </div>
+              <p class="location-card__address">${loc.address.street}</p>
+              <div class="location-card__description">
+                ${loc.description || 'Tu espacio ideal para empezar el día, hacer una pausa o disfrutar de una merienda artesanal.'}
+              </div>
+              <div class="location-card__hours">
+                  <i class="fas fa-clock"></i>
+                  <span>${loc.hours}</span>
+              </div>
+              <div class="location-card__actions">
+                  <a class="btn btn-primary btn--shine" href="./locations/?local=${loc.slug}"><i class="fas fa-arrow-right mr-2"></i>Ver Local</a>
+              </div>
+            `;
+            container.appendChild(card);
+          });
+        }
+      })
+      .catch(error => console.error('Error al cargar los locales:', error));
+
   </script>
 </body>
 </html>

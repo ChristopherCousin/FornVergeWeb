@@ -540,7 +540,7 @@ class ControlAnualSimple {
 
         compensacionesHtml += `
                 <div class="mt-4 p-3 bg-gray-100 rounded text-sm text-gray-700">
-                    💡 <strong>Objetivo:</strong> Compensar diferencias históricas desde junio para que todas acaben cerca del ideal.
+                    💡 <strong>Objetivo:</strong> Compensar diferencias históricas desde la fecha de alta para que todas acaben cerca del ideal.
                 </div>
             </div>
         `;

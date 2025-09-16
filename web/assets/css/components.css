@@ -38,6 +38,71 @@
 .location-card__meta { color: var(--warm-brown); text-align:center; margin-bottom: var(--spacing-sm); }
 .location-card__actions { display:flex; gap: var(--spacing-sm); justify-content:center; }
 
+.location-card {
+    background: linear-gradient(145deg, var(--soft-white) 0%, var(--cream) 100%);
+    border: 1px solid rgba(212, 165, 116, 0.25);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-cubic);
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+.location-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+}
+
+.location-card__header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.location-card__icon {
+    font-size: 2.5rem;
+    color: var(--warm-brown);
+}
+
+.location-card__title {
+    font-family: var(--font-serif);
+    font-size: 1.75rem;
+    color: var(--charcoal);
+}
+
+.location-card__address {
+    color: var(--warm-brown);
+    margin-bottom: var(--spacing-md);
+    font-style: normal;
+}
+
+.location-card__description {
+    color: var(--charcoal);
+    margin-bottom: var(--spacing-lg);
+    flex-grow: 1; /* Hace que la descripción ocupe el espacio disponible */
+}
+
+.location-card__hours {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+    font-weight: 600;
+    color: var(--dark-brown);
+    background: rgba(212, 165, 116, 0.1);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-md);
+}
+
+.location-card__actions {
+    margin-top: auto; /* Empuja el botón hacia abajo */
+}
+
 /* botones avanzados */
 .btn--shine { position: relative; overflow: hidden; }
 .btn--shine::after { content:''; position:absolute; top:0; left:-150%; width:50%; height:100%; background: linear-gradient(120deg, transparent, rgba(255,255,255,.35), transparent); transform: skewX(-20deg); transition: left .6s ease; }

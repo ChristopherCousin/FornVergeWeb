@@ -37,7 +37,7 @@ class ConvenioAnualManager {
             inicio_datos_reales: '2025-06-06', // Desde cuándo tenemos datos de Ágora
             
             // Empleados excluidos del convenio
-            excluidos: ['BRYAN'], // Socio/autónomo
+            excluidos: ['BRYAN', 'GABY'], // Socio/autónomo
             
             // Fechas de alta específicas por empleado (cuando no coinciden con inicio_datos_reales)
             fechas_alta_empleados: {

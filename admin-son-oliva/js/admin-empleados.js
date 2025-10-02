@@ -204,6 +204,70 @@ document.addEventListener('DOMContentLoaded', () => {
     const partidoPreferencia = document.getElementById('partidoPreferencia');
     const notasPreferencia = document.getElementById('notasPreferencia');
     const fixedDayOffPreferencia = document.getElementById('fixedDayOffPreferencia');
+    
+    // ✨ NUEVO: Elementos para preferencias alternantes
+    const alternatingPatternEnabled = document.getElementById('alternatingPatternEnabled');
+    const alternatingPatternFields = document.getElementById('alternatingPatternFields');
+    const alternatingFrequency = document.getElementById('alternatingFrequency');
+    const alternatingStartWeek = document.getElementById('alternatingStartWeek');
+    
+    // ✨ NUEVO: Excluir del generador
+    const excludeFromGenerator = document.getElementById('excludeFromGenerator');
+    
+    // ✨ NUEVO: Prioridad para primer turno
+    const priorityFirstShift = document.getElementById('priorityFirstShift');
+    
+    // Toggle para mostrar/ocultar campos de patrón alternante
+    if (alternatingPatternEnabled) {
+        alternatingPatternEnabled.addEventListener('change', () => {
+            if (alternatingPatternEnabled.value === 'true') {
+                alternatingPatternFields.classList.remove('hidden');
+            } else {
+                alternatingPatternFields.classList.add('hidden');
+            }
+        });
+    }
+    
+    // Botón de info para explicar qué son las preferencias alternantes
+    const btnInfoAlternante = document.getElementById('btnInfoAlternante');
+    if (btnInfoAlternante) {
+        btnInfoAlternante.addEventListener('click', () => {
+            Swal.fire({
+                title: '¿Qué son las Preferencias Alternantes?',
+                html: `
+                    <div class="text-left space-y-3">
+                        <p><strong>Las preferencias alternantes</strong> permiten configurar días libres que se repiten cada cierto número de semanas.</p>
+                        
+                        <div class="bg-blue-50 p-3 rounded">
+                            <p class="font-semibold mb-2">📅 Ejemplo 1: Fines de semana alternos</p>
+                            <ul class="text-sm space-y-1 ml-4">
+                                <li>• Frecuencia: Quincenal (cada 2 semanas)</li>
+                                <li>• Días: Sábado y Domingo</li>
+                                <li>• Resultado: Libra fines de semana 1 semana sí, 1 no</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-green-50 p-3 rounded">
+                            <p class="font-semibold mb-2">📅 Ejemplo 2: Lunes libres mensuales</p>
+                            <ul class="text-sm space-y-1 ml-4">
+                                <li>• Frecuencia: Mensual (cada 4 semanas)</li>
+                                <li>• Días: Lunes</li>
+                                <li>• Resultado: Libra lunes 1 semana al mes</li>
+                            </ul>
+                        </div>
+                        
+                        <p class="text-sm text-gray-600 mt-3">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            El sistema calculará automáticamente en qué semanas aplica el patrón basándose en la fecha de inicio que especifiques.
+                        </p>
+                    </div>
+                `,
+                icon: 'info',
+                confirmButtonText: 'Entendido',
+                width: '600px'
+            });
+        });
+    }
 
     window.openPreferencesModal = async (employeeId, employeeName) => {
         preferenceEmployeeId.value = employeeId;
@@ -227,6 +291,38 @@ document.addEventListener('DOMContentLoaded', () => {
         partidoPreferencia.value = prefs.split_shifts || 'yes';
         fixedDayOffPreferencia.value = prefs.fixed_day_off || 'none';
         notasPreferencia.value = prefs.notes || '';
+        
+        // ✨ NUEVO: Cargar exclusión del generador
+        excludeFromGenerator.checked = prefs.exclude_from_generator || false;
+        
+        // ✨ NUEVO: Cargar prioridad primer turno
+        priorityFirstShift.checked = prefs.priority_first_shift || false;
+
+        // ✨ NUEVO: Cargar preferencias alternantes
+        const alternating = prefs.alternating_pattern || {};
+        alternatingPatternEnabled.value = alternating.enabled ? 'true' : 'false';
+        
+        // Mostrar/ocultar campos según el estado
+        if (alternating.enabled) {
+            alternatingPatternFields.classList.remove('hidden');
+            
+            // Cargar valores
+            alternatingFrequency.value = alternating.pattern?.frequency || 2;
+            alternatingStartWeek.value = alternating.pattern?.start_week || '';
+            
+            // Marcar checkboxes de días
+            const days = alternating.pattern?.days || [];
+            document.querySelectorAll('.alternating-days').forEach(checkbox => {
+                checkbox.checked = days.includes(checkbox.value);
+            });
+        } else {
+            alternatingPatternFields.classList.add('hidden');
+            
+            // Limpiar campos
+            document.querySelectorAll('.alternating-days').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
 
         preferencesModal.style.display = 'block';
     };
@@ -242,12 +338,62 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const employeeId = preferenceEmployeeId.value;
 
+        // ✨ NUEVO: Construir objeto de preferencias alternantes
+        const alternatingEnabled = alternatingPatternEnabled.value === 'true';
+        const alternatingDays = Array.from(document.querySelectorAll('.alternating-days:checked'))
+            .map(cb => cb.value);
+        
+        // Validación: Si está habilitado, debe tener días seleccionados y fecha de inicio
+        if (alternatingEnabled) {
+            if (alternatingDays.length === 0) {
+                Swal.fire('Error', 'Debes seleccionar al menos un día para el patrón alternante.', 'error');
+                return;
+            }
+            if (!alternatingStartWeek.value) {
+                Swal.fire('Error', 'Debes especificar una fecha de inicio para el patrón alternante.', 'error');
+                return;
+            }
+            
+            // Verificar que la fecha sea un lunes
+            const startDate = new Date(alternatingStartWeek.value);
+            if (startDate.getDay() !== 1) {
+                const result = await Swal.fire({
+                    title: 'Advertencia',
+                    text: 'La fecha seleccionada no es un lunes. ¿Deseas continuar de todas formas?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, continuar',
+                    cancelButtonText: 'Cancelar'
+                });
+                if (!result.isConfirmed) return;
+            }
+        }
+
         const newPrefs = {
             availability: turnoPreferencia.value,
             split_shifts: partidoPreferencia.value,
             fixed_day_off: fixedDayOffPreferencia.value,
-            notes: notasPreferencia.value.trim()
+            notes: notasPreferencia.value.trim(),
+            
+            // ✨ NUEVO: Excluir del generador
+            exclude_from_generator: excludeFromGenerator.checked,
+            
+            // ✨ NUEVO: Prioridad primer turno
+            priority_first_shift: priorityFirstShift.checked,
+            
+            // ✨ NUEVO: Preferencias alternantes
+            alternating_pattern: {
+                enabled: alternatingEnabled,
+                type: "custom",
+                pattern: alternatingEnabled ? {
+                    frequency: parseInt(alternatingFrequency.value),
+                    days: alternatingDays,
+                    start_week: alternatingStartWeek.value
+                } : null
+            }
         };
+
+        console.log('💾 Guardando preferencias:', newPrefs);
 
         const { error } = await supabase
             .from('employees')

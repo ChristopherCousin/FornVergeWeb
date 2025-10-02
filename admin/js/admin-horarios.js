@@ -44,27 +44,24 @@ function getCurrentWeek(weeks = []) {
     return thisMonday;
 }
 
-// Variables dinámicas para semanas - CALCULADO AUTOMÁTICAMENTE
-// Nota: se ajusta a la lista de weeks disponible más abajo
+// Función para generar semanas automáticamente
+function generateAvailableWeeks(startWeek, numberOfWeeks = 52) {
+    const weeks = [];
+    const startDate = new Date(startWeek);
+    
+    for (let i = 0; i < numberOfWeeks; i++) {
+        const weekDate = new Date(startDate);
+        weekDate.setDate(startDate.getDate() + (i * 7));
+        weeks.push(toISODate(weekDate));
+    }
+    
+    return weeks;
+}
+
+// Variables dinámicas para semanas - GENERADO AUTOMÁTICAMENTE
+// Genera 52 semanas (1 año) a partir del 16 de junio de 2025
 let currentWeekStart; 
-const availableWeeks = [
-    '2025-06-16', // Semana 1: 16-22 Jun (pasada)
-    '2025-06-23', // Semana 2: 23-29 Jun ← ACTUAL (incluye 24 Jun)
-    '2025-06-30', // Semana 3: 30 Jun-6 Jul
-    '2025-07-07', // Semana 4: 7-13 Jul
-    '2025-07-14', // Semana 5: 14-20 Jul
-    '2025-07-21', // Semana 6: 21-27 Jul
-    '2025-07-28', // Semana 7: 28 Jul-3 Ago
-    '2025-08-04', // Semana 8: 4-10 Ago
-    '2025-08-11', // 11-17 Ago
-    '2025-08-18', // 18-24 Ago
-    '2025-08-25', // 25-31 Ago
-    '2025-09-01', // 1-7 Sep
-    '2025-09-08', // 8-14 Sep
-    '2025-09-15', // 15-21 Sep
-    '2025-09-22', // 22-28 Sep
-    '2025-09-29'  // 29 Sep-5 Oct
-];
+const availableWeeks = generateAvailableWeeks('2025-06-16', 52);
 
 // Inicializar semana actual en base a availableWeeks
 currentWeekStart = getCurrentWeek(availableWeeks);

@@ -104,6 +104,11 @@
                         <i class="fas fa-magic mr-1"></i>Sugerir Horario
                     </button>
                     
+                    <!-- Botón para Borrar Semana -->
+                    <button id="btnBorrarSemana" class="bg-red-500/20 hover:bg-red-600/40 text-white px-3 py-2 rounded-lg transition text-sm border border-red-500/30" title="Borrar todos los horarios de esta semana">
+                        <i class="fas fa-trash-alt mr-1"></i>Borrar Semana
+                    </button>
+                    
                     <!-- Botones de acción compactos -->
                     <button id="employeesBtn" class="bg-green-500/20 hover:bg-green-500/30 px-3 py-2 rounded-lg transition text-sm">
                         <i class="fas fa-users-cog mr-1"></i>Gestionar Empleados
@@ -499,6 +504,22 @@
                 <input type="hidden" id="preferenceEmployeeId">
                 <h4 id="preferenceEmployeeName" class="text-xl font-semibold text-center mb-4"></h4>
                 <div class="space-y-4">
+                    <!-- ✨ Excluir del generador automático -->
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="checkbox" id="excludeFromGenerator" class="mr-3 w-5 h-5">
+                            <div>
+                                <span class="text-sm font-semibold text-gray-800">
+                                    <i class="fas fa-user-slash mr-1 text-yellow-600"></i>
+                                    Excluir del Generador Automático
+                                </span>
+                                <p class="text-xs text-gray-600 mt-1">
+                                    Este empleado NO será incluido al generar horarios automáticamente
+                                </p>
+                            </div>
+                        </label>
+                    </div>
+                    
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Disponibilidad de Turnos</label>
                         <select id="turnoPreferencia" class="w-full border border-gray-300 rounded-lg p-3">
@@ -507,6 +528,23 @@
                             <option value="afternoon_only">Solo tardes</option>
                         </select>
                     </div>
+                    
+                    <!-- ✨ NUEVO: Prioridad para primer turno -->
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="checkbox" id="priorityFirstShift" class="mr-3 w-5 h-5">
+                            <div>
+                                <span class="text-sm font-semibold text-gray-800">
+                                    <i class="fas fa-star mr-1 text-blue-600"></i>
+                                    Siempre debe entrar en el primer turno
+                                </span>
+                                <p class="text-xs text-gray-600 mt-1">
+                                    Este empleado SIEMPRE tendrá el turno más temprano del tipo que puede hacer (ej: cocinero que siempre abre)
+                                </p>
+                            </div>
+                        </label>
+                    </div>
+                    
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Turnos Partidos</label>
                         <select id="partidoPreferencia" class="w-full border border-gray-300 rounded-lg p-3">
@@ -527,6 +565,93 @@
                             <option value="domingo">Domingo</option>
                         </select>
                     </div>
+                    
+                    <!-- ✨ NUEVO: Preferencias Alternantes -->
+                    <div class="border-t-2 pt-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <label class="block text-sm font-medium text-gray-700">
+                                <i class="fas fa-calendar-week mr-1 text-purple-600"></i>
+                                Preferencias Alternantes
+                            </label>
+                            <button type="button" id="btnInfoAlternante" class="text-blue-500 hover:text-blue-700" title="¿Qué es esto?">
+                                <i class="fas fa-question-circle"></i>
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-3">
+                            Para empleados que libran ciertos días solo algunas semanas del mes (ej: fines de semana alternos)
+                        </p>
+                        <select id="alternatingPatternEnabled" class="w-full border border-gray-300 rounded-lg p-3 mb-3">
+                            <option value="false">No usar patrón alternante</option>
+                            <option value="true">Activar patrón alternante</option>
+                        </select>
+                    </div>
+
+                    <!-- Campos que aparecen solo si se activa el patrón alternante -->
+                    <div id="alternatingPatternFields" class="hidden bg-purple-50 p-4 rounded-lg space-y-3 border border-purple-200">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-repeat mr-1"></i>Frecuencia del Patrón
+                            </label>
+                            <select id="alternatingFrequency" class="w-full border border-gray-300 rounded-lg p-3">
+                                <option value="2">Quincenal (1 semana sí, 1 no)</option>
+                                <option value="3">Cada 3 semanas (1 de cada 3)</option>
+                                <option value="4">Mensual (1 semana al mes)</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Cada cuántas semanas se repite el patrón
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-calendar-check mr-1"></i>Días a Librar
+                            </label>
+                            <div class="space-y-2">
+                                <label class="flex items-center p-2 bg-white rounded border hover:border-purple-400 cursor-pointer transition">
+                                    <input type="checkbox" value="lunes" class="alternating-days mr-2">
+                                    <span class="text-sm">Lunes</span>
+                                </label>
+                                <label class="flex items-center p-2 bg-white rounded border hover:border-purple-400 cursor-pointer transition">
+                                    <input type="checkbox" value="martes" class="alternating-days mr-2">
+                                    <span class="text-sm">Martes</span>
+                                </label>
+                                <label class="flex items-center p-2 bg-white rounded border hover:border-purple-400 cursor-pointer transition">
+                                    <input type="checkbox" value="miercoles" class="alternating-days mr-2">
+                                    <span class="text-sm">Miércoles</span>
+                                </label>
+                                <label class="flex items-center p-2 bg-white rounded border hover:border-purple-400 cursor-pointer transition">
+                                    <input type="checkbox" value="jueves" class="alternating-days mr-2">
+                                    <span class="text-sm">Jueves</span>
+                                </label>
+                                <label class="flex items-center p-2 bg-white rounded border hover:border-purple-400 cursor-pointer transition">
+                                    <input type="checkbox" value="viernes" class="alternating-days mr-2">
+                                    <span class="text-sm">Viernes</span>
+                                </label>
+                                <label class="flex items-center p-2 bg-white rounded border hover:border-purple-400 cursor-pointer transition">
+                                    <input type="checkbox" value="sabado" class="alternating-days mr-2">
+                                    <span class="text-sm">Sábado</span>
+                                </label>
+                                <label class="flex items-center p-2 bg-white rounded border hover:border-purple-400 cursor-pointer transition">
+                                    <input type="checkbox" value="domingo" class="alternating-days mr-2">
+                                    <span class="text-sm">Domingo</span>
+                                </label>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">
+                                Marca los días que debe librar cuando el patrón esté activo
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-calendar-day mr-1"></i>Semana de Inicio del Patrón
+                            </label>
+                            <input type="date" id="alternatingStartWeek" class="w-full border border-gray-300 rounded-lg p-3">
+                            <p class="text-xs text-gray-500 mt-1">
+                                Selecciona un <strong>lunes</strong> como semana de referencia donde empieza el patrón
+                            </p>
+                        </div>
+                    </div>
+                    
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Notas Adicionales</label>
                         <textarea id="notasPreferencia" class="w-full border border-gray-300 rounded-lg p-3" rows="3" placeholder="Ej: Necesita librar los miércoles por la tarde..."></textarea>
@@ -554,6 +679,49 @@
 
             <div class="space-y-6">
                 <p class="text-gray-600">Define la lista de turnos exactos que deben cubrirse para cada bloque de días. El generador intentará asignar una empleada a cada uno de estos turnos.</p>
+
+                <!-- ✨ NUEVO: Sección de Días de Cierre -->
+                <div class="p-4 border-2 border-red-200 rounded-lg bg-red-50">
+                    <h4 class="text-lg font-semibold text-red-800 mb-3">
+                        <i class="fas fa-store-slash mr-2"></i>Días de Cierre del Local
+                    </h4>
+                    <p class="text-sm text-gray-700 mb-4">
+                        <i class="fas fa-info-circle mr-1 text-red-600"></i>
+                        Marca los días de la semana en que el local está <strong>CERRADO</strong>. 
+                        No se generarán turnos en estos días y se marcarán automáticamente como días libres para todos.
+                    </p>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+                        <label class="flex items-center p-3 bg-white rounded-lg border-2 border-gray-300 hover:border-red-400 cursor-pointer transition">
+                            <input type="checkbox" value="lunes" class="dia-cierre mr-2">
+                            <span class="text-sm font-medium">Lunes</span>
+                        </label>
+                        <label class="flex items-center p-3 bg-white rounded-lg border-2 border-gray-300 hover:border-red-400 cursor-pointer transition">
+                            <input type="checkbox" value="martes" class="dia-cierre mr-2">
+                            <span class="text-sm font-medium">Martes</span>
+                        </label>
+                        <label class="flex items-center p-3 bg-white rounded-lg border-2 border-gray-300 hover:border-red-400 cursor-pointer transition">
+                            <input type="checkbox" value="miercoles" class="dia-cierre mr-2">
+                            <span class="text-sm font-medium">Miércoles</span>
+                        </label>
+                        <label class="flex items-center p-3 bg-white rounded-lg border-2 border-gray-300 hover:border-red-400 cursor-pointer transition">
+                            <input type="checkbox" value="jueves" class="dia-cierre mr-2">
+                            <span class="text-sm font-medium">Jueves</span>
+                        </label>
+                        <label class="flex items-center p-3 bg-white rounded-lg border-2 border-gray-300 hover:border-red-400 cursor-pointer transition">
+                            <input type="checkbox" value="viernes" class="dia-cierre mr-2">
+                            <span class="text-sm font-medium">Viernes</span>
+                        </label>
+                        <label class="flex items-center p-3 bg-white rounded-lg border-2 border-gray-300 hover:border-red-400 cursor-pointer transition">
+                            <input type="checkbox" value="sabado" class="dia-cierre mr-2">
+                            <span class="text-sm font-medium">Sábado</span>
+                        </label>
+                        <label class="flex items-center p-3 bg-white rounded-lg border-2 border-gray-300 hover:border-red-400 cursor-pointer transition">
+                            <input type="checkbox" value="domingo" class="dia-cierre mr-2">
+                            <span class="text-sm font-medium">Domingo</span>
+                        </label>
+                    </div>
+                </div>
 
                 <!-- Bloque Lunes a Viernes -->
                 <div class="p-4 border rounded-lg bg-gray-50">
@@ -606,9 +774,74 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Configuración y Constantes -->
+    <script src="js/config/constants.js"></script>
+    <script src="js/config/supabase.js"></script>
+    
+    <!-- Utilidades (PRIMERO porque auth las necesita) -->
+    <script src="js/utils/dates.js"></script>
+    <script src="js/utils/colors.js"></script>
+    <script src="js/utils/shifts.js"></script>
+    <script src="js/utils/formatters.js"></script>
+    <script src="js/utils/helpers.js"></script>
+    <script src="js/utils/debug.js"></script>
+    
+    <!-- Estado Global -->
+    <script src="js/core/state.js"></script>
+    <script src="js/core/auth.js"></script>
+    
+    <!-- Servicios de BD -->
+    <script src="js/services/schedules-service.js"></script>
+    
+    <!-- Módulos -->
+    <script src="js/modules/week-selector.js"></script>
+    <script src="js/modules/week-manager.js"></script>
+    <script src="js/modules/renderer.js"></script>
+    <script src="js/modules/draft-manager.js"></script>
+    <script src="js/modules/generator.js"></script>
+    <script src="js/modules/hours-counter.js"></script>
+    <script src="js/modules/raquel-schedule.js"></script>
+    
+    <!-- UI -->
+    <script src="js/ui/status.js"></script>
+    <script src="js/ui/modals.js"></script>
+    
+    <!-- Script Principal -->
     <script src="js/admin-horarios.js"></script>
-    <!-- SISTEMA ANUAL DEL CONVENIO -->
-    <script src="js/convenio-anual.js"></script>
+    
+    <!-- ========== SISTEMA ANUAL DEL CONVENIO (MÓDULOS) ========== -->
+    <!-- 1. Configuración -->
+    <script src="js/config/convenio-config.js"></script>
+    
+    <!-- 2. Utilidades -->
+    <script src="js/utils/convenio-utils.js"></script>
+    
+    <!-- 3. Servicios -->
+    <script src="js/services/convenio-data-service.js"></script>
+    
+    <!-- 4. Validadores -->
+    <script src="js/modules/convenio/validators/ausencias-validator.js"></script>
+    
+    <!-- 5. Calculadoras -->
+    <script src="js/modules/convenio/calculators/hours-calculator.js"></script>
+    <script src="js/modules/convenio/calculators/shifts-calculator.js"></script>
+    <script src="js/modules/convenio/calculators/compliance-analyzer.js"></script>
+    <script src="js/modules/convenio/calculators/projection-calculator.js"></script>
+    
+    <!-- 6. Generadores de alertas -->
+    <script src="js/modules/convenio/alerts/alert-generator.js"></script>
+    
+    <!-- 7. Renderizadores UI -->
+    <script src="js/ui/convenio/convenio-html-generator.js"></script>
+    <script src="js/ui/convenio/convenio-renderer.js"></script>
+    
+    <!-- 8. Clase principal (usa todos los módulos anteriores) -->
+    <script src="js/modules/convenio/convenio-manager.js"></script>
+    
+    <!-- 9. Punto de entrada (mantiene compatibilidad) -->
+    <!-- convenio-anual.js eliminado - ya no se usa -->
+    <!-- ========== FIN SISTEMA CONVENIO ========== -->
     <!-- GESTIÓN DE AUSENCIAS -->
     <script src="js/ausencias-manager.js"></script>
     <!-- CONTROL ANUAL SIMPLE PARA LA ENCARGADA -->

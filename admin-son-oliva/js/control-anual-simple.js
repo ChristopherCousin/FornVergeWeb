@@ -43,18 +43,27 @@ class ControlAnualSimple {
     }
 
     async inicializarSupabase() {
-        // Esperar a que Supabase esté disponible
-        while (!window.supabase) {
-            // console.log('⏳ Esperando Supabase...');
+        // Esperar a que el CLIENTE global de Supabase esté disponible
+        let intentos = 0;
+        while (intentos < 20) {
+            if (window.supabase && typeof window.supabase.from === 'function') {
+                // Ya está inicializado el cliente
+                break;
+            }
+            // console.log('⏳ Esperando cliente global de Supabase...');
             await new Promise(resolve => setTimeout(resolve, 500));
+            intentos++;
         }
         
-        // Inicializar igual que en admin-horarios.js
-        const SUPABASE_URL = 'https://csxgkxjeifakwslamglc.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzeGdreGplaWZha3dzbGFtZ2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjM4NjIsImV4cCI6MjA2NDg5OTg2Mn0.iGDmQJGRjsldPGmXLO5PFiaLOk7P3Rpr0omF3b8SJkg';
+        if (!window.supabase || typeof window.supabase.from !== 'function') {
+            console.error('❌ Cliente global de Supabase no disponible después de esperar');
+            console.error('window.supabase:', window.supabase);
+            return;
+        }
         
-        this.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        // console.log('✅ Supabase inicializado correctamente');
+        // ✨ Reutilizar la instancia global del CLIENTE de Supabase (evita múltiples clientes)
+        this.supabase = window.supabase;
+        console.log('✅ Usando instancia global del cliente de Supabase');
     }
 
     async cargarEmpleados() {

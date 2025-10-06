@@ -9,8 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const employeesListContainer = document.getElementById('employeesListContainer');
 
     // --- ABRIR Y CERRAR MODAL ---
-    employeesBtn.addEventListener('click', () => {
+    employeesBtn.addEventListener('click', async () => {
         employeesModal.style.display = 'block';
+        await loadAgoraNames(); // Cargar nombres de Ágora primero
         loadEmployees();
     });
 
@@ -25,6 +26,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- LÓGICA PRINCIPAL ---
+
+    /**
+     * Carga los nombres únicos de empleados desde Ágora
+     */
+    async function loadAgoraNames() {
+        const select = document.getElementById('employeeAgoraName');
+        select.innerHTML = '<option value="">Mismo nombre</option><option disabled>Cargando...</option>';
+        
+        try {
+            const agoraApi = new window.AgoraApiService();
+            const fichajes = await agoraApi.obtenerFichajes('2025-01-01', new Date().toISOString().split('T')[0]);
+            
+            // Extraer nombres únicos
+            const nombresUnicos = [...new Set(fichajes.map(f => f.Empleado))].sort();
+            
+            select.innerHTML = '<option value="">Mismo nombre</option>' + 
+                nombresUnicos.map(nombre => `<option value="${nombre}">${nombre}</option>`).join('');
+        } catch (error) {
+            console.error('Error cargando nombres de Ágora:', error);
+            select.innerHTML = '<option value="">Mismo nombre</option><option disabled>Error cargando</option>';
+        }
+    }
 
     /**
      * Carga y muestra la lista de empleados desde Supabase.
@@ -70,12 +93,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         employeesListContainer.innerHTML = employees.map(employee => `
             <div class="flex justify-between items-center p-2 bg-gray-100 rounded-lg">
-                <div>
+                <div class="flex-1">
                     <span class="font-semibold">${employee.name}</span>
+                    ${employee.agora_employee_name && employee.agora_employee_name !== employee.name ? 
+                        `<span class="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">Ágora: ${employee.agora_employee_name}</span>` 
+                        : ''}
                     <br>
                     <small class="text-gray-500">Login ID: ${employee.employee_id}</small>
                 </div>
                 <div class="flex items-center space-x-2">
+                    <button class="text-purple-500 hover:text-purple-700" title="Mapear con Ágora" onclick="editAgoraName('${employee.id}', '${employee.name}', '${employee.agora_employee_name || ''}')">
+                        <i class="fas fa-link"></i>
+                    </button>
                     <button class="text-blue-500 hover:text-blue-700" title="Editar Preferencias" onclick="openPreferencesModal('${employee.id}', '${employee.name}')">
                         <i class="fas fa-sliders-h"></i>
                     </button>
@@ -94,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         
         const name = document.getElementById('employeeName').value.trim();
+        const agora_name = document.getElementById('employeeAgoraName').value.trim();
         const fecha_alta = document.getElementById('employeeStartDate').value;
         const employee_id = document.getElementById('employeeLoginId').value.trim();
         const access_code = document.getElementById('employeeAccessCode').value.trim();
@@ -108,6 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const newEmployee = {
             name,
+            agora_employee_name: agora_name || name, // Si está vacío, usar el mismo nombre
             fecha_alta,
             employee_id,
             access_code: btoa(access_code),
@@ -137,6 +168,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+
+    /**
+     * Edita el nombre de Ágora de un empleado (función global para el onclick).
+     * @param {string} id - El ID del empleado (UUID).
+     * @param {string} name - El nombre del empleado.
+     * @param {string} currentAgoraName - El nombre actual en Ágora.
+     */
+    window.editAgoraName = async (id, name, currentAgoraName) => {
+        // Cargar nombres de Ágora
+        const agoraApi = new window.AgoraApiService();
+        const fichajes = await agoraApi.obtenerFichajes('2025-01-01', new Date().toISOString().split('T')[0]);
+        const nombresUnicos = [...new Set(fichajes.map(f => f.Empleado))].sort();
+        
+        const options = {
+            '': 'Mismo nombre'
+        };
+        nombresUnicos.forEach(nombre => options[nombre] = nombre);
+        
+        const { value: agoraName } = await Swal.fire({
+            title: `Mapear ${name} con Ágora`,
+            html: `<p class="text-sm text-gray-600 mb-4">Selecciona el nombre con el que <strong>${name}</strong> ficha en Ágora.</p>`,
+            input: 'select',
+            inputOptions: options,
+            inputValue: currentAgoraName || '',
+            showCancelButton: true,
+            confirmButtonText: 'Guardar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (agoraName !== undefined) { // undefined = cancelado, '' = vacío válido
+            try {
+                const { error } = await supabase
+                    .from('employees')
+                    .update({ agora_employee_name: agoraName || name })
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                Swal.fire('¡Éxito!', `Nombre en Ágora actualizado: "${agoraName || name}"`, 'success');
+                loadEmployees();
+            } catch (error) {
+                console.error('Error actualizando nombre Ágora:', error);
+                Swal.fire('Error', 'No se pudo actualizar el nombre.', 'error');
+            }
+        }
+    };
 
     /**
      * Elimina un empleado (función global para el onclick).

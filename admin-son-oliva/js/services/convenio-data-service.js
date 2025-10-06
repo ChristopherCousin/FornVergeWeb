@@ -12,11 +12,12 @@ class ConvenioDataService {
 
     /**
      * Carga empleados de Son Oliva (excluye admins)
+     * Incluye agora_employee_name para mapeo
      */
     async cargarEmpleados() {
         const { data: empleados } = await this.supabase
             .from('employees')
-            .select('id, name, role, fecha_alta')
+            .select('id, name, role, fecha_alta, agora_employee_name')
             .neq('role', 'admin')
             .eq('location_id', window.SON_OLIVA_LOCATION_ID)
             .order('name');
@@ -25,16 +26,55 @@ class ConvenioDataService {
     }
 
     /**
-     * Carga fichajes desde inicio de año
+     * Carga fichajes desde inicio de año DESDE LA API DE ÁGORA
+     * Mapea automáticamente usando agora_employee_name
      */
     async cargarFichajes() {
-        const { data: fichajes } = await this.supabase
-            .from('fichajes')
-            .select('*')
-            .gte('fecha', this.convenioConfig.inicio_año)
-            .order('fecha', { ascending: false });
+        console.log('📡 [ConvenioDataService] Cargando fichajes desde API de Ágora...');
         
-        return fichajes || [];
+        // 1. Cargar empleados primero (necesarios para el mapeo)
+        const empleados = await this.cargarEmpleados();
+        
+        // 2. Obtener fichajes crudos de Ágora
+        const fechaHasta = new Date().toISOString().split('T')[0];
+        const fechaDesde = this.convenioConfig.inicio_año;
+        
+        const agoraApi = new window.AgoraApiService();
+        const fichajesRaw = await agoraApi.obtenerFichajes(fechaDesde, fechaHasta);
+        
+        console.log(`✅ [Ágora API] Recibidos ${fichajesRaw.length} fichajes`);
+        
+        // 3. Transformar y mapear
+        const fichajes = fichajesRaw.map(fichaje => {
+            const fechaInicio = new Date(fichaje.FechaInicio);
+            const fecha = fechaInicio.toISOString().split('T')[0];
+            const horas_trabajadas = parseFloat((fichaje.DuracionMinutos / 60).toFixed(2));
+            
+            // Buscar empleado por agora_employee_name
+            const empleado = empleados.find(emp => 
+                this.normalizarNombre(emp.agora_employee_name || emp.name) === this.normalizarNombre(fichaje.Empleado)
+            );
+            
+            return {
+                empleado_id: empleado ? empleado.id : null,
+                empleado_nombre: fichaje.Empleado,
+                fecha: fecha,
+                entrada: fichaje.FechaInicio,
+                salida: fichaje.FechaFin,
+                horas_trabajadas: horas_trabajadas
+            };
+        }).filter(f => f.empleado_id !== null); // Filtrar fichajes sin mapeo
+        
+        console.log(`✅ [ConvenioDataService] Fichajes mapeados: ${fichajes.length}`);
+        
+        return fichajes;
+    }
+    
+    /**
+     * Normaliza nombres para comparaciones
+     */
+    normalizarNombre(nombre) {
+        return nombre.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     }
 
     /**

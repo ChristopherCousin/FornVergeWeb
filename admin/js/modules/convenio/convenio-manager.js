@@ -88,7 +88,7 @@ class ConvenioAnualManager {
                 horas_teoricas_pre_agora: 0,
                 
                 // Horas reales desde fecha de alta
-                horas_reales_agora: hoursCalc.calcularHorasReales(fechaInicioReal, hoy, empleado.id, empleado.name),
+                horas_reales_agora: hoursCalc.calcularHorasReales(fechaInicioReal, hoy, empleado),
                 
                 // Horas por ausencias
                 horas_ausencias: hoursCalc.calcularHorasAusencias(inicioAño, hoy, empleado.id, empleado.name),

@@ -15,6 +15,8 @@ window.CONVENIO_CONFIG = {
     
     // Límites anuales (estos son los CRÍTICOS para la encargada)
     horas_maximas_anuales: 1776,  // Convenio Hostelería Baleares 2023-2025
+    horas_semanales_promedio: 40.5, // Promedio semanal según convenio hostelería
+    tasa_diaria_convenio: 40.5 / 7, // 5.7857h/día - Tasa diaria para calcular horas ideales
     horas_teoricas_dia: 8,      // 40h semanales / 5 días laborables = 8h/día
     dias_trabajo_empleada_semana: 5, // L-V laborables, S-D libres
     

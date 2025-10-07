@@ -24,7 +24,7 @@ class ConvenioDataService {
         
         const { data: empleados } = await this.supabase
             .from('employees')
-            .select('id, name, role, fecha_alta, agora_employee_name, tarifa_hora, excluido_convenio')
+            .select('id, name, role, fecha_alta, fecha_inicio_computo, agora_employee_name, tarifa_hora, excluido_convenio')
             .neq('role', 'admin')
             .eq('location_id', locationId)
             .order('name');

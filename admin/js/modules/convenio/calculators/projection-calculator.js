@@ -100,7 +100,9 @@ class ProjectionCalculator {
             return { alertas: [] };
         }
 
-        const diasTotalesDesdeInicio = Math.floor((fechaActual - fechaInicioReal) / (1000 * 60 * 60 * 24));
+        // IMPORTANTE: +1 para conteo INCLUSIVO (contar día de alta Y día actual)
+        // Ejemplo: Alta 06/10, Análisis 07/10 = 2 días (06 y 07), no 1
+        const diasTotalesDesdeInicio = Math.floor((fechaActual - fechaInicioReal) / (1000 * 60 * 60 * 24)) + 1;
         
         // Calcular días que estuvo ausente
         const fechaInicioStr = fechaInicioReal.toISOString().split('T')[0];
@@ -122,9 +124,10 @@ class ProjectionCalculator {
         // Días realmente disponibles para trabajar
         const diasDisponibles = diasTotalesDesdeInicio - diasAusencia;
         
-        // ✅ NUEVA LÓGICA DE CÁLCULO (Opción 1 del usuario - 25/11/2025)
-        const esMediaJornada = stats.empleado_nombre.toUpperCase().includes('GABY');
-        const HORAS_SEMANALES_CONVENIO = esMediaJornada ? 25 : 40;
+        // ✅ LÓGICA DE CÁLCULO SEGÚN CONVENIO (Corregido 07/10/2025)
+        // Usa promedio semanal: 40.5h / 7 días = 5.7857h/día
+        // Este método cuenta TODOS los días (calendario) y aplica el promedio semanal
+        const HORAS_SEMANALES_CONVENIO = 40.5;
         const PROMEDIO_DIARIO_LEGAL = HORAS_SEMANALES_CONVENIO / 7;
 
         // Horas ideales según días disponibles
@@ -132,23 +135,36 @@ class ProjectionCalculator {
         const horasFichadasReales = stats.horas_reales_agora;
         const diferenciaCargaTrabajo = horasFichadasReales - horasIdealesParaDiasDisponibles;
         
-        console.log(`\n[3] Calculando Balance Final para ${stats.empleado_nombre}:`);
-        console.log(`   - Período analizado: ${fechaInicioReal.toISOString().split('T')[0]} a ${fechaActual.toISOString().split('T')[0]}`);
-        console.log(`   ------------------------------------`);
-        console.log(`   A. Días Totales en período: ${diasTotalesDesdeInicio}`);
-        console.log(`   B. Días de Ausencia: ${diasAusencia}`);
-        console.log(`   C. Días de Obligación de Trabajo (A - B): ${diasDisponibles}`);
-        console.log(`   ------------------------------------`);
-        console.log(`   D. Horas a Realizar (C * ${PROMEDIO_DIARIO_LEGAL.toFixed(2)}h/día): ${horasIdealesParaDiasDisponibles.toFixed(2)}h`);
-        console.log(`   E. Horas Fichadas Reales (de [1]): ${horasFichadasReales.toFixed(2)}h`);
-        console.log(`   ------------------------------------`);
-        console.log(`   SALDO FINAL (E - D): ${diferenciaCargaTrabajo.toFixed(2)}h`);
-        if (diferenciaCargaTrabajo < 0) {
-            console.log(`   ==> ${stats.empleado_nombre} DEBE ${Math.abs(diferenciaCargaTrabajo).toFixed(2)}h a la empresa.`);
-        } else {
-            console.log(`   ==> La empresa DEBE ${diferenciaCargaTrabajo.toFixed(2)}h a ${stats.empleado_nombre}.`);
+        if (stats.empleado_nombre.toUpperCase() === 'RAQUEL') {
+            console.log(`\n🔍 [RAQUEL] Calculando Balance Final:`);
+            console.log(`   - Fecha ALTA oficial: ${fechaInicioReal.toISOString().split('T')[0]}`);
+            console.log(`   - Período analizado: ${fechaInicioReal.toISOString().split('T')[0]} a ${fechaActual.toISOString().split('T')[0]}`);
+            console.log(`   ------------------------------------`);
+            console.log(`   A. Días Totales desde ALTA: ${diasTotalesDesdeInicio}`);
+            console.log(`   B. Días de Ausencia: ${diasAusencia}`);
+            console.log(`   C. Días de Obligación de Trabajo (A - B): ${diasDisponibles}`);
+            console.log(`   ------------------------------------`);
+            console.log(`   D. Horas IDEALES (C * ${PROMEDIO_DIARIO_LEGAL.toFixed(4)}h/día): ${horasIdealesParaDiasDisponibles.toFixed(2)}h`);
+            console.log(`   E. Horas FICHADAS Totales: ${horasFichadasReales.toFixed(2)}h`);
+            console.log(`   ------------------------------------`);
+            console.log(`   ⚖️ BALANCE (E - D): ${diferenciaCargaTrabajo >= 0 ? '+' : ''}${diferenciaCargaTrabajo.toFixed(2)}h`);
+            
+            // Cálculo alternativo con 40h/semana para comparar
+            const semanasCompletas = Math.floor(diasDisponibles / 7);
+            const horasIdeales40h = semanasCompletas * 40;
+            const balance40h = horasFichadasReales - horasIdeales40h;
+            console.log(`\n   🔄 COMPARACIÓN MÉTODO 40h/SEMANA:`);
+            console.log(`   - Semanas completas: ${semanasCompletas}`);
+            console.log(`   - Horas ideales (${semanasCompletas} × 40h): ${horasIdeales40h.toFixed(2)}h`);
+            console.log(`   - Balance alternativo: ${balance40h >= 0 ? '+' : ''}${balance40h.toFixed(2)}h`);
+            
+            if (diferenciaCargaTrabajo < 0) {
+                console.log(`\n   ❌ Según convenio: RAQUEL DEBE ${Math.abs(diferenciaCargaTrabajo).toFixed(2)}h a la empresa`);
+            } else {
+                console.log(`\n   ✅ Según convenio: La empresa DEBE ${diferenciaCargaTrabajo.toFixed(2)}h a RAQUEL`);
+            }
+            console.log(`════════════════════════════════════════════════════════\n`);
         }
-        console.log(`============== FIN ANÁLISIS ${stats.empleado_nombre.toUpperCase()} ==============`);
 
         // Guardar diferencia de carga
         stats.diferencia_carga_trabajo = diferenciaCargaTrabajo;

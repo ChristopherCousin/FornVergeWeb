@@ -97,7 +97,19 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        employeesListContainer.innerHTML = employees.map(employee => `
+        employeesListContainer.innerHTML = employees.map(employee => {
+            // Formatear fecha de alta
+            let fechaAltaStr = '';
+            if (employee.fecha_alta) {
+                const fechaAlta = new Date(employee.fecha_alta);
+                fechaAltaStr = fechaAlta.toLocaleDateString('es-ES', { 
+                    day: '2-digit', 
+                    month: '2-digit', 
+                    year: 'numeric' 
+                });
+            }
+            
+            return `
             <div class="flex justify-between items-center p-2 bg-gray-100 rounded-lg">
                 <div class="flex-1">
                     <span class="font-semibold">${employee.name}</span>
@@ -108,7 +120,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         `<span class="ml-2 text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded font-semibold">⚠️ Excluido Convenio</span>` 
                         : ''}
                     <br>
-                    <small class="text-gray-500">Login ID: ${employee.employee_id}</small>
+                    <small class="text-gray-500">
+                        Login ID: ${employee.employee_id}
+                        ${fechaAltaStr ? ` • <span class="text-blue-600 font-medium">📅 Alta: ${fechaAltaStr}</span>` : ''}
+                    </small>
                 </div>
                 <div class="flex items-center space-x-2">
                     <button class="text-purple-500 hover:text-purple-700" title="Mapear con Ágora" onclick="editAgoraName('${employee.id}', '${employee.name}', '${employee.agora_employee_name || ''}')">
@@ -127,7 +142,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     /**
@@ -413,10 +429,10 @@ document.addEventListener('DOMContentLoaded', () => {
         preferenceEmployeeId.value = employeeId;
         preferenceEmployeeName.textContent = employeeName;
 
-        // Cargar preferencias existentes
+        // Cargar datos del empleado y preferencias
         const { data, error } = await supabase
             .from('employees')
-            .select('schedule_preferences')
+            .select('schedule_preferences, fecha_alta, tarifa_hora, fecha_inicio_computo')
             .eq('id', employeeId)
             .single();
 
@@ -425,6 +441,11 @@ document.addEventListener('DOMContentLoaded', () => {
             Swal.fire('Error', 'No se pudieron cargar las preferencias.', 'error');
             return;
         }
+
+        // Cargar datos básicos
+        document.getElementById('editFechaAlta').value = data.fecha_alta || '';
+        document.getElementById('editTarifaHora').value = data.tarifa_hora || '';
+        document.getElementById('editFechaInicioComputo').value = data.fecha_inicio_computo || '';
 
         const prefs = data.schedule_preferences || {};
         turnoPreferencia.value = prefs.availability || 'any';
@@ -535,17 +556,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log('💾 Guardando preferencias:', newPrefs);
 
+        // Obtener datos básicos
+        const fechaAlta = document.getElementById('editFechaAlta').value;
+        const tarifaHora = parseFloat(document.getElementById('editTarifaHora').value) || null;
+        const fechaInicioComputo = document.getElementById('editFechaInicioComputo').value;
+
         const { error } = await supabase
             .from('employees')
-            .update({ schedule_preferences: newPrefs })
+            .update({ 
+                schedule_preferences: newPrefs,
+                fecha_alta: fechaAlta || null,
+                tarifa_hora: tarifaHora,
+                fecha_inicio_computo: fechaInicioComputo || null
+            })
             .eq('id', employeeId);
 
         if (error) {
             console.error('Error guardando preferencias:', error);
             Swal.fire('Error', 'No se pudieron guardar las preferencias.', 'error');
         } else {
-            Swal.fire('¡Guardado!', 'Las preferencias se han actualizado.', 'success');
+            Swal.fire('¡Guardado!', 'La configuración se ha actualizado.', 'success');
             closePrefsModal();
+            loadEmployees();
         }
     });
 });

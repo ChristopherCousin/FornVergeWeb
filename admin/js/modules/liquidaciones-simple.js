@@ -203,8 +203,8 @@ class LiquidacionesSimple {
         const resumen = [];
 
         for (const empleado of empleados) {
-            // Saltar admins y excluidos del convenio
-            if (this.convenioManager.convenio.excluidos.includes(empleado.name.toUpperCase())) {
+            // Saltar empleados excluidos del convenio (ahora desde BD)
+            if (empleado.excluido_convenio === true) {
                 continue;
             }
 

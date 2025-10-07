@@ -428,7 +428,7 @@
 
     <!-- Modal para agregar turnos -->
     <div id="shiftModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content max-w-2xl">
             <!-- Header compacto -->
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold text-gray-800">
@@ -625,7 +625,7 @@
         <div class="modal-content max-w-lg">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-2xl font-bold text-gray-800">
-                    <i class="fas fa-sliders-h mr-2 text-blue-600"></i>Preferencias de Horarios
+                    <i class="fas fa-cog mr-2 text-blue-600"></i>Configuración de Empleado
                 </h3>
                 <button id="closePreferencesModal" class="text-gray-500 hover:text-gray-700 transition">
                     <i class="fas fa-times text-xl"></i>
@@ -635,6 +635,31 @@
                 <input type="hidden" id="preferenceEmployeeId">
                 <h4 id="preferenceEmployeeName" class="text-xl font-semibold text-center mb-4"></h4>
                 <div class="space-y-4">
+                    
+                    <!-- 📋 DATOS DEL EMPLEADO -->
+                    <div class="bg-blue-50 border-2 border-blue-200 p-4 rounded-lg">
+                        <h5 class="font-semibold text-gray-800 mb-3">
+                            <i class="fas fa-id-card mr-2 text-blue-600"></i>Datos del Empleado
+                        </h5>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">📅 Fecha de Alta</label>
+                                <input type="date" id="editFechaAlta" class="w-full border border-gray-300 rounded-lg p-2 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">💰 Tarifa/Hora (€)</label>
+                                <input type="number" id="editTarifaHora" step="0.01" min="0" placeholder="15.00" class="w-full border border-gray-300 rounded-lg p-2 text-sm">
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label class="block text-xs font-medium text-gray-500 mb-1">🔧 Ref. Sistema (opcional)</label>
+                            <input type="date" id="editFechaInicioComputo" class="w-full border border-gray-300 rounded-lg p-2 text-sm" title="Fecha desde la cual se contabilizan fichajes válidos">
+                            <p class="text-xs text-gray-400 mt-1">Contar fichajes desde esta fecha. Si vacío, usa Fecha Alta</p>
+                        </div>
+                    </div>
+
+                    <div class="border-t-2 pt-4"></div>
+
                     <!-- ✨ Excluir del generador automático -->
                     <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
                         <label class="flex items-center cursor-pointer">

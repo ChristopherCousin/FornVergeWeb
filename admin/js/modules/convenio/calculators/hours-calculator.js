@@ -57,8 +57,6 @@ class HoursCalculator {
                 console.log(`   - [EXCLUIDO] Fichaje el ${f.fecha} (${f.horas_trabajadas || 0}h) por estar de ausencia.`);
                 return false; // Se excluye el fichaje
             }
-
-            console.log(`   - [INCLUIDO] Fichaje el ${f.fecha}: ${f.horas_trabajadas || 0}h`);
             return true; // Se incluye el fichaje
         });
 

@@ -82,14 +82,20 @@ class AusenciasManager {
     }
 
     async cargarEmpleados() {
-        // ID del local MASSA Llevant
-        const LLEVANT_LOCATION_ID = 'b1cd939f-2d99-4856-8c15-7926e95d4cbd';
+        // Obtener location ID del contexto (local seleccionado por el usuario)
+        const locationId = getCurrentLocationId();
+        
+        if (!locationId) {
+            console.error('❌ [AusenciasManager] No hay local seleccionado');
+            this.empleados = [];
+            return;
+        }
         
         const { data: empleados } = await this.supabase
             .from('employees')
             .select('id, name, role')
             .neq('role', 'admin')
-            .eq('location_id', LLEVANT_LOCATION_ID)
+            .eq('location_id', locationId)
             .order('name');
         
         this.empleados = empleados || [];

@@ -11,16 +11,25 @@ class ConvenioDataService {
     }
 
     /**
-     * Carga empleados de Son Oliva (excluye admins)
+     * Carga empleados del local actual (excluye admins)
      * Incluye agora_employee_name para mapeo
      */
     async cargarEmpleados() {
+        const locationId = getCurrentLocationId();
+        
+        if (!locationId) {
+            console.error('❌ [ConvenioDataService] No hay local seleccionado');
+            return [];
+        }
+        
         const { data: empleados } = await this.supabase
             .from('employees')
-            .select('id, name, role, fecha_alta, agora_employee_name')
+            .select('id, name, role, fecha_alta, agora_employee_name, tarifa_hora, excluido_convenio')
             .neq('role', 'admin')
-            .eq('location_id', window.SON_OLIVA_LOCATION_ID)
+            .eq('location_id', locationId)
             .order('name');
+        
+        console.log(`👥 [ConvenioDataService] ${empleados?.length || 0} empleados cargados del local`);
         
         return empleados || [];
     }

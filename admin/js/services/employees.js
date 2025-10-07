@@ -2,14 +2,19 @@
 
 async function loadEmployees() {
     try {
-        // ID del local MASSA Son Oliva
-        const SON_OLIVA_LOCATION_ID = '781fd5a8-c486-4224-bd2a-bc968ad3f58c';
+        // Obtener location ID del contexto (local seleccionado por el usuario)
+        const locationId = getCurrentLocationId();
+        
+        if (!locationId) {
+            console.error('❌ No hay local seleccionado');
+            return;
+        }
         
         const { data, error } = await supabase
             .from('employees')
             .select('*')
             .neq('role', 'admin')
-            .eq('location_id', SON_OLIVA_LOCATION_ID)
+            .eq('location_id', locationId)
             .order('name');
 
         if (error) {

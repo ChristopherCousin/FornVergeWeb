@@ -664,6 +664,22 @@ const inicializarLiquidaciones = async () => {
     window.inicializandoLiquidaciones = true;
     console.log('💰 Iniciando sistema de liquidaciones...');
     
+    // VERIFICAR PERMISOS PRIMERO
+    const user = getCurrentUser();
+    if (!user) {
+        console.log('⏳ Esperando autenticación para verificar permisos...');
+        window.inicializandoLiquidaciones = false;
+        setTimeout(inicializarLiquidaciones, 500);
+        return;
+    }
+    
+    // SOLO el owner puede ver liquidaciones
+    if (!hasPermission('liquidaciones', 'ver')) {
+        console.log('🔒 Usuario sin permisos de liquidaciones - Panel no se mostrará');
+        window.inicializandoLiquidaciones = false;
+        return;
+    }
+    
     let intentos = 0;
     const maxIntentos = 20;
     

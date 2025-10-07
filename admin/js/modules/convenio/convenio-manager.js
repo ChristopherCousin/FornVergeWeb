@@ -68,8 +68,9 @@ class ConvenioAnualManager {
         const projectionCalc = new window.ProjectionCalculator(this.convenio, this.empleados, this.fichajes, this.ausencias);
         
         for (const empleado of this.empleados) {
-            // Excluir empleados no sujetos al convenio
-            if (this.convenio.excluidos.includes(empleado.name.toUpperCase())) {
+            // Excluir empleados marcados como no sujetos al convenio (desde BD)
+            if (empleado.excluido_convenio === true) {
+                console.log(`⏭️ ${empleado.name} excluido del convenio (socio/autónomo)`);
                 continue;
             }
             

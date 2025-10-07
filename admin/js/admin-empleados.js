@@ -1,8 +1,6 @@
 // admin/js/admin-empleados.js
 
 document.addEventListener('DOMContentLoaded', () => {
-    const LOCATION_ID = 'b1cd939f-2d99-4856-8c15-7926e95d4cbd'; // ID para Forn Verge ARAGON (Llevant)
-
     // --- ELEMENTOS DEL DOM ---
     const employeesModal = document.getElementById('employeesModal');
     const employeesBtn = document.getElementById('employeesBtn');
@@ -11,8 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const employeesListContainer = document.getElementById('employeesListContainer');
 
     // --- ABRIR Y CERRAR MODAL ---
-    employeesBtn.addEventListener('click', () => {
+    employeesBtn.addEventListener('click', async () => {
         employeesModal.style.display = 'block';
+        await loadAgoraNames(); // Cargar nombres de Ágora primero
         loadEmployees();
     });
 
@@ -29,6 +28,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- LÓGICA PRINCIPAL ---
 
     /**
+     * Carga los nombres únicos de empleados desde Ágora
+     */
+    async function loadAgoraNames() {
+        const select = document.getElementById('employeeAgoraName');
+        select.innerHTML = '<option value="">Mismo nombre</option><option disabled>Cargando...</option>';
+        
+        try {
+            const agoraApi = new window.AgoraApiService();
+            const fichajes = await agoraApi.obtenerFichajes('2025-01-01', new Date().toISOString().split('T')[0]);
+            
+            // Extraer nombres únicos
+            const nombresUnicos = [...new Set(fichajes.map(f => f.Empleado))].sort();
+            
+            select.innerHTML = '<option value="">Mismo nombre</option>' + 
+                nombresUnicos.map(nombre => `<option value="${nombre}">${nombre}</option>`).join('');
+        } catch (error) {
+            console.error('Error cargando nombres de Ágora:', error);
+            select.innerHTML = '<option value="">Mismo nombre</option><option disabled>Error cargando</option>';
+        }
+    }
+
+    /**
      * Carga y muestra la lista de empleados desde Supabase.
      */
     async function loadEmployees() {
@@ -42,10 +63,19 @@ document.addEventListener('DOMContentLoaded', () => {
         employeesListContainer.innerHTML = '<p>Cargando empleadas...</p>';
 
         try {
+            // Obtener location ID del contexto (local seleccionado por el usuario)
+            const locationId = getCurrentLocationId();
+            
+            if (!locationId) {
+                console.error('❌ No hay local seleccionado');
+                employeesListContainer.innerHTML = `<p class="text-red-500">No hay local seleccionado</p>`;
+                return;
+            }
+            
             const { data, error } = await supabase
                 .from('employees')
                 .select('*')
-                .eq('location_id', LOCATION_ID)
+                .eq('location_id', locationId)
                 .order('name', { ascending: true });
 
             if (error) throw error;
@@ -69,12 +99,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         employeesListContainer.innerHTML = employees.map(employee => `
             <div class="flex justify-between items-center p-2 bg-gray-100 rounded-lg">
-                <div>
+                <div class="flex-1">
                     <span class="font-semibold">${employee.name}</span>
+                    ${employee.agora_employee_name && employee.agora_employee_name !== employee.name ? 
+                        `<span class="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">Ágora: ${employee.agora_employee_name}</span>` 
+                        : ''}
+                    ${employee.excluido_convenio ? 
+                        `<span class="ml-2 text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded font-semibold">⚠️ Excluido Convenio</span>` 
+                        : ''}
                     <br>
                     <small class="text-gray-500">Login ID: ${employee.employee_id}</small>
                 </div>
                 <div class="flex items-center space-x-2">
+                    <button class="text-purple-500 hover:text-purple-700" title="Mapear con Ágora" onclick="editAgoraName('${employee.id}', '${employee.name}', '${employee.agora_employee_name || ''}')">
+                        <i class="fas fa-link"></i>
+                    </button>
+                    ${isOwner() ? `
+                        <button class="text-orange-500 hover:text-orange-700" title="Configurar Convenio" onclick="toggleExcluirConvenio('${employee.id}', '${employee.name}', ${employee.excluido_convenio || false})">
+                            <i class="fas fa-file-contract"></i>
+                        </button>
+                    ` : ''}
                     <button class="text-blue-500 hover:text-blue-700" title="Editar Preferencias" onclick="openPreferencesModal('${employee.id}', '${employee.name}')">
                         <i class="fas fa-sliders-h"></i>
                     </button>
@@ -93,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         
         const name = document.getElementById('employeeName').value.trim();
+        const agora_name = document.getElementById('employeeAgoraName').value.trim();
         const fecha_alta = document.getElementById('employeeStartDate').value;
         const employee_id = document.getElementById('employeeLoginId').value.trim();
         const access_code = document.getElementById('employeeAccessCode').value.trim();
@@ -102,12 +147,21 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Obtener location ID del contexto (local seleccionado por el usuario)
+        const locationId = getCurrentLocationId();
+        
+        if (!locationId) {
+            Swal.fire('Error', 'No hay local seleccionado.', 'error');
+            return;
+        }
+        
         const newEmployee = {
             name,
+            agora_employee_name: agora_name || name, // Si está vacío, usar el mismo nombre
             fecha_alta,
             employee_id,
             access_code: btoa(access_code),
-            location_id: LOCATION_ID
+            location_id: locationId
         };
         
         try {
@@ -133,6 +187,96 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+
+    /**
+     * Alterna si un empleado está excluido del convenio (SOLO OWNER)
+     */
+    window.toggleExcluirConvenio = async (id, name, currentlyExcluded) => {
+        const action = currentlyExcluded ? 'incluir en' : 'excluir de';
+        const confirmText = currentlyExcluded 
+            ? `¿Volver a incluir a <strong>${name}</strong> en el análisis del convenio?`
+            : `¿Excluir a <strong>${name}</strong> del análisis del convenio?<br><small class="text-gray-600">Esto es para socios o autónomos que no están sujetos al convenio colectivo.</small>`;
+        
+        const result = await Swal.fire({
+            title: currentlyExcluded ? 'Incluir en Convenio' : 'Excluir del Convenio',
+            html: confirmText,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: currentlyExcluded ? '#3085d6' : '#f97316',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: currentlyExcluded ? 'Sí, incluir' : 'Sí, excluir',
+            cancelButtonText: 'Cancelar'
+        });
+        
+        if (result.isConfirmed) {
+            try {
+                const { error } = await supabase
+                    .from('employees')
+                    .update({ excluido_convenio: !currentlyExcluded })
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                Swal.fire(
+                    '¡Actualizado!',
+                    `${name} ha sido ${currentlyExcluded ? 'incluido en' : 'excluido de'} el análisis del convenio.`,
+                    'success'
+                );
+                
+                loadEmployees(); // Recargar lista
+                
+            } catch (error) {
+                console.error('Error actualizando convenio:', error);
+                Swal.fire('Error', 'No se pudo actualizar la configuración.', 'error');
+            }
+        }
+    };
+
+    /**
+     * Edita el nombre de Ágora de un empleado (función global para el onclick).
+     * @param {string} id - El ID del empleado (UUID).
+     * @param {string} name - El nombre del empleado.
+     * @param {string} currentAgoraName - El nombre actual en Ágora.
+     */
+    window.editAgoraName = async (id, name, currentAgoraName) => {
+        // Cargar nombres de Ágora
+        const agoraApi = new window.AgoraApiService();
+        const fichajes = await agoraApi.obtenerFichajes('2025-01-01', new Date().toISOString().split('T')[0]);
+        const nombresUnicos = [...new Set(fichajes.map(f => f.Empleado))].sort();
+        
+        const options = {
+            '': 'Mismo nombre'
+        };
+        nombresUnicos.forEach(nombre => options[nombre] = nombre);
+        
+        const { value: agoraName } = await Swal.fire({
+            title: `Mapear ${name} con Ágora`,
+            html: `<p class="text-sm text-gray-600 mb-4">Selecciona el nombre con el que <strong>${name}</strong> ficha en Ágora.</p>`,
+            input: 'select',
+            inputOptions: options,
+            inputValue: currentAgoraName || '',
+            showCancelButton: true,
+            confirmButtonText: 'Guardar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (agoraName !== undefined) { // undefined = cancelado, '' = vacío válido
+            try {
+                const { error } = await supabase
+                    .from('employees')
+                    .update({ agora_employee_name: agoraName || name })
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                Swal.fire('¡Éxito!', `Nombre en Ágora actualizado: "${agoraName || name}"`, 'success');
+                loadEmployees();
+            } catch (error) {
+                console.error('Error actualizando nombre Ágora:', error);
+                Swal.fire('Error', 'No se pudo actualizar el nombre.', 'error');
+            }
+        }
+    };
 
     /**
      * Elimina un empleado (función global para el onclick).
@@ -200,6 +344,70 @@ document.addEventListener('DOMContentLoaded', () => {
     const partidoPreferencia = document.getElementById('partidoPreferencia');
     const notasPreferencia = document.getElementById('notasPreferencia');
     const fixedDayOffPreferencia = document.getElementById('fixedDayOffPreferencia');
+    
+    // ✨ NUEVO: Elementos para preferencias alternantes
+    const alternatingPatternEnabled = document.getElementById('alternatingPatternEnabled');
+    const alternatingPatternFields = document.getElementById('alternatingPatternFields');
+    const alternatingFrequency = document.getElementById('alternatingFrequency');
+    const alternatingStartWeek = document.getElementById('alternatingStartWeek');
+    
+    // ✨ NUEVO: Excluir del generador
+    const excludeFromGenerator = document.getElementById('excludeFromGenerator');
+    
+    // ✨ NUEVO: Prioridad para primer turno
+    const priorityFirstShift = document.getElementById('priorityFirstShift');
+    
+    // Toggle para mostrar/ocultar campos de patrón alternante
+    if (alternatingPatternEnabled) {
+        alternatingPatternEnabled.addEventListener('change', () => {
+            if (alternatingPatternEnabled.value === 'true') {
+                alternatingPatternFields.classList.remove('hidden');
+            } else {
+                alternatingPatternFields.classList.add('hidden');
+            }
+        });
+    }
+    
+    // Botón de info para explicar qué son las preferencias alternantes
+    const btnInfoAlternante = document.getElementById('btnInfoAlternante');
+    if (btnInfoAlternante) {
+        btnInfoAlternante.addEventListener('click', () => {
+            Swal.fire({
+                title: '¿Qué son las Preferencias Alternantes?',
+                html: `
+                    <div class="text-left space-y-3">
+                        <p><strong>Las preferencias alternantes</strong> permiten configurar días libres que se repiten cada cierto número de semanas.</p>
+                        
+                        <div class="bg-blue-50 p-3 rounded">
+                            <p class="font-semibold mb-2">📅 Ejemplo 1: Fines de semana alternos</p>
+                            <ul class="text-sm space-y-1 ml-4">
+                                <li>• Frecuencia: Quincenal (cada 2 semanas)</li>
+                                <li>• Días: Sábado y Domingo</li>
+                                <li>• Resultado: Libra fines de semana 1 semana sí, 1 no</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-green-50 p-3 rounded">
+                            <p class="font-semibold mb-2">📅 Ejemplo 2: Lunes libres mensuales</p>
+                            <ul class="text-sm space-y-1 ml-4">
+                                <li>• Frecuencia: Mensual (cada 4 semanas)</li>
+                                <li>• Días: Lunes</li>
+                                <li>• Resultado: Libra lunes 1 semana al mes</li>
+                            </ul>
+                        </div>
+                        
+                        <p class="text-sm text-gray-600 mt-3">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            El sistema calculará automáticamente en qué semanas aplica el patrón basándose en la fecha de inicio que especifiques.
+                        </p>
+                    </div>
+                `,
+                icon: 'info',
+                confirmButtonText: 'Entendido',
+                width: '600px'
+            });
+        });
+    }
 
     window.openPreferencesModal = async (employeeId, employeeName) => {
         preferenceEmployeeId.value = employeeId;
@@ -223,6 +431,38 @@ document.addEventListener('DOMContentLoaded', () => {
         partidoPreferencia.value = prefs.split_shifts || 'yes';
         fixedDayOffPreferencia.value = prefs.fixed_day_off || 'none';
         notasPreferencia.value = prefs.notes || '';
+        
+        // ✨ NUEVO: Cargar exclusión del generador
+        excludeFromGenerator.checked = prefs.exclude_from_generator || false;
+        
+        // ✨ NUEVO: Cargar prioridad primer turno
+        priorityFirstShift.checked = prefs.priority_first_shift || false;
+
+        // ✨ NUEVO: Cargar preferencias alternantes
+        const alternating = prefs.alternating_pattern || {};
+        alternatingPatternEnabled.value = alternating.enabled ? 'true' : 'false';
+        
+        // Mostrar/ocultar campos según el estado
+        if (alternating.enabled) {
+            alternatingPatternFields.classList.remove('hidden');
+            
+            // Cargar valores
+            alternatingFrequency.value = alternating.pattern?.frequency || 2;
+            alternatingStartWeek.value = alternating.pattern?.start_week || '';
+            
+            // Marcar checkboxes de días
+            const days = alternating.pattern?.days || [];
+            document.querySelectorAll('.alternating-days').forEach(checkbox => {
+                checkbox.checked = days.includes(checkbox.value);
+            });
+        } else {
+            alternatingPatternFields.classList.add('hidden');
+            
+            // Limpiar campos
+            document.querySelectorAll('.alternating-days').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
 
         preferencesModal.style.display = 'block';
     };
@@ -238,12 +478,62 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const employeeId = preferenceEmployeeId.value;
 
+        // ✨ NUEVO: Construir objeto de preferencias alternantes
+        const alternatingEnabled = alternatingPatternEnabled.value === 'true';
+        const alternatingDays = Array.from(document.querySelectorAll('.alternating-days:checked'))
+            .map(cb => cb.value);
+        
+        // Validación: Si está habilitado, debe tener días seleccionados y fecha de inicio
+        if (alternatingEnabled) {
+            if (alternatingDays.length === 0) {
+                Swal.fire('Error', 'Debes seleccionar al menos un día para el patrón alternante.', 'error');
+                return;
+            }
+            if (!alternatingStartWeek.value) {
+                Swal.fire('Error', 'Debes especificar una fecha de inicio para el patrón alternante.', 'error');
+                return;
+            }
+            
+            // Verificar que la fecha sea un lunes
+            const startDate = new Date(alternatingStartWeek.value);
+            if (startDate.getDay() !== 1) {
+                const result = await Swal.fire({
+                    title: 'Advertencia',
+                    text: 'La fecha seleccionada no es un lunes. ¿Deseas continuar de todas formas?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, continuar',
+                    cancelButtonText: 'Cancelar'
+                });
+                if (!result.isConfirmed) return;
+            }
+        }
+
         const newPrefs = {
             availability: turnoPreferencia.value,
             split_shifts: partidoPreferencia.value,
             fixed_day_off: fixedDayOffPreferencia.value,
-            notes: notasPreferencia.value.trim()
+            notes: notasPreferencia.value.trim(),
+            
+            // ✨ NUEVO: Excluir del generador
+            exclude_from_generator: excludeFromGenerator.checked,
+            
+            // ✨ NUEVO: Prioridad primer turno
+            priority_first_shift: priorityFirstShift.checked,
+            
+            // ✨ NUEVO: Preferencias alternantes
+            alternating_pattern: {
+                enabled: alternatingEnabled,
+                type: "custom",
+                pattern: alternatingEnabled ? {
+                    frequency: parseInt(alternatingFrequency.value),
+                    days: alternatingDays,
+                    start_week: alternatingStartWeek.value
+                } : null
+            }
         };
+
+        console.log('💾 Guardando preferencias:', newPrefs);
 
         const { error } = await supabase
             .from('employees')

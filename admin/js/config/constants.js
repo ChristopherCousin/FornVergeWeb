@@ -13,7 +13,8 @@ const ADMIN_PASSWORD_HASH = 'c02c130935092678750a1396e519f523c8df545464f46ffd277
 let currentWeekStart; 
 
 // ===== IDENTIFICADORES DE LOCALES =====
-const SON_OLIVA_LOCATION_ID = '781fd5a8-c486-4224-bd2a-bc968ad3f58c';
+// DEPRECADO - Ahora se usa getCurrentLocationId()
+// const SON_OLIVA_LOCATION_ID = '781fd5a8-c486-4224-bd2a-bc968ad3f58c';
 
 // ===== LÍMITES Y RESTRICCIONES =====
 const LIMITE_HORAS_SEMANALES = 205; // Límite de horas teóricas semanales para todo el equipo

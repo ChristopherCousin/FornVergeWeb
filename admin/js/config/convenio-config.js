@@ -22,8 +22,8 @@ window.CONVENIO_CONFIG = {
     inicio_año: '2025-01-01',
     inicio_datos_reales: '2025-06-06', // Desde cuándo tenemos datos de Ágora
     
-    // Empleados excluidos del convenio
-    excluidos: ['BRYAN'], // Socio/autónomo
+    // Empleados excluidos del convenio (AHORA SE GESTIONA DESDE LA BD)
+    // Ver columna: employees.excluido_convenio
     
     // Fechas de alta específicas por empleado (cuando no coinciden con inicio_datos_reales)
     fechas_alta_empleados: {
@@ -31,5 +31,5 @@ window.CONVENIO_CONFIG = {
     }
 };
 
-// ID de la localización de Son Oliva
-window.SON_OLIVA_LOCATION_ID = '781fd5a8-c486-4224-bd2a-bc968ad3f58c';
+// ID de la localización (DEPRECADO - Ahora se usa getCurrentLocationId())
+// window.SON_OLIVA_LOCATION_ID = '781fd5a8-c486-4224-bd2a-bc968ad3f58c';

@@ -26,9 +26,43 @@ class HorarioGenerator {
         const defaultConfig = { // Valores por defecto por si no hay nada guardado
             weekday: [{ start: '06:30', end: '14:00', count: 2 }, { start: '14:00', end: '21:30', count: 2 }],
             saturday: [{ start: '07:00', end: '14:00', count: 3 }, { start: '14:00', end: '22:00', count: 3 }],
-            sunday: [{ start: '07:00', end: '14:00', count: 2 }, { start: '14:00', end: '22:00', count: 2 }]
+            sunday: [{ start: '07:00', end: '14:00', count: 2 }, { start: '14:00', end: '22:00', count: 2 }],
+            dias_cierre: [] // Por defecto no hay días de cierre
         };
         return savedSettings || defaultConfig;
+    }
+
+    /**
+     * Verifica si un empleado debe tener días libres por patrón alternante esta semana.
+     * @param {object} employee - El empleado
+     * @param {string} weekStart - Fecha de inicio de semana (YYYY-MM-DD)
+     * @returns {Array|null} Array de días a librar o null si no aplica
+     */
+    aplicaPatronAlternante(employee, weekStart) {
+        const pattern = employee.preferences?.alternating_pattern;
+        
+        if (!pattern || !pattern.enabled) return null;
+        
+        try {
+            // Calcular número de semana desde la referencia
+            const startWeek = new Date(pattern.pattern.start_week);
+            const currentWeek = new Date(weekStart);
+            const weeksDiff = Math.floor((currentWeek - startWeek) / (7 * 24 * 60 * 60 * 1000));
+            
+            // Verificar si esta semana cae en el patrón
+            const esSemanConPatron = weeksDiff % pattern.pattern.frequency === 0;
+            
+            if (esSemanConPatron) {
+                console.log(`✨ ${employee.name}: Patrón alternante activo esta semana - librando ${pattern.pattern.days.join(', ')}`);
+                return pattern.pattern.days; // ["sabado", "domingo"]
+            }
+            
+            console.log(`⏭️ ${employee.name}: Patrón alternante NO activo esta semana`);
+            return null; // Esta semana NO aplica el patrón
+        } catch (error) {
+            console.error(`❌ Error calculando patrón alternante para ${employee.name}:`, error);
+            return null;
+        }
     }
 
     /**
@@ -50,12 +84,36 @@ class HorarioGenerator {
         // 3. Inicializar el borrador del horario y el estado de seguimiento
         let draftSchedule = this.initializeDraftSchedule();
         let trackingState = this.initializeTrackingState(prioritizedEmployees);
+        
+        // ✨ NUEVO: Array para rastrear turnos sin cubrir
+        let turnosSinCubrir = [];
 
-        // 4. PRE-ASIGNAR días libres fijos
-        this.assignFixedFreeDays(draftSchedule, trackingState, prioritizedEmployees);
+        // 4. PRE-ASIGNAR días libres fijos y alternantes
+        this.assignFixedFreeDays(draftSchedule, trackingState, prioritizedEmployees, weekStart);
 
         // 5. Lógica de asignación (el núcleo del generador)
         for (const day of this.days) {
+            // ✨ NUEVO: Verificar si el local está cerrado este día
+            const diasCierre = this.coverageNeeds.dias_cierre || [];
+            if (diasCierre.includes(day)) {
+                console.log(`🔒 ${day.toUpperCase()} - Local CERRADO, marcando como día libre para todos`);
+                
+                // Marcar como día libre para todos los empleados
+                prioritizedEmployees.forEach(employee => {
+                    // Solo si no tiene ya algo asignado
+                    if (draftSchedule[employee.id][day].length === 0) {
+                        draftSchedule[employee.id][day].push({
+                            id: `closed_${day}_${employee.id}`,
+                            isFree: true,
+                            type: 'free_closed',
+                            description: 'Local cerrado'
+                        });
+                    }
+                });
+                
+                continue; // Saltar al siguiente día
+            }
+            
             let dayType;
             const dayIndex = this.days.indexOf(day);
             if (dayIndex >= 0 && dayIndex <= 4) { // Lunes a Viernes
@@ -70,11 +128,29 @@ class HorarioGenerator {
 
             neededShifts.forEach((shiftInfo, shiftIndex) => {
                 const requiredEmployees = shiftInfo.count || 1;
+                
+                // ✨ NUEVO: Determinar si este es el primer turno del día
+                const esPrimerTurno = shiftIndex === 0;
 
                 // Re-priorizar dinámicamente para cada turno
                 const dynamicPrioritizedEmployees = prioritizedEmployees.slice().sort((a, b) => {
                     const aTracking = trackingState[a.id];
                     const bTracking = trackingState[b.id];
+                    
+                    // ✨ PRIORIDAD MÁXIMA: Si es el primer turno, empleados con priority_first_shift van PRIMERO
+                    if (esPrimerTurno) {
+                        const aPriority = a.preferences?.priority_first_shift === true;
+                        const bPriority = b.preferences?.priority_first_shift === true;
+                        
+                        if (aPriority && !bPriority) {
+                            console.log(`⭐ ${a.name} tiene prioridad de primer turno`);
+                            return -1;
+                        }
+                        if (bPriority && !aPriority) {
+                            console.log(`⭐ ${b.name} tiene prioridad de primer turno`);
+                            return 1;
+                        }
+                    }
 
                     // Prioridad 1: Quien ha trabajado MENOS días va primero
                     const aDays = aTracking.workDays.size;
@@ -112,6 +188,13 @@ class HorarioGenerator {
                     }
                     if (!assignedInThisIteration) {
                         console.warn(`⚠️ No se pudo encontrar empleada para el slot ${i + 1}/${requiredEmployees} del turno ${shiftInfo.start}-${shiftInfo.end} del ${day}`);
+                        
+                        // ✨ NUEVO: Registrar turno sin cubrir
+                        turnosSinCubrir.push({
+                            dia: day,
+                            turno: `${shiftInfo.start} - ${shiftInfo.end}`,
+                            posicion: `${i + 1}/${requiredEmployees}`
+                        });
                     }
                 }
             });
@@ -136,8 +219,15 @@ class HorarioGenerator {
         console.log('✅ Horario generado:', draftSchedule);
         console.log('📈 Estado final de seguimiento:', trackingState);
         
-        // 7. Devolver el horario generado
-        return draftSchedule;
+        if (turnosSinCubrir.length > 0) {
+            console.warn('⚠️ TURNOS SIN CUBRIR:', turnosSinCubrir);
+        }
+        
+        // 7. Devolver el horario generado Y los turnos sin cubrir
+        return {
+            schedule: draftSchedule,
+            turnosSinCubrir: turnosSinCubrir
+        };
     }
 
     isEmployeeSuitable(employee, day, shiftInfo, trackingState, shiftId) {
@@ -158,8 +248,13 @@ class HorarioGenerator {
             return false;
         }
 
-        // 3. Ya ha trabajado 5 días
-        if (tracking.workDays.size >= 5) {
+        // 3. ✨ LÍMITE DINÁMICO: Calcular días máximos según días libres del empleado
+        const diasLibresAsignados = tracking.freeDays.size;
+        const diasCierreEnSemana = this.coverageNeeds.dias_cierre?.length || 0;
+        const diasLibresTotales = diasLibresAsignados + diasCierreEnSemana;
+        const maxDiasTrabajo = Math.min(7 - diasLibresTotales, 6); // Máximo 6 días consecutivos (convenio)
+        
+        if (tracking.workDays.size >= maxDiasTrabajo) {
             return false;
         }
 
@@ -200,10 +295,11 @@ class HorarioGenerator {
         tracking.assignedHours += hours;
     }
 
-    assignFixedFreeDays(draftSchedule, trackingState, employees) {
+    assignFixedFreeDays(draftSchedule, trackingState, employees, weekStart) {
         employees.forEach(employee => {
+            // 1. Días libres fijos normales
             const fixedDay = employee.preferences?.fixed_day_off;
-            if (fixedDay && this.days.includes(fixedDay)) {
+            if (fixedDay && fixedDay !== 'none' && this.days.includes(fixedDay)) {
                 draftSchedule[employee.id][fixedDay].push({
                     id: `fixed_free_${employee.id}`,
                     isFree: true,
@@ -211,6 +307,24 @@ class HorarioGenerator {
                     description: 'Día libre fijo'
                 });
                 trackingState[employee.id].freeDays.add(fixedDay);
+                console.log(`📌 ${employee.name}: Día libre fijo asignado - ${fixedDay}`);
+            }
+            
+            // 2. ✨ NUEVO: Días libres por patrón alternante
+            const diasAlternantes = this.aplicaPatronAlternante(employee, weekStart);
+            if (diasAlternantes && Array.isArray(diasAlternantes)) {
+                diasAlternantes.forEach(dia => {
+                    if (this.days.includes(dia)) {
+                        draftSchedule[employee.id][dia].push({
+                            id: `alternating_free_${employee.id}_${dia}`,
+                            isFree: true,
+                            type: 'free_alternating',
+                            description: 'Día libre (patrón alternante)'
+                        });
+                        trackingState[employee.id].freeDays.add(dia);
+                        console.log(`🔄 ${employee.name}: Día libre alternante asignado - ${dia}`);
+                    }
+                });
             }
         });
     }
@@ -269,6 +383,14 @@ class HorarioGenerator {
     prioritizeEmployees(employeeStates) {
         return employeeStates
             .filter(e => e.isAvailable)
+            .filter(e => {
+                // ✨ NUEVO: Excluir empleados marcados como excluidos del generador
+                const isExcluded = e.preferences?.exclude_from_generator === true;
+                if (isExcluded) {
+                    console.log(`⛔ ${e.name} excluido del generador automático por preferencias`);
+                }
+                return !isExcluded;
+            })
             .sort((a, b) => {
                 // Asegurarse de que 'convenio' existe para evitar errores
                 const aConvenio = a.convenio || {};

@@ -36,36 +36,69 @@ class ControlAnualSimple {
     }
 
     async esperarAutenticacion() {
+        // Esperar a que el mainContent esté visible
         while (!document.getElementById('mainContent') || 
                document.getElementById('mainContent').style.display === 'none') {
             await new Promise(resolve => setTimeout(resolve, 500));
         }
+        
+        // IMPORTANTE: Esperar a que el local esté seleccionado
+        let intentos = 0;
+        while (!getCurrentLocationId() && intentos < 50) {
+            console.log('⏳ [ControlAnual] Esperando a que se seleccione el local...');
+            await new Promise(resolve => setTimeout(resolve, 200));
+            intentos++;
+        }
+        
+        const locationId = getCurrentLocationId();
+        const location = getCurrentLocation();
+        
+        if (!locationId) {
+            console.error('❌ [ControlAnual] No se pudo obtener el local después de esperar');
+        } else {
+            console.log('✅ [ControlAnual] Local confirmado:', location?.location_name, '| ID:', locationId);
+        }
     }
 
     async inicializarSupabase() {
-        // Esperar a que Supabase esté disponible
-        while (!window.supabase) {
-            // console.log('⏳ Esperando Supabase...');
+        // Esperar a que el CLIENTE global de Supabase esté disponible
+        let intentos = 0;
+        while (intentos < 20) {
+            if (window.supabase && typeof window.supabase.from === 'function') {
+                // Ya está inicializado el cliente
+                break;
+            }
+            // console.log('⏳ Esperando cliente global de Supabase...');
             await new Promise(resolve => setTimeout(resolve, 500));
+            intentos++;
         }
         
-        // Inicializar igual que en admin-horarios.js
-        const SUPABASE_URL = 'https://csxgkxjeifakwslamglc.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzeGdreGplaWZha3dzbGFtZ2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjM4NjIsImV4cCI6MjA2NDg5OTg2Mn0.iGDmQJGRjsldPGmXLO5PFiaLOk7P3Rpr0omF3b8SJkg';
+        if (!window.supabase || typeof window.supabase.from !== 'function') {
+            console.error('❌ Cliente global de Supabase no disponible después de esperar');
+            console.error('window.supabase:', window.supabase);
+            return;
+        }
         
-        this.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        // console.log('✅ Supabase inicializado correctamente');
+        // ✨ Reutilizar la instancia global del CLIENTE de Supabase (evita múltiples clientes)
+        this.supabase = window.supabase;
+        console.log('✅ Usando instancia global del cliente de Supabase');
     }
 
     async cargarEmpleados() {
-        // ID del local MASSA Llevant
-        const LLEVANT_LOCATION_ID = 'b1cd939f-2d99-4856-8c15-7926e95d4cbd';
+        // Obtener location ID del contexto (local seleccionado por el usuario)
+        const locationId = getCurrentLocationId();
+        
+        if (!locationId) {
+            console.error('❌ [ControlAnualSimple] No hay local seleccionado');
+            this.empleados = [];
+            return;
+        }
         
         const { data: empleados } = await this.supabase
             .from('employees')
             .select('id, name, role')
             .neq('role', 'admin')
-            .eq('location_id', LLEVANT_LOCATION_ID)
+            .eq('location_id', locationId)
             .order('name');
         
         this.empleados = empleados || [];
@@ -540,7 +573,7 @@ class ControlAnualSimple {
 
         compensacionesHtml += `
                 <div class="mt-4 p-3 bg-gray-100 rounded text-sm text-gray-700">
-                    💡 <strong>Objetivo:</strong> Compensar diferencias históricas desde la fecha de alta para que todas acaben cerca del ideal.
+                    💡 <strong>Objetivo:</strong> Compensar diferencias históricas desde desde la fecha de alta para que todas acaben cerca del ideal.
                 </div>
             </div>
         `;

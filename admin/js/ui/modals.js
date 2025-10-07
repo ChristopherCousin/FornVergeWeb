@@ -1,5 +1,8 @@
 /* Forn Verge - Gestión de Modal de Turnos - MASSA SON OLIVA */
 
+// Variable global para guardar la posición del scroll
+let scrollPositionBeforeModal = 0;
+
 // ===== ABRIR MODAL DE TURNOS =====
 
 function openShiftModal(empId, day, empName, dayName, shiftToEdit = null, shiftIndex = null) {
@@ -33,38 +36,40 @@ function openShiftModal(empId, day, empName, dayName, shiftToEdit = null, shiftI
             : '<i class="fas fa-plus mr-2"></i>Agregar Turno';
     }
 
-    // Preparar campos
+    // Preparar campos - campos simples SIEMPRE visibles, partido oculto
     const singleFields = document.getElementById('singleShiftFields');
     const splitFields = document.getElementById('splitShiftFields');
-    const shiftTypeSelector = document.getElementById('shiftTypeSelector');
-    // Por defecto, mostrar campos simples
+    // Los campos simples siempre visibles
     singleFields.classList.remove('hidden');
     splitFields.classList.add('hidden');
-    shiftTypeSelector.classList.remove('hidden');
 
     if (shiftToEdit && !shiftToEdit.isFree) {
         // Precargar datos del turno a editar
         const startValue = (shiftToEdit.start || '').slice(0, 5) || '07:00';
         const endValue = (shiftToEdit.end || '').slice(0, 5) || '14:00';
-        const typeValue = getShiftType(shiftToEdit.start, shiftToEdit.end);
         document.getElementById('startTime').value = startValue;
         document.getElementById('endTime').value = endValue;
-        document.getElementById('shiftType').value = typeValue;
         // Inicializar valores por defecto para horario partido (por si el usuario cambia a partido)
         document.getElementById('startTime1').value = startValue;
         document.getElementById('endTime1').value = '13:00';
         document.getElementById('startTime2').value = '16:00';
         document.getElementById('endTime2').value = '21:00';
     } else {
-        // Modo creación o día libre
+        // Modo creación - valores por defecto
         document.getElementById('startTime').value = '07:00';
         document.getElementById('endTime').value = '14:00';
         document.getElementById('startTime1').value = '07:00';
         document.getElementById('endTime1').value = '13:00';
         document.getElementById('startTime2').value = '16:00';
         document.getElementById('endTime2').value = '21:00';
-        document.getElementById('shiftType').value = 'morning';
     }
+    
+    // 🔧 GUARDAR posición del scroll ANTES de abrir el modal
+    scrollPositionBeforeModal = window.pageYOffset || document.documentElement.scrollTop;
+    console.log('📍 Guardando posición del scroll:', scrollPositionBeforeModal);
+    
+    // Cargar templates guardados
+    loadSavedTemplates();
     
     // Mostrar modal con mejor UX móvil
     const modal = document.getElementById('shiftModal');
@@ -79,6 +84,9 @@ function openShiftModal(empId, day, empName, dayName, shiftToEdit = null, shiftI
     
     // Prevenir scroll del body cuando el modal está abierto
     document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollPositionBeforeModal}px`;
+    document.body.style.width = '100%';
     
     updateStatus(`Agregando turno para ${empName} 📝`);
 }
@@ -88,8 +96,15 @@ function openShiftModal(empId, day, empName, dayName, shiftToEdit = null, shiftI
 function closeModal() {
     document.getElementById('shiftModal').classList.remove('show');
     
-    // Restaurar scroll del body
+    // 🔧 RESTAURAR posición del scroll exacta
     document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    
+    // Restaurar el scroll a la posición guardada
+    window.scrollTo(0, scrollPositionBeforeModal);
+    console.log('📍 Restaurando posición del scroll a:', scrollPositionBeforeModal);
     
     currentModalEmployee = null;
     currentModalDay = null;
@@ -189,25 +204,155 @@ function addFreeDay() {
     }, 100);
 }
 
+// ===== GESTIÓN DE TEMPLATES PERSONALIZADOS =====
+
+function loadSavedTemplates() {
+    const templates = JSON.parse(localStorage.getItem('shiftTemplates') || '[]');
+    const section = document.getElementById('savedTemplatesSection');
+    const list = document.getElementById('savedTemplatesList');
+    
+    if (templates.length > 0) {
+        section.style.display = 'block';
+        list.innerHTML = templates.map((t, idx) => `
+            <button class="template-btn-saved" onclick="applyTemplate(${idx})">
+                <span class="text-base">${t.icon || '⏰'}</span>
+                <span class="font-semibold text-xs">${t.name}</span>
+                <small class="text-xs opacity-75">${t.start}-${t.end}</small>
+            </button>
+        `).join('');
+    } else {
+        section.style.display = 'none';
+    }
+    
+    // Actualizar lista de eliminación
+    updateDeleteList(templates);
+}
+
+function updateDeleteList(templates) {
+    const deleteSection = document.getElementById('templatesDeleteList');
+    const deleteItems = document.getElementById('templatesDeleteItems');
+    
+    if (templates.length > 0) {
+        deleteSection.style.display = 'block';
+        deleteItems.innerHTML = templates.map((t, idx) => `
+            <div class="flex items-center justify-between bg-white p-2 rounded border border-purple-200">
+                <span class="text-xs font-medium">${t.icon || '⏰'} ${t.name} <span class="text-gray-500">(${t.start}-${t.end})</span></span>
+                <button onclick="deleteTemplate(${idx})" class="text-red-500 hover:text-red-700 text-xs font-bold">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `).join('');
+    } else {
+        deleteSection.style.display = 'none';
+    }
+}
+
+function toggleTemplatesManager() {
+    const manager = document.getElementById('templatesManager');
+    const isVisible = manager.style.display !== 'none';
+    
+    if (isVisible) {
+        manager.style.display = 'none';
+    } else {
+        manager.style.display = 'block';
+        // Limpiar campos
+        document.getElementById('templateName').value = '';
+        document.getElementById('templateStart').value = '09:00';
+        document.getElementById('templateEnd').value = '13:00';
+        
+        // Cargar lista de templates para gestionar
+        const templates = JSON.parse(localStorage.getItem('shiftTemplates') || '[]');
+        updateDeleteList(templates);
+    }
+}
+
+function saveNewTemplate() {
+    const name = document.getElementById('templateName').value.trim();
+    const start = document.getElementById('templateStart').value;
+    const end = document.getElementById('templateEnd').value;
+    
+    if (!name) {
+        alert('⚠️ Escribe un nombre para el template');
+        return;
+    }
+    
+    if (!start || !end) {
+        alert('⚠️ Selecciona las horas de inicio y fin');
+        return;
+    }
+    
+    if (start >= end) {
+        alert('⚠️ La hora de inicio debe ser menor que la de fin');
+        return;
+    }
+    
+    // Detectar emoji según las horas
+    const hour = parseInt(start.split(':')[0]);
+    let icon = '⏰';
+    if (hour < 10) icon = '🌅';
+    else if (hour < 14) icon = '☀️';
+    else if (hour < 18) icon = '🌆';
+    else icon = '🌙';
+    
+    const templates = JSON.parse(localStorage.getItem('shiftTemplates') || '[]');
+    templates.push({
+        name: name,
+        start: start,
+        end: end,
+        icon: icon
+    });
+    
+    localStorage.setItem('shiftTemplates', JSON.stringify(templates));
+    
+    // Recargar templates
+    loadSavedTemplates();
+    
+    // Mostrar mensaje
+    alert(`✅ Template "${name}" guardado!`);
+    
+    // Limpiar campos
+    document.getElementById('templateName').value = '';
+    document.getElementById('templateStart').value = '09:00';
+    document.getElementById('templateEnd').value = '13:00';
+}
+
+function applyTemplate(index) {
+    const templates = JSON.parse(localStorage.getItem('shiftTemplates') || '[]');
+    const template = templates[index];
+    
+    if (template) {
+        document.getElementById('startTime').value = template.start;
+        document.getElementById('endTime').value = template.end;
+    }
+}
+
+function deleteTemplate(index) {
+    const templates = JSON.parse(localStorage.getItem('shiftTemplates') || '[]');
+    const template = templates[index];
+    
+    if (confirm(`¿Eliminar el template "${template.name}"?`)) {
+        templates.splice(index, 1);
+        localStorage.setItem('shiftTemplates', JSON.stringify(templates));
+        loadSavedTemplates();
+    }
+}
+
 // ===== TOGGLE CAMPOS HORARIO PARTIDO =====
 
 function toggleSplitShiftFields() {
     const singleFields = document.getElementById('singleShiftFields');
     const splitFields = document.getElementById('splitShiftFields');
-    const shiftTypeSelector = document.getElementById('shiftTypeSelector');
     const addButton = document.getElementById('addShift');
     
     if (splitFields.classList.contains('hidden')) {
         // Mostrar campos dobles (modo partido)
         singleFields.classList.add('hidden');
         splitFields.classList.remove('hidden');
-        shiftTypeSelector.classList.add('hidden');
         addButton.innerHTML = '<i class="fas fa-plus mr-2"></i>Agregar Horario Partido';
     } else {
         // Mostrar campos simples (modo normal)
         singleFields.classList.remove('hidden');
         splitFields.classList.add('hidden');
-        shiftTypeSelector.classList.remove('hidden');
         addButton.innerHTML = '<i class="fas fa-plus mr-2"></i>Agregar Turno';
     }
 }
@@ -275,7 +420,6 @@ function addShiftFromModal() {
         // Modo normal - crear 1 turno
         const startTime = document.getElementById('startTime').value;
         const endTime = document.getElementById('endTime').value;
-        const shiftType = document.getElementById('shiftType').value;
         
         if (!startTime || !endTime) {
             alert('Por favor completa las horas');
@@ -289,14 +433,18 @@ function addShiftFromModal() {
         
         const hours = Math.round((new Date(`2000-01-01 ${endTime}`) - new Date(`2000-01-01 ${startTime}`)) / (1000 * 60 * 60));
         
+        // Determinar el tipo de turno basado en la hora de inicio
+        const hour = parseInt(startTime.split(':')[0]);
+        const autoType = hour < 14 ? 'morning' : 'afternoon';
+        
         const newShift = {
             id: 'temp_' + Date.now(),
-            type: shiftType,
+            type: autoType,
             start: startTime + ':00',
             end: endTime + ':00',
             hours: hours,
             isFree: false,
-            description: getShiftDescription(shiftType)
+            description: `Turno ${autoType === 'morning' ? 'mañana' : 'tarde'}`
         };
         
         // --- FIX: Limpiar día libre si existe antes de añadir un turno de trabajo ---

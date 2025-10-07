@@ -294,6 +294,82 @@ body {
     background: #cbd5e1;
 }
 
+/* Botones compactos para templates simplificados */
+.template-btn-compact {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 2px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 12px 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    min-height: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+.template-btn-compact:hover {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    border-color: #94a3b8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.template-btn-compact:active {
+    transform: scale(0.96);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.template-btn-compact span:first-child {
+    font-size: 28px;
+    line-height: 1;
+}
+
+.template-btn-compact span:last-child {
+    font-size: 14px;
+    color: #334155;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+/* Botones de templates guardados */
+.template-btn-saved {
+    background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 100%);
+    border: 2px solid #f59e0b;
+    border-radius: 10px;
+    padding: 10px 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    min-height: 65px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+}
+
+.template-btn-saved:hover {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+}
+
+.template-btn-saved:active {
+    transform: scale(0.96);
+    box-shadow: 0 1px 3px rgba(245, 158, 11, 0.2);
+}
+
 /* Botón eliminar */
 .delete-btn {
     position: absolute;
@@ -1462,7 +1538,7 @@ body {
 @media (max-width: 480px) {
     .modal {
         padding: 0;
-        align-items: stretch;
+        align-items: flex-end;
         padding-top: 0;
         /* FUERZA ANTI-SCROLL LATERAL */
         width: 100vw !important;
@@ -1471,53 +1547,110 @@ body {
     }
     
     .modal-content {
-        padding: 20px 16px;
-        border-radius: 20px 20px 0 0;
-        max-height: 92vh;
+        padding: 24px 16px;
+        border-radius: 24px 24px 0 0;
+        max-height: 90vh;
         min-height: 50vh;
         max-width: 100vw;
         width: 100vw;
         /* ANTI-SCROLL LATERAL TOTAL */
         overflow-x: hidden !important;
         box-sizing: border-box !important;
-        margin: auto 0 0 0;
+        margin: 0;
         position: relative;
+        /* Animación suave de entrada desde abajo */
+        animation: slideUpModal 0.3s ease-out;
     }
     
-    /* Indicador visual de modal móvil */
+    /* Animación de entrada del modal */
+    @keyframes slideUpModal {
+        from {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    /* Indicador visual de modal móvil (handle para arrastrar) */
     .modal-content::before {
         content: '';
         position: absolute;
-        top: 8px;
+        top: 12px;
         left: 50%;
         transform: translateX(-50%);
-        width: 40px;
-        height: 4px;
+        width: 48px;
+        height: 5px;
         background: #d1d5db;
-        border-radius: 2px;
+        border-radius: 3px;
     }
     
     .template-btn {
-        padding: 16px 8px;
+        padding: 18px 10px;
         font-size: 13px;
-        min-height: 80px;
+        min-height: 90px;
         gap: 6px;
-        border-radius: 12px;
+        border-radius: 14px;
+        /* Mejor feedback táctil */
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .template-btn:active {
+        transform: scale(0.95);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
     
     .template-btn span {
-        font-size: 16px;
+        font-size: 20px;
     }
     
     .template-btn small {
-        font-size: 10px;
-        opacity: 0.8;
+        font-size: 11px;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+    
+    /* Botones compactos optimizados para móvil */
+    .template-btn-compact {
+        min-height: 75px;
+        padding: 14px 10px;
+        border-width: 2px;
+    }
+    
+    .template-btn-compact span:first-child {
+        font-size: 32px;
+    }
+    
+    .template-btn-compact span:last-child {
+        font-size: 15px;
+    }
+    
+    /* Botones de templates guardados en móvil */
+    .template-btn-saved {
+        min-height: 70px;
+        padding: 12px 8px;
+        border-width: 2px;
+    }
+    
+    .template-btn-saved .text-base {
+        font-size: 22px !important;
+    }
+    
+    .template-btn-saved .font-semibold {
+        font-size: 13px !important;
+    }
+    
+    .template-btn-saved small {
+        font-size: 11px !important;
     }
     
     /* Templates mantienen 2 columnas en móvil */
     /* Templates en 2 columnas para móvil - ANTI-SCROLL */
     .modal-content .grid.grid-cols-2 {
-        gap: 8px;
+        gap: 10px;
         width: 100% !important;
         max-width: 100% !important;
         overflow: hidden !important;
@@ -1529,7 +1662,7 @@ body {
     .modal-content select {
         padding: 18px 20px;
         font-size: 18px !important;
-        min-height: 60px;
+        min-height: 64px;
         border-radius: 16px;
         border-width: 2px;
         width: 100% !important;
@@ -1537,10 +1670,21 @@ body {
         box-sizing: border-box !important;
         -webkit-appearance: none;
         appearance: none;
+        /* Mejor contraste */
+        background-color: #ffffff;
+        font-weight: 500;
+    }
+    
+    /* Estado focus mejorado para móvil */
+    .modal-content input[type="time"]:focus,
+    .modal-content select:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+        outline: none;
     }
     
     .modal-content button {
-        min-height: 60px;
+        min-height: 64px;
         font-size: 18px;
         font-weight: 700;
         border-radius: 16px;
@@ -1548,28 +1692,97 @@ body {
         max-width: 100% !important;
         box-sizing: border-box !important;
         letter-spacing: 0.025em;
+        /* Mejor feedback táctil */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        transition: all 0.2s ease;
+    }
+    
+    .modal-content button:active {
+        transform: scale(0.98);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
     /* Botón cancelar también grande */
     #cancelModal {
         font-size: 16px !important;
         font-weight: 500 !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
-    /* Header del modal más compacto */
+    /* Header del modal más visible con padding top para el handle */
     .modal-content h3 {
-        font-size: 18px !important;
-        margin-bottom: 12px !important;
+        font-size: 19px !important;
+        margin-bottom: 14px !important;
+        margin-top: 8px !important;
     }
     
-    /* Info del empleado más compacta */
+    /* Info del empleado más destacada */
     .modal-content .bg-blue-50 {
-        padding: 12px !important;
-        margin-bottom: 16px !important;
+        padding: 14px !important;
+        margin-bottom: 18px !important;
+        border-radius: 12px;
+        border: 2px solid #dbeafe;
     }
     
     .modal-content .bg-blue-50 p {
+        font-size: 17px !important;
+        font-weight: 600;
+    }
+    
+    /* Labels más grandes y legibles */
+    .modal-content label {
+        font-size: 15px !important;
+        font-weight: 600 !important;
+        margin-bottom: 10px !important;
+    }
+    
+    /* Espaciado entre secciones del modal */
+    .modal-content > .space-y-4 {
+        gap: 20px;
+    }
+    
+    /* Botón de cerrar (X) más grande y accesible */
+    #closeModal {
+        font-size: 24px !important;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    
+    #closeModal:active {
+        background-color: #f3f4f6;
+        transform: scale(0.95);
+    }
+    
+    /* Campos de horario partido optimizados para móvil */
+    #splitShiftFields .bg-orange-50,
+    #splitShiftFields .bg-blue-50 {
+        padding: 16px !important;
+        border-radius: 14px;
+        border-width: 2px !important;
+        margin-bottom: 12px;
+    }
+    
+    #splitShiftFields h4 {
         font-size: 16px !important;
+        margin-bottom: 12px !important;
+        font-weight: 700 !important;
+    }
+    
+    #splitShiftFields label {
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        margin-bottom: 8px !important;
+    }
+    
+    #splitShiftFields input[type="time"] {
+        min-height: 60px !important;
+        font-size: 18px !important;
+        padding: 16px 18px !important;
     }
 }
 

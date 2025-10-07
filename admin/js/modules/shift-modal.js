@@ -1,5 +1,8 @@
 /* Forn Verge - Modal para agregar/editar turnos - MASSA SON OLIVA */
 
+// Variable global para guardar la posición del scroll
+let scrollPositionBeforeModal = 0;
+
 function openShiftModal(empId, day, empName, dayName, shiftToEdit = null, shiftIndex = null) {
     // ALERTA SEMANA PASADA
     const thisMonday = getThisMondayISO();
@@ -31,37 +34,41 @@ function openShiftModal(empId, day, empName, dayName, shiftToEdit = null, shiftI
             : '<i class="fas fa-plus mr-2"></i>Agregar Turno';
     }
 
-    // Preparar campos
+    // Preparar campos - campos simples SIEMPRE visibles, partido oculto
     const singleFields = document.getElementById('singleShiftFields');
     const splitFields = document.getElementById('splitShiftFields');
-    const shiftTypeSelector = document.getElementById('shiftTypeSelector');
-    // Por defecto, mostrar campos simples
+    // Los campos simples siempre visibles
     singleFields.classList.remove('hidden');
     splitFields.classList.add('hidden');
-    shiftTypeSelector.classList.remove('hidden');
 
     if (shiftToEdit && !shiftToEdit.isFree) {
         // Precargar datos del turno a editar
         const startValue = (shiftToEdit.start || '').slice(0, 5) || '07:00';
         const endValue = (shiftToEdit.end || '').slice(0, 5) || '14:00';
-        const typeValue = getShiftType(shiftToEdit.start, shiftToEdit.end);
         document.getElementById('startTime').value = startValue;
         document.getElementById('endTime').value = endValue;
-        document.getElementById('shiftType').value = typeValue;
         // Inicializar valores por defecto para horario partido (por si el usuario cambia a partido)
         document.getElementById('startTime1').value = startValue;
         document.getElementById('endTime1').value = '13:00';
         document.getElementById('startTime2').value = '16:00';
         document.getElementById('endTime2').value = '21:00';
     } else {
-        // Modo creación o día libre
+        // Modo creación - valores por defecto
         document.getElementById('startTime').value = '07:00';
         document.getElementById('endTime').value = '14:00';
         document.getElementById('startTime1').value = '07:00';
         document.getElementById('endTime1').value = '13:00';
         document.getElementById('startTime2').value = '16:00';
         document.getElementById('endTime2').value = '21:00';
-        document.getElementById('shiftType').value = 'morning';
+    }
+    
+    // 🔧 GUARDAR posición del scroll ANTES de abrir el modal
+    scrollPositionBeforeModal = window.pageYOffset || document.documentElement.scrollTop;
+    console.log('📍 Guardando posición del scroll:', scrollPositionBeforeModal);
+    
+    // Cargar templates guardados
+    if (typeof loadSavedTemplates === 'function') {
+        loadSavedTemplates();
     }
     
     // Mostrar modal con mejor UX móvil
@@ -77,6 +84,9 @@ function openShiftModal(empId, day, empName, dayName, shiftToEdit = null, shiftI
     
     // Prevenir scroll del body cuando el modal está abierto
     document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollPositionBeforeModal}px`;
+    document.body.style.width = '100%';
     
     updateStatus(`Agregando turno para ${empName} 📝`);
 }
@@ -84,8 +94,15 @@ function openShiftModal(empId, day, empName, dayName, shiftToEdit = null, shiftI
 function closeModal() {
     document.getElementById('shiftModal').classList.remove('show');
     
-    // Restaurar scroll del body
+    // 🔧 RESTAURAR posición del scroll exacta
     document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    
+    // Restaurar el scroll a la posición guardada
+    window.scrollTo(0, scrollPositionBeforeModal);
+    console.log('📍 Restaurando posición del scroll a:', scrollPositionBeforeModal);
     
     currentModalEmployee = null;
     currentModalDay = null;
@@ -182,20 +199,17 @@ function addFreeDay() {
 function toggleSplitShiftFields() {
     const singleFields = document.getElementById('singleShiftFields');
     const splitFields = document.getElementById('splitShiftFields');
-    const shiftTypeSelector = document.getElementById('shiftTypeSelector');
     const addButton = document.getElementById('addShift');
     
     if (splitFields.classList.contains('hidden')) {
         // Mostrar campos dobles (modo partido)
         singleFields.classList.add('hidden');
         splitFields.classList.remove('hidden');
-        shiftTypeSelector.classList.add('hidden');
         addButton.innerHTML = '<i class="fas fa-plus mr-2"></i>Agregar Horario Partido';
     } else {
         // Mostrar campos simples (modo normal)
         singleFields.classList.remove('hidden');
         splitFields.classList.add('hidden');
-        shiftTypeSelector.classList.remove('hidden');
         addButton.innerHTML = '<i class="fas fa-plus mr-2"></i>Agregar Turno';
     }
 }
@@ -261,7 +275,6 @@ function addShiftFromModal() {
         // Modo normal - crear 1 turno
         const startTime = document.getElementById('startTime').value;
         const endTime = document.getElementById('endTime').value;
-        const shiftType = document.getElementById('shiftType').value;
         
         if (!startTime || !endTime) {
             alert('Por favor completa las horas');
@@ -275,14 +288,18 @@ function addShiftFromModal() {
         
         const hours = Math.round((new Date(`2000-01-01 ${endTime}`) - new Date(`2000-01-01 ${startTime}`)) / (1000 * 60 * 60));
         
+        // Determinar el tipo de turno basado en la hora de inicio
+        const hour = parseInt(startTime.split(':')[0]);
+        const autoType = hour < 14 ? 'morning' : 'afternoon';
+        
         const newShift = {
             id: 'temp_' + Date.now(),
-            type: shiftType,
+            type: autoType,
             start: startTime + ':00',
             end: endTime + ':00',
             hours: hours,
             isFree: false,
-            description: getShiftDescription(shiftType)
+            description: `Turno ${autoType === 'morning' ? 'mañana' : 'tarde'}`
         };
         
         // --- FIX: Limpiar día libre si existe antes de añadir un turno de trabajo ---

@@ -4,6 +4,13 @@
 const SUPABASE_URL = 'https://csxgkxjeifakwslamglc.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzeGdreGplaWZha3dzbGFtZ2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjM4NjIsImV4cCI6MjA2NDg5OTg2Mn0.iGDmQJGRjsldPGmXLO5PFiaLOk7P3Rpr0omF3b8SJkg';
 
+// Configuración global de Supabase (incluye projectId para Edge Functions)
+window.SUPABASE_CONFIG = {
+    url: SUPABASE_URL,
+    anonKey: SUPABASE_ANON_KEY,
+    projectId: 'csxgkxjeifakwslamglc'
+};
+
 // ===== CONFIGURACIÓN DE AUTENTICACIÓN =====
 const ADMIN_PASSWORD_HASH = 'c02c130935092678750a1396e519f523c8df545464f46ffd27729f2d9cde6f35'; // SHA-256 de 'fornverge2025'
 

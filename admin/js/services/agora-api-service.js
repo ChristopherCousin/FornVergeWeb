@@ -14,6 +14,21 @@ class AgoraApiService {
         
         // URL dinámica según el local actual
         this.AGORA_URL = this.getAgoraUrlForCurrentLocation();
+        
+        // URL del proxy de Supabase (para producción con HTTPS)
+        this.PROXY_URL = this.getProxyUrl();
+        
+        // Detectar si estamos en producción (HTTPS)
+        this.USE_PROXY = window.location.protocol === 'https:';
+    }
+    
+    /**
+     * Obtener URL del proxy según el entorno
+     */
+    getProxyUrl() {
+        // Tu proyecto de Supabase
+        const SUPABASE_PROJECT_ID = window.SUPABASE_CONFIG?.projectId || 'csxgkxjeifakwslamglc';
+        return `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/agora-proxy`;
     }
     
     /**
@@ -64,27 +79,15 @@ class AgoraApiService {
         };
 
         try {
-            console.log(`📡 [Ágora API] Consultando: ${this.AGORA_URL}`);
-            const response = await fetch(`${this.AGORA_URL}/api/custom-query`, {
-                method: 'POST',
-                headers: {
-                    'Api-Token': this.API_TOKEN,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json; charset=utf-8'
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
+            if (this.USE_PROXY) {
+                // PRODUCCIÓN (HTTPS): Usar proxy de Supabase
+                console.log(`🔐 [Ágora API] Usando proxy HTTPS para: ${this.AGORA_URL}`);
+                return await this.fetchViaProxy(payload);
+            } else {
+                // LOCAL (HTTP): Llamada directa
+                console.log(`📡 [Ágora API] Llamada directa HTTP: ${this.AGORA_URL}`);
+                return await this.fetchDirect(payload);
             }
-
-            const data = await response.json();
-            return {
-                success: true,
-                data: data,
-                error: null
-            };
 
         } catch (error) {
             console.error('❌ [Ágora API] Error obteniendo fichajes:', error);
@@ -94,6 +97,66 @@ class AgoraApiService {
                 error: error.message || 'Error desconocido al conectar con Ágora'
             };
         }
+    }
+    
+    /**
+     * Llamada directa a AGORA (solo funciona en HTTP/local)
+     */
+    async fetchDirect(payload) {
+        const response = await fetch(`${this.AGORA_URL}/api/custom-query`, {
+            method: 'POST',
+            headers: {
+                'Api-Token': this.API_TOKEN,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json; charset=utf-8'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return {
+            success: true,
+            data: data,
+            error: null
+        };
+    }
+    
+    /**
+     * Llamada a través del proxy de Supabase (para HTTPS/producción)
+     */
+    async fetchViaProxy(payload) {
+        const response = await fetch(this.PROXY_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': window.SUPABASE_CONFIG?.anonKey || ''
+            },
+            body: JSON.stringify({
+                agoraUrl: this.AGORA_URL,
+                payload: payload,
+                apiToken: this.API_TOKEN
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error en proxy: ${response.status} ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || 'Error desconocido del proxy');
+        }
+
+        return {
+            success: true,
+            data: result.data,
+            error: null
+        };
     }
 }
 

@@ -352,11 +352,57 @@ class ControlAnualSimple {
     }
 
     actualizarEstadoEmpleados() {
-        if (!this.convenioAnual || !this.convenioAnual.stats_anuales) {
+        if (!this.convenioAnual) {
             return;
         }
 
         const container = document.getElementById('estadoEmpleadosAnual');
+        
+        // ⚠️ DETECTAR ERROR DE ÁGORA
+        if (this.convenioAnual.error_agora) {
+            container.innerHTML = `
+                <div class="bg-red-100 border-2 border-red-400 rounded-lg p-6">
+                    <div class="flex items-start">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-3xl mr-4"></i>
+                        <div class="flex-1">
+                            <h4 class="text-xl font-bold text-red-800 mb-2">
+                                ❌ Error de Conexión con Ágora
+                            </h4>
+                            <p class="text-red-700 mb-3">
+                                No se pueden cargar los fichajes desde el sistema Ágora. 
+                                <strong>Las estadísticas de horas y compensaciones NO están disponibles.</strong>
+                            </p>
+                            <div class="bg-red-50 border border-red-300 rounded p-3 mb-3">
+                                <p class="text-sm text-red-800 font-mono">
+                                    <strong>Error técnico:</strong> ${this.convenioAnual.error_agora}
+                                </p>
+                            </div>
+                            <div class="text-red-700">
+                                <p class="mb-2"><strong>Posibles causas:</strong></p>
+                                <ul class="list-disc list-inside space-y-1 text-sm">
+                                    <li>El servidor de Ágora está apagado o no responde</li>
+                                    <li>Problema de conexión de red</li>
+                                    <li>URL de Ágora mal configurada para este local</li>
+                                    <li>El servicio de Ágora está en mantenimiento</li>
+                                </ul>
+                            </div>
+                            <button 
+                                onclick="window.location.reload()" 
+                                class="mt-4 bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition font-medium">
+                                <i class="fas fa-sync mr-2"></i>Reintentar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        // Si no hay error, continuar normalmente
+        if (!this.convenioAnual.stats_anuales) {
+            return;
+        }
+
         const stats = Object.values(this.convenioAnual.stats_anuales);
         
         // No mostrar tarjetas individuales - solo la sección de compensaciones

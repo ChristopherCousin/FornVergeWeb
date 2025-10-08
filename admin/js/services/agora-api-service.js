@@ -48,7 +48,7 @@ class AgoraApiService {
      * Obtener fichajes crudos desde Ágora en un rango de fechas
      * @param {string} fechaDesde - Fecha inicio en formato YYYY-MM-DD
      * @param {string} fechaHasta - Fecha fin en formato YYYY-MM-DD
-     * @returns {Array} Array de fichajes sin transformar
+     * @returns {Object} { success: boolean, data: Array, error: string }
      */
     async obtenerFichajes(fechaDesde, fechaHasta) {
         // Actualizar URL por si cambió el local
@@ -80,11 +80,19 @@ class AgoraApiService {
             }
 
             const data = await response.json();
-            return data;
+            return {
+                success: true,
+                data: data,
+                error: null
+            };
 
         } catch (error) {
             console.error('❌ [Ágora API] Error obteniendo fichajes:', error);
-            return [];
+            return {
+                success: false,
+                data: [],
+                error: error.message || 'Error desconocido al conectar con Ágora'
+            };
         }
     }
 }

@@ -37,6 +37,7 @@ class ConvenioDataService {
     /**
      * Carga fichajes desde inicio de año DESDE LA API DE ÁGORA
      * Mapea automáticamente usando agora_employee_name
+     * @returns {Object} { success: boolean, fichajes: Array, error: string }
      */
     async cargarFichajes() {
         console.log('📡 [ConvenioDataService] Cargando fichajes desde API de Ágora...');
@@ -49,8 +50,19 @@ class ConvenioDataService {
         const fechaDesde = this.convenioConfig.inicio_año;
         
         const agoraApi = new window.AgoraApiService();
-        const fichajesRaw = await agoraApi.obtenerFichajes(fechaDesde, fechaHasta);
+        const resultado = await agoraApi.obtenerFichajes(fechaDesde, fechaHasta);
         
+        // ⚠️ DETECTAR ERROR DE CONEXIÓN CON ÁGORA
+        if (!resultado.success) {
+            console.error('❌ [ConvenioDataService] Fallo al conectar con Ágora:', resultado.error);
+            return {
+                success: false,
+                fichajes: [],
+                error: resultado.error
+            };
+        }
+        
+        const fichajesRaw = resultado.data;
         console.log(`✅ [Ágora API] Recibidos ${fichajesRaw.length} fichajes`);
         
         // 3. Transformar y mapear
@@ -76,7 +88,11 @@ class ConvenioDataService {
         
         console.log(`✅ [ConvenioDataService] Fichajes mapeados: ${fichajes.length}`);
         
-        return fichajes;
+        return {
+            success: true,
+            fichajes: fichajes,
+            error: null
+        };
     }
     
     /**

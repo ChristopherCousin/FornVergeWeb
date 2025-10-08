@@ -19,6 +19,7 @@ class ConvenioAnualManager {
         this.ausencias = [];
         this.stats_anuales = {};
         this.alertas_convenio = [];
+        this.error_agora = null; // ⚠️ Indicador de error de Ágora
         
         // Servicios
         this.dataService = new window.ConvenioDataService(supabase, this.convenio);
@@ -28,6 +29,13 @@ class ConvenioAnualManager {
     async init() {
         try {
             await this.cargarDatos();
+            
+            // ⚠️ Si hay error de Ágora, NO calcular estadísticas
+            if (this.error_agora) {
+                console.error('❌ [ConvenioManager] Detenido por error de Ágora');
+                return;
+            }
+            
             await this.calcularEstadisticasAnuales();
             this.renderer.mostrarResumenAnual(this.stats_anuales, this.alertas_convenio);
             
@@ -40,9 +48,24 @@ class ConvenioAnualManager {
     }
 
     async cargarDatos() {
-        // Cargar empleados, fichajes y ausencias
+        // Cargar empleados
         this.empleados = await this.dataService.cargarEmpleados();
-        this.fichajes = await this.dataService.cargarFichajes();
+        
+        // Cargar fichajes (con detección de errores)
+        const resultadoFichajes = await this.dataService.cargarFichajes();
+        
+        if (!resultadoFichajes.success) {
+            // ⚠️ ERROR AL CARGAR FICHAJES
+            this.error_agora = resultadoFichajes.error;
+            this.fichajes = [];
+            console.error('❌ [ConvenioManager] No se puede continuar sin fichajes de Ágora');
+            return; // NO calcular estadísticas con datos erróneos
+        }
+        
+        this.fichajes = resultadoFichajes.fichajes;
+        this.error_agora = null;
+        
+        // Cargar ausencias
         this.ausencias = await this.dataService.cargarAusencias();
         
         // Validar fichajes durante ausencias

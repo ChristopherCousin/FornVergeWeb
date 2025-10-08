@@ -40,25 +40,19 @@ class ConvenioAnualManager {
     }
 
     async cargarDatos() {
-        try {
-            // Cargar empleados, fichajes y ausencias
-            this.empleados = await this.dataService.cargarEmpleados();
-            this.fichajes = await this.dataService.cargarFichajes();
-            this.ausencias = await this.dataService.cargarAusencias();
+        // Cargar empleados, fichajes y ausencias
+        this.empleados = await this.dataService.cargarEmpleados();
+        this.fichajes = await this.dataService.cargarFichajes();
+        this.ausencias = await this.dataService.cargarAusencias();
+        
+        // Validar fichajes durante ausencias
+        if (this.ausencias.length > 0) {
+            const validator = new window.AusenciasValidator(this.empleados, this.fichajes, this.ausencias);
+            const alertaFichajes = validator.validarFichajesDuranteAusencias();
             
-            // Validar fichajes durante ausencias
-            if (this.ausencias.length > 0) {
-                const validator = new window.AusenciasValidator(this.empleados, this.fichajes, this.ausencias);
-                const alertaFichajes = validator.validarFichajesDuranteAusencias();
-                
-                if (alertaFichajes) {
-                    this.alertas_convenio.push(alertaFichajes);
-                }
+            if (alertaFichajes) {
+                this.alertas_convenio.push(alertaFichajes);
             }
-        } catch (error) {
-            // Mostrar alerta cuando no se pueden cargar los fichajes
-            alert('⚠️ FICHAJES NO DISPONIBLES\n\nNo se pudieron cargar los fichajes desde la API de Ágora.\nEl cálculo del convenio no estará disponible temporalmente.');
-            throw error;
         }
     }
 

@@ -129,11 +129,16 @@ class AgoraApiService {
      * Llamada a través del proxy de Supabase (para HTTPS/producción)
      */
     async fetchViaProxy(payload) {
+        // Obtener el anonKey de la configuración global o la constante
+        const apiKey = window.SUPABASE_CONFIG?.anonKey || 
+                       (typeof SUPABASE_ANON_KEY !== 'undefined' ? SUPABASE_ANON_KEY : '');
+        
         const response = await fetch(this.PROXY_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'apikey': window.SUPABASE_CONFIG?.anonKey || ''
+                'apikey': apiKey,
+                'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
                 agoraUrl: this.AGORA_URL,

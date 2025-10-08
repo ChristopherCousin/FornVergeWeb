@@ -84,7 +84,7 @@ class AgoraApiService {
 
         } catch (error) {
             console.error('❌ [Ágora API] Error obteniendo fichajes:', error);
-            return [];
+            throw error; // Lanzar error para que se propague
         }
     }
 }

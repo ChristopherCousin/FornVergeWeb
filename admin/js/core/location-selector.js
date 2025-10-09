@@ -107,7 +107,7 @@ class LocationSelector {
             .update({ last_location_accessed: locationId })
             .eq('id', this.auth.getCurrentUser().id);
 
-        console.log('✅ Local seleccionado:', location.location_name, '| ID:', locationId);
+        console.log(`✅ [LocationSelector] Local seleccionado: ${location.location_name}`);
 
         return true;
     }
@@ -121,12 +121,23 @@ class LocationSelector {
             return false;
         }
 
+        const prevLocation = this.currentLocation?.location_name;
+        const newLocation = this.availableLocations.find(l => l.location_id === locationId);
+        
+        console.log(`🔄 [LocationSelector] Cambiando de local: ${prevLocation} → ${newLocation?.location_name}`);
+
         const success = await this.selectLocation(locationId);
         
         if (success) {
-            // Recargar la página PERO solo después de guardar el nuevo local
-            // Esto evita ver el login porque la sesión ya está actualizada
-            console.log('🔄 Recargando aplicación con nuevo local...');
+            // Limpiar estado antes del reload
+            console.log('🧹 [LocationSelector] Limpiando estado antes del reload...');
+            
+            if (window.stateManager) {
+                window.stateManager.reset();
+            }
+            
+            // Recargar la página después de guardar el nuevo local
+            console.log('🔄 [LocationSelector] Recargando aplicación...');
             
             // Esperar un poquito para que se guarde en sessionStorage
             setTimeout(() => {

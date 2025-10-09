@@ -32,7 +32,7 @@ class ConvenioAnualManager {
             
             // ⚠️ Si hay error de Ágora, NO calcular estadísticas
             if (this.error_agora) {
-                console.error('❌ [ConvenioManager] Detenido por error de Ágora');
+                console.error('❌ [ConvenioManager] Error de Ágora detectado');
                 
                 // Publicar error en StateManager
                 if (window.stateManager) {
@@ -57,7 +57,7 @@ class ConvenioAnualManager {
             alertGenerator.mostrarAlertasConvenio();
             
         } catch (error) {
-            console.error('❌ Error inicializando Control Anual:', error);
+            console.error('❌ [ConvenioManager] Error en init:', error);
         }
     }
 
@@ -107,7 +107,6 @@ class ConvenioAnualManager {
         for (const empleado of this.empleados) {
             // Excluir empleados marcados como no sujetos al convenio (desde BD)
             if (empleado.excluido_convenio === true) {
-                console.log(`⏭️ ${empleado.name} excluido del convenio (socio/autónomo)`);
                 continue;
             }
             

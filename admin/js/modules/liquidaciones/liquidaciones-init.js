@@ -53,22 +53,41 @@ const inicializarLiquidaciones = async () => {
                 // Crear panel
                 window.liquidacionesPanel.crear();
                 
-                // Renderizar con un pequeño delay para asegurar que el DOM esté listo
-                setTimeout(async () => {
-                    try {
-                        await window.liquidacionesPanel.renderBalances();
+                // Esperar a que el ConvenioManager calcule las stats ANTES de renderizar
+                const esperarStats = async () => {
+                    let intentosStats = 0;
+                    const maxIntentosStats = 40; // 40 intentos × 500ms = 20 segundos max
+                    
+                    while (intentosStats < maxIntentosStats) {
+                        const stats = window.stateManager.getConvenioStats();
                         
-                        // Marcar como completamente cargado
-                        window.liquidacionesPanel.datosCompletos = true;
-                        
-                        // IMPORTANTE: Refrescar Control Anual ahora que tenemos datos de liquidaciones
-                        if (window.controlAnualUI) {
-                            window.controlAnualUI.actualizarEstadoEmpleados();
+                        // Verificar si ya hay stats calculadas
+                        if (stats && Object.keys(stats).length > 0) {
+                            console.log('✅ Stats del convenio disponibles, renderizando liquidaciones...');
+                            
+                            try {
+                                await window.liquidacionesPanel.renderBalances();
+                                window.liquidacionesPanel.datosCompletos = true;
+                                
+                                // Refrescar Control Anual ahora que tenemos datos de liquidaciones
+                                if (window.controlAnualUI) {
+                                    window.controlAnualUI.actualizarEstadoEmpleados();
+                                }
+                            } catch (err) {
+                                console.error('❌ Error renderizando balances:', err);
+                            }
+                            
+                            return;
                         }
-                    } catch (err) {
-                        console.error('❌ Error renderizando balances:', err);
+                        
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        intentosStats++;
                     }
-                }, 500);
+                    
+                    console.error('⚠️ Timeout esperando stats del convenio');
+                };
+                
+                esperarStats();
                 
                 console.log('✅ Sistema de liquidaciones inicializado correctamente');
                 window.inicializandoLiquidaciones = false;

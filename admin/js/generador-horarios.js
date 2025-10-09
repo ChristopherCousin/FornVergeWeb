@@ -71,7 +71,18 @@ class HorarioGenerator {
      * @returns {object} Un objeto `scheduleData` con el horario sugerido.
      */
     async generate(weekStart) {
-        console.log('🔮 Iniciando generador de horarios para la semana:', weekStart);
+        console.log('\n' + '='.repeat(80));
+        console.log('🔮 INICIANDO GENERADOR AUTOMÁTICO DE HORARIOS');
+        console.log('='.repeat(80));
+        console.log('📅 Semana:', weekStart);
+        console.log('⏰ Timestamp:', new Date().toLocaleString('es-ES'));
+        console.log('='.repeat(80) + '\n');
+        
+        // 📊 PASO 1: MOSTRAR CONFIGURACIÓN COMPLETA
+        console.log('📋 CONFIGURACIÓN DEL GENERADOR:');
+        console.log('─'.repeat(80));
+        console.log('🔧 Configuración de Turnos:', JSON.stringify(this.coverageNeeds, null, 2));
+        console.log('─'.repeat(80) + '\n');
 
         // 1. Obtener el estado actual de todas las empleadas
         const employeeStates = await this.getEmployeeStates(weekStart);

@@ -5,11 +5,12 @@
  */
 
 class ProjectionCalculator {
-    constructor(convenioConfig, empleados, fichajes, ausencias) {
+    constructor(convenioConfig, empleados, fichajes, ausencias, liquidaciones = {}) {
         this.convenioConfig = convenioConfig;
         this.empleados = empleados;
         this.fichajes = fichajes;
         this.ausencias = ausencias;
+        this.liquidaciones = liquidaciones; // { employeeId: horasLiquidadas }
     }
 
     /**
@@ -133,7 +134,10 @@ class ProjectionCalculator {
         // Horas ideales según días disponibles
         const horasIdealesParaDiasDisponibles = diasDisponibles * PROMEDIO_DIARIO_LEGAL;
         const horasFichadasReales = stats.horas_reales_agora;
-        const diferenciaCargaTrabajo = horasFichadasReales - horasIdealesParaDiasDisponibles;
+        
+        // ⚠️ IMPORTANTE: Restar horas ya liquidadas del balance
+        const horasLiquidadas = this.liquidaciones[stats.empleado_id] || 0;
+        const diferenciaCargaTrabajo = horasFichadasReales - horasIdealesParaDiasDisponibles - horasLiquidadas;
         
         if (stats.empleado_nombre.toUpperCase() === 'RAQUEL') {
             console.log(`\n🔍 [RAQUEL] Calculando Balance Final:`);
@@ -146,13 +150,14 @@ class ProjectionCalculator {
             console.log(`   ------------------------------------`);
             console.log(`   D. Horas IDEALES (C * ${PROMEDIO_DIARIO_LEGAL.toFixed(4)}h/día): ${horasIdealesParaDiasDisponibles.toFixed(2)}h`);
             console.log(`   E. Horas FICHADAS Totales: ${horasFichadasReales.toFixed(2)}h`);
+            console.log(`   F. Horas YA LIQUIDADAS (pagadas): ${horasLiquidadas.toFixed(2)}h`);
             console.log(`   ------------------------------------`);
-            console.log(`   ⚖️ BALANCE (E - D): ${diferenciaCargaTrabajo >= 0 ? '+' : ''}${diferenciaCargaTrabajo.toFixed(2)}h`);
+            console.log(`   ⚖️ BALANCE NETO (E - D - F): ${diferenciaCargaTrabajo >= 0 ? '+' : ''}${diferenciaCargaTrabajo.toFixed(2)}h`);
             
             // Cálculo alternativo con 40h/semana para comparar
             const semanasCompletas = Math.floor(diasDisponibles / 7);
             const horasIdeales40h = semanasCompletas * 40;
-            const balance40h = horasFichadasReales - horasIdeales40h;
+            const balance40h = horasFichadasReales - horasIdeales40h - horasLiquidadas;
             console.log(`\n   🔄 COMPARACIÓN MÉTODO 40h/SEMANA:`);
             console.log(`   - Semanas completas: ${semanasCompletas}`);
             console.log(`   - Horas ideales (${semanasCompletas} × 40h): ${horasIdeales40h.toFixed(2)}h`);

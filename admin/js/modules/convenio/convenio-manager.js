@@ -17,6 +17,7 @@ class ConvenioAnualManager {
         this.empleados = [];
         this.fichajes = [];
         this.ausencias = [];
+        this.liquidaciones = {}; // { employeeId: horasLiquidadas }
         this.stats_anuales = {};
         this.alertas_convenio = [];
         this.error_agora = null; // ⚠️ Indicador de error de Ágora
@@ -82,6 +83,9 @@ class ConvenioAnualManager {
         // Cargar ausencias
         this.ausencias = await this.dataService.cargarAusencias();
         
+        // Cargar liquidaciones de todos los empleados
+        this.liquidaciones = await this.cargarLiquidaciones();
+        
         // Validar fichajes durante ausencias
         if (this.ausencias.length > 0) {
             const validator = new window.AusenciasValidator(this.empleados, this.fichajes, this.ausencias);
@@ -93,6 +97,28 @@ class ConvenioAnualManager {
         }
     }
 
+    async cargarLiquidaciones() {
+        const liquidacionesPorEmpleado = {};
+        
+        for (const empleado of this.empleados) {
+            try {
+                const { data, error } = await this.supabase
+                    .rpc('get_total_liquidated_hours', { p_employee_id: empleado.id });
+                
+                if (!error) {
+                    liquidacionesPorEmpleado[empleado.id] = parseFloat(data) || 0;
+                } else {
+                    liquidacionesPorEmpleado[empleado.id] = 0;
+                }
+            } catch (err) {
+                console.error(`❌ Error cargando liquidaciones de ${empleado.name}:`, err);
+                liquidacionesPorEmpleado[empleado.id] = 0;
+            }
+        }
+        
+        return liquidacionesPorEmpleado;
+    }
+
     async calcularEstadisticasAnuales() {
         const hoy = new Date();
         const inicioAño = new Date(this.convenio.inicio_año);
@@ -102,7 +128,7 @@ class ConvenioAnualManager {
         const hoursCalc = new window.HoursCalculator(this.convenio, this.empleados, this.fichajes, this.ausencias);
         const shiftsCalc = new window.ShiftsCalculator(this.empleados, this.fichajes);
         const complianceAnalyzer = new window.ComplianceAnalyzer(this.convenio, this.fichajes);
-        const projectionCalc = new window.ProjectionCalculator(this.convenio, this.empleados, this.fichajes, this.ausencias);
+        const projectionCalc = new window.ProjectionCalculator(this.convenio, this.empleados, this.fichajes, this.ausencias, this.liquidaciones);
         
         for (const empleado of this.empleados) {
             // Excluir empleados marcados como no sujetos al convenio (desde BD)

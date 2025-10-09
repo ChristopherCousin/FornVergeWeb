@@ -9,6 +9,8 @@ class LiquidacionesService {
     constructor(supabase) {
         this.repository = new window.LiquidacionesRepository(supabase);
         this.formatter = new window.LiquidacionesFormatter();
+        this.configRepository = new window.LiquidacionesConfigRepository(supabase);
+        this.supabase = supabase;
     }
 
     /**
@@ -205,6 +207,96 @@ class LiquidacionesService {
             console.error('❌ Error eliminando liquidación:', error);
             throw error;
         }
+    }
+
+    /**
+     * ANÁLISIS INTELIGENTE DE RIESGO
+     * ==============================
+     * Analiza el riesgo de liquidar ahora vs esperar
+     */
+    async analizarRiesgoLiquidacion(employeeId) {
+        try {
+            // 1. Obtener configuración del local
+            const locationId = getCurrentLocationId();
+            const config = await this.configRepository.getConfig(locationId);
+
+            // 2. Obtener balance actual
+            const balance = await this.getBalancePendientePago(employeeId);
+            if (!balance) {
+                throw new Error('No se pudo obtener el balance del empleado');
+            }
+
+            // 3. Obtener empleado
+            const empleado = window.stateManager.getEmpleado(employeeId);
+            if (!empleado) {
+                throw new Error('No se encontró el empleado');
+            }
+
+            // 4. Obtener fichajes y ausencias
+            const convenioManager = window.controlAnualController?.convenioAnual;
+            if (!convenioManager) {
+                throw new Error('Sistema de convenio no disponible');
+            }
+
+            const fichajes = convenioManager.fichajes || [];
+            const ausencias = convenioManager.ausencias || [];
+
+            // 5. Analizar periodo
+            const periodoAnalyzer = new window.PeriodoAnalyzer(fichajes, config);
+            const { finPeriodo } = periodoAnalyzer.calcularDiasRestantes();
+            const descripcionPeriodo = periodoAnalyzer.getDescripcionPeriodo();
+
+            // 6. Calcular riesgo
+            const riesgoCalculator = new window.RiesgoCalculator(
+                empleado,
+                balance,
+                ausencias,
+                fichajes,
+                config
+            );
+
+            const analisisRiesgo = riesgoCalculator.analizar(finPeriodo);
+            const mensajeRecomendacion = riesgoCalculator.getMensajeRecomendacion(analisisRiesgo);
+
+            return {
+                success: true,
+                balance,
+                config,
+                periodo: {
+                    finPeriodo,
+                    descripcion: descripcionPeriodo,
+                    ...periodoAnalyzer.calcularDiasRestantes()
+                },
+                riesgo: analisisRiesgo,
+                recomendacion: mensajeRecomendacion
+            };
+
+        } catch (error) {
+            console.error('❌ Error analizando riesgo:', error);
+            return {
+                success: false,
+                error: error.message,
+                // Valores por defecto para evitar errores en UI
+                balance: { pendiente_pago: 0 },
+                riesgo: null
+            };
+        }
+    }
+
+    /**
+     * Obtiene la configuración actual
+     */
+    async getConfig() {
+        const locationId = getCurrentLocationId();
+        return await this.configRepository.getConfig(locationId);
+    }
+
+    /**
+     * Actualiza la configuración
+     */
+    async updateConfig(config) {
+        const locationId = getCurrentLocationId();
+        return await this.configRepository.updateConfig(locationId, config);
     }
 }
 

@@ -1023,20 +1023,25 @@
     <!-- ========== SISTEMA DE LIQUIDACIONES - NUEVA ARQUITECTURA ========== -->
     <!-- 1. Repository (capa de datos) -->
     <script src="js/modules/liquidaciones/liquidaciones-repository.js"></script>
+    <script src="js/modules/liquidaciones/liquidaciones-config-repository.js"></script>
     
     <!-- 2. Formatter (utilidades de formato) -->
     <script src="js/modules/liquidaciones/liquidaciones-formatter.js"></script>
     
-    <!-- 3. Service (lógica de negocio) -->
+    <!-- 3. Calculadoras (análisis inteligente) -->
+    <script src="js/modules/liquidaciones/calculators/periodo-analyzer.js"></script>
+    <script src="js/modules/liquidaciones/calculators/riesgo-calculator.js"></script>
+    
+    <!-- 4. Service (lógica de negocio) -->
     <script src="js/modules/liquidaciones/liquidaciones-service.js"></script>
     
-    <!-- 4. UI Modules -->
+    <!-- 5. UI Modules -->
     <script src="js/modules/liquidaciones/ui/liquidaciones-panel.js"></script>
     <script src="js/modules/liquidaciones/ui/liquidaciones-modal-pago.js"></script>
     <script src="js/modules/liquidaciones/ui/liquidaciones-modal-historial.js"></script>
     <script src="js/modules/liquidaciones/ui/liquidaciones-modal-editar.js"></script>
     
-    <!-- 5. Inicializador -->
+    <!-- 6. Inicializador -->
     <script src="js/modules/liquidaciones/liquidaciones-init.js"></script>
     <!-- ========== FIN SISTEMA LIQUIDACIONES ========== -->
     <!-- GESTIÓN DE EMPLEADOS -->

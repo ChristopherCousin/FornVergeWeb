@@ -948,14 +948,14 @@
     <script src="js/utils/helpers.js"></script>
     <script src="js/utils/debug.js"></script>
     
-    <!-- Estado Global -->
-    <script src="js/core/state.js"></script>
-    
-    <!-- Sistema de Autenticación Multi-Usuario (NUEVO) -->
+    <!-- Sistema de Autenticación Multi-Usuario (DEBE IR ANTES DEL STATE MANAGER) -->
     <script src="js/core/auth-multi-user.js"></script>
     <script src="js/core/location-selector.js"></script>
     <script src="js/core/permissions.js"></script>
     <script src="js/core/auth-new.js"></script>
+    
+    <!-- Estado Global (DESPUÉS de auth porque lo necesitan los módulos) -->
+    <script src="js/core/state.js"></script>
     
     <!-- Servicios de BD -->
     <script src="js/services/schedules-service.js"></script>
@@ -971,6 +971,7 @@
     
     <!-- UI -->
     <script src="js/ui/status.js"></script>
+    <script src="js/ui/stats.js"></script>
     <script src="js/ui/modals.js"></script>
     
     <!-- Script Principal -->
@@ -1011,12 +1012,32 @@
     <!-- ========== FIN SISTEMA CONVENIO ========== -->
     <!-- GESTIÓN DE AUSENCIAS -->
     <script src="js/ausencias-manager.js"></script>
-    <!-- CONTROL ANUAL SIMPLE PARA LA ENCARGADA -->
-    <script src="js/control-anual-simple.js"></script>
     
-    <!-- ========== SISTEMA DE LIQUIDACIONES ========== -->
-    <script src="js/modules/liquidaciones-simple.js"></script>
-    <script src="js/liquidaciones-ui.js"></script>
+    <!-- ========== CONTROL ANUAL - NUEVA ARQUITECTURA ========== -->
+    <script src="js/modules/control-anual/control-anual-controller.js"></script>
+    <script src="js/modules/control-anual/control-anual-ui.js"></script>
+    <script src="js/modules/control-anual/control-anual-events.js"></script>
+    <script src="js/modules/control-anual/control-anual-init.js"></script>
+    <!-- ========== FIN CONTROL ANUAL ========== -->
+    
+    <!-- ========== SISTEMA DE LIQUIDACIONES - NUEVA ARQUITECTURA ========== -->
+    <!-- 1. Repository (capa de datos) -->
+    <script src="js/modules/liquidaciones/liquidaciones-repository.js"></script>
+    
+    <!-- 2. Formatter (utilidades de formato) -->
+    <script src="js/modules/liquidaciones/liquidaciones-formatter.js"></script>
+    
+    <!-- 3. Service (lógica de negocio) -->
+    <script src="js/modules/liquidaciones/liquidaciones-service.js"></script>
+    
+    <!-- 4. UI Modules -->
+    <script src="js/modules/liquidaciones/ui/liquidaciones-panel.js"></script>
+    <script src="js/modules/liquidaciones/ui/liquidaciones-modal-pago.js"></script>
+    <script src="js/modules/liquidaciones/ui/liquidaciones-modal-historial.js"></script>
+    <script src="js/modules/liquidaciones/ui/liquidaciones-modal-editar.js"></script>
+    
+    <!-- 5. Inicializador -->
+    <script src="js/modules/liquidaciones/liquidaciones-init.js"></script>
     <!-- ========== FIN SISTEMA LIQUIDACIONES ========== -->
     <!-- GESTIÓN DE EMPLEADOS -->
     <script src="js/admin-empleados.js"></script>

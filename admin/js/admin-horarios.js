@@ -9,10 +9,9 @@ currentWeekStart = getCurrentWeek(availableWeeks);
 // Generar días para la semana actual
 let DAYS = generateDaysForWeek(currentWeekStart);
 
-// Variables globales movidas a core/state.js:
-// - employees, scheduleData, originalScheduleBeforeDraft, isInDraftMode
-// - currentModalEmployee, currentModalDay, isEditingShift, currentEditingShiftIndex
-// - employeesOnVacation, isAuthenticated
+// Variables globales necesarias
+let employees = [];
+let scheduleData = {};
 
 async function initApp() {
     // console.log('🚀 Iniciando Gestión de Horarios...');

@@ -5,6 +5,36 @@
  * Mantiene compatibilidad con el código existente
  */
 
+// ============================================================================
+// VARIABLES GLOBALES DE AUTENTICACIÓN (para compatibilidad)
+// ============================================================================
+let isAuthenticated = false;
+
+// Funciones auxiliares globales
+function setCurrentUser(user) {
+    window.currentUser = user;
+}
+
+function getCurrentUser() {
+    return window.currentUser || null;
+}
+
+function setCurrentLocation(location) {
+    window.currentLocation = location;
+}
+
+function getCurrentLocation() {
+    return window.currentLocation || null;
+}
+
+function getCurrentLocationId() {
+    return window.currentLocation?.location_id || null;
+}
+
+// ============================================================================
+// INICIALIZACIÓN DEL SISTEMA
+// ============================================================================
+
 // Inicializar sistemas de auth
 async function checkAuthentication() {
     // Crear instancias de los sistemas

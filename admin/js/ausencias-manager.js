@@ -525,16 +525,14 @@ const inicializarAusencias = async () => {
     const maxIntentos = 20; // Más intentos para ausencias
     
     while (intentos < maxIntentos) {
-        // Verificar si todos los componentes están disponibles
-        if (window.controlAnualSimple && 
-            window.controlAnualSimple.supabase && 
-            typeof window.controlAnualSimple.supabase.from === 'function') {
+        // Verificar si supabase global está disponible
+        if (window.supabase && typeof window.supabase.from === 'function') {
             
             try {
                 // console.log('✅ Dependencias de ausencias disponibles, inicializando...');
                 
                 // Crear instancia global
-                window.ausenciasManager = new AusenciasManager(window.controlAnualSimple.supabase);
+                window.ausenciasManager = new AusenciasManager(window.supabase);
                 await window.ausenciasManager.init();
                 
                 // console.log('✅ Sistema de ausencias inicializado correctamente');

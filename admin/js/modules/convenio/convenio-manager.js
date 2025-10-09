@@ -33,10 +33,24 @@ class ConvenioAnualManager {
             // ⚠️ Si hay error de Ágora, NO calcular estadísticas
             if (this.error_agora) {
                 console.error('❌ [ConvenioManager] Detenido por error de Ágora');
+                
+                // Publicar error en StateManager
+                if (window.stateManager) {
+                    window.stateManager.setAgoraError(this.error_agora);
+                }
+                
                 return;
             }
             
             await this.calcularEstadisticasAnuales();
+            
+            // Publicar estadísticas en StateManager
+            if (window.stateManager) {
+                window.stateManager.setConvenioStats(this.stats_anuales);
+                window.stateManager.setConvenioAlertas(this.alertas_convenio);
+                window.stateManager.setAgoraError(null); // Limpiar error si existía
+            }
+            
             this.renderer.mostrarResumenAnual(this.stats_anuales, this.alertas_convenio);
             
             const alertGenerator = new window.AlertGenerator(this.alertas_convenio);
@@ -96,8 +110,6 @@ class ConvenioAnualManager {
                 console.log(`⏭️ ${empleado.name} excluido del convenio (socio/autónomo)`);
                 continue;
             }
-            
-            console.log(`\n\n============== 📊 ANALIZANDO A ${empleado.name.toUpperCase()} ==============`);
             
             // Determinar fecha de inicio real para este empleado
             const fechaInicioReal = empleado.fecha_alta ? new Date(empleado.fecha_alta) : inicioReales;

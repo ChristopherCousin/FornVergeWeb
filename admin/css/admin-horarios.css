@@ -656,10 +656,26 @@ body {
     justify-content: center;
     box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     touch-action: manipulation;
+    z-index: 10;
 }
 
-.week-shift-compact:hover .week-shift-delete {
-    opacity: 1;
+/* En desktop: mostrar solo al hacer hover */
+@media (min-width: 769px) {
+    .week-shift-compact:hover .week-shift-delete {
+        opacity: 1;
+    }
+}
+
+/* En móvil: siempre visible pero más discreto */
+@media (max-width: 768px) {
+    .week-shift-delete {
+        opacity: 0.7;
+    }
+    
+    .week-shift-delete:active {
+        opacity: 1;
+        transform: scale(1.1);
+    }
 }
 
 /* Estilos week-add-btn eliminados - ya no se usa */
@@ -695,6 +711,13 @@ body {
     
     .week-shift-time {
         font-size: 10px; /* Aumentado de 9px a 10px */
+    }
+    
+    .week-shift-delete {
+        width: 20px;
+        height: 20px;
+        font-size: 11px;
+        opacity: 0.75;
     }
     
     /* week-add-btn eliminado */
@@ -733,9 +756,10 @@ body {
     /* week-add-btn eliminado */
     
     .week-shift-delete {
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
         font-size: 10px;
+        opacity: 0.8;
     }
 }
 
@@ -1921,11 +1945,13 @@ body {
     }
     
     .week-shift-delete {
-        width: 10px !important;
-        height: 10px !important;
-        font-size: 7px !important;
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 9px !important;
         top: 1px !important;
         right: 1px !important;
+        opacity: 0.85 !important;
+        background: rgba(255,255,255,0.98) !important;
     }
 }
 
@@ -2127,11 +2153,13 @@ body {
     }
     
     .week-shift-delete {
-        width: 8px !important;
-        height: 8px !important;
-        font-size: 6px !important;
-        top: 0 !important;
-        right: 0 !important;
+        width: 14px !important;
+        height: 14px !important;
+        font-size: 8px !important;
+        top: 1px !important;
+        right: 1px !important;
+        opacity: 0.9 !important;
+        background: rgba(255,255,255,0.98) !important;
     }
 }
 

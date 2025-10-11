@@ -12,6 +12,8 @@ let DAYS = generateDaysForWeek(currentWeekStart);
 // Variables globales necesarias
 let employees = [];
 let scheduleData = {};
+let isInDraftMode = false;
+let originalScheduleBeforeDraft = null;
 
 async function initApp() {
     // console.log('🚀 Iniciando Gestión de Horarios...');

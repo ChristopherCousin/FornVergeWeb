@@ -3,7 +3,8 @@
 function createWeekShiftElement(employee, day, shift, indexInSchedule = null) {
     const element = document.createElement('div');
     
-    const convenioStatus = window.controlAnualSimple?.convenioAnual?.getEstadoEmpleado(employee.id);
+    const controlAnual = window.controlAnualController || window.controlAnualSimple;
+    const convenioStatus = controlAnual?.convenioAnual?.getEstadoEmpleado(employee.id);
     let statusIcon = '';
     if (convenioStatus) {
         switch (convenioStatus.estado_semanal) {

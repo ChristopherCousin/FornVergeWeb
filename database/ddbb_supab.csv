@@ -1,0 +1,257 @@
+table_name,column_name,data_type,is_nullable,column_default
+active_offers_view,id,uuid,YES,null
+active_offers_view,title,text,YES,null
+active_offers_view,description,text,YES,null
+active_offers_view,category,text,YES,null
+active_offers_view,original_price,numeric,YES,null
+active_offers_view,offer_price,numeric,YES,null
+active_offers_view,savings,numeric,YES,null
+active_offers_view,start_date,date,YES,null
+active_offers_view,end_date,date,YES,null
+active_offers_view,days_remaining,integer,YES,null
+active_offers_view,priority,integer,YES,null
+active_offers_view,priority_text,text,YES,null
+active_offers_view,terms,text,YES,null
+active_offers_view,created_at,timestamp with time zone,YES,null
+active_offers_view,updated_at,timestamp with time zone,YES,null
+admin_users,id,uuid,NO,gen_random_uuid()
+admin_users,username,text,NO,null
+admin_users,password_hash,text,NO,null
+admin_users,full_name,text,NO,null
+admin_users,role,text,NO,null
+admin_users,assigned_location_id,uuid,YES,null
+admin_users,permissions,jsonb,YES,'{}'::jsonb
+admin_users,active,boolean,YES,true
+admin_users,last_login,timestamp with time zone,YES,null
+admin_users,last_location_accessed,uuid,YES,null
+admin_users,created_at,timestamp with time zone,YES,now()
+admin_users,updated_at,timestamp with time zone,YES,now()
+admin_users_summary,id,uuid,YES,null
+admin_users_summary,username,text,YES,null
+admin_users_summary,full_name,text,YES,null
+admin_users_summary,role,text,YES,null
+admin_users_summary,assigned_location_name,text,YES,null
+admin_users_summary,assigned_location_slug,text,YES,null
+admin_users_summary,active,boolean,YES,null
+admin_users_summary,last_login,timestamp with time zone,YES,null
+admin_users_summary,created_at,timestamp with time zone,YES,null
+ausencias,id,uuid,NO,gen_random_uuid()
+ausencias,empleado_id,uuid,NO,null
+ausencias,fecha_inicio,date,NO,null
+ausencias,fecha_fin,date,NO,null
+ausencias,tipo,text,NO,null
+ausencias,horas_teoricas_dia,numeric,YES,8.00
+ausencias,total_dias,integer,YES,null
+ausencias,total_horas_teoricas,numeric,YES,null
+ausencias,motivo,text,YES,null
+ausencias,observaciones,text,YES,null
+ausencias,justificante_subido,boolean,YES,false
+ausencias,creado_por,text,YES,null
+ausencias,aprobado_por,text,YES,null
+ausencias,estado,text,YES,'pendiente'::text
+ausencias,created_at,timestamp with time zone,YES,now()
+ausencias,updated_at,timestamp with time zone,YES,now()
+ausencias_detalle,id,uuid,YES,null
+ausencias_detalle,empleado_nombre,text,YES,null
+ausencias_detalle,employee_id,text,YES,null
+ausencias_detalle,emoji,text,YES,null
+ausencias_detalle,fecha_inicio,date,YES,null
+ausencias_detalle,fecha_fin,date,YES,null
+ausencias_detalle,tipo,text,YES,null
+ausencias_detalle,total_dias,integer,YES,null
+ausencias_detalle,horas_teoricas_dia,numeric,YES,null
+ausencias_detalle,total_horas_teoricas,numeric,YES,null
+ausencias_detalle,motivo,text,YES,null
+ausencias_detalle,estado,text,YES,null
+ausencias_detalle,creado_por,text,YES,null
+ausencias_detalle,created_at,timestamp with time zone,YES,null
+ausencias_detalle,activa_hoy,boolean,YES,null
+ausencias_detalle,dias_restantes,integer,YES,null
+cantidades_calculadas,id,integer,NO,nextval('cantidades_calculadas_id_seq'::regclass)
+cantidades_calculadas,producto,character varying,NO,null
+cantidades_calculadas,dia_semana,integer,NO,null
+cantidades_calculadas,tanda,character varying,NO,null
+cantidades_calculadas,cantidad_base,integer,NO,1
+cantidades_calculadas,cantidad_ajustada,integer,NO,1
+cantidades_calculadas,promedio_ventas_ultimos_30_dias,numeric,YES,0.00
+cantidades_calculadas,factor_ajuste,numeric,YES,1.20
+cantidades_calculadas,ultima_actualizacion,timestamp with time zone,YES,now()
+cantidades_calculadas,defrost_started_at,timestamp with time zone,YES,null
+cantidades_calculadas,defrost_completed_at,timestamp with time zone,YES,null
+cantidades_calculadas,baking_started_at,timestamp with time zone,YES,null
+cantidades_calculadas,baking_completed_at,timestamp with time zone,YES,null
+cantidades_calculadas,updated_at,timestamp with time zone,YES,now()
+cantidades_calculadas,employee_name,character varying,YES,null
+cantidades_calculadas,notes,text,YES,null
+daily_sales,id,bigint,NO,null
+daily_sales,date,date,NO,null
+daily_sales,daily_amount,numeric,NO,0
+daily_sales,monthly_total,numeric,NO,0
+daily_sales,created_at,timestamp with time zone,NO,"timezone('utc'::text, now())"
+daily_sales,updated_at,timestamp with time zone,NO,"timezone('utc'::text, now())"
+employees,id,uuid,NO,gen_random_uuid()
+employees,name,text,NO,null
+employees,emoji,text,YES,'👤'::text
+employees,employee_id,text,NO,null
+employees,access_code,text,NO,null
+employees,role,text,YES,'employee'::text
+employees,created_at,timestamp with time zone,YES,now()
+employees,updated_at,timestamp with time zone,YES,now()
+employees,fecha_alta,date,NO,'2025-06-06'::date
+employees,schedule_preferences,jsonb,YES,null
+employees,location_id,uuid,YES,null
+employees,horas_contrato,integer,NO,40
+employees,agora_employee_name,text,YES,null
+employees,tarifa_hora,numeric,YES,15.00
+employees,excluido_convenio,boolean,YES,false
+employees,fecha_inicio_computo,date,YES,null
+fichajes,id,bigint,NO,nextval('fichajes_id_seq'::regclass)
+fichajes,empleado_id,uuid,NO,null
+fichajes,fecha,date,NO,null
+fichajes,entrada,timestamp with time zone,YES,null
+fichajes,salida,timestamp with time zone,YES,null
+fichajes,horas_trabajadas,numeric,YES,null
+fichajes,completado,boolean,YES,false
+fichajes,agora_id,integer,YES,null
+fichajes,created_at,timestamp with time zone,YES,now()
+fichajes,updated_at,timestamp with time zone,YES,now()
+generator_config,id,uuid,NO,gen_random_uuid()
+generator_config,location_id,uuid,NO,null
+generator_config,turnos_configuracion,jsonb,NO,"'{""sunday"": [{""end"": ""14:00"", ""count"": 2, ""start"": ""07:00""}, {""end"": ""22:00"", ""count"": 2, ""start"": ""14:00""}], ""weekday"": [{""end"": ""14:00"", ""count"": 2, ""start"": ""06:30""}, {""end"": ""21:30"", ""count"": 2, ""start"": ""14:00""}], ""saturday"": [{""end"": ""14:00"", ""count"": 3, ""start"": ""07:00""}, {""end"": ""22:00"", ""count"": 3, ""start"": ""14:00""}]}'::jsonb"
+generator_config,dias_cierre,ARRAY,YES,ARRAY[]::text[]
+generator_config,permitir_turnos_partidos,boolean,YES,false
+generator_config,limite_turnos_partidos,text,YES,'uno_por_semana'::text
+generator_config,created_at,timestamp with time zone,YES,now()
+generator_config,updated_at,timestamp with time zone,YES,now()
+generator_config_detallado,id,uuid,YES,null
+generator_config_detallado,location_id,uuid,YES,null
+generator_config_detallado,location_name,text,YES,null
+generator_config_detallado,location_slug,text,YES,null
+generator_config_detallado,turnos_configuracion,jsonb,YES,null
+generator_config_detallado,dias_cierre,ARRAY,YES,null
+generator_config_detallado,permitir_turnos_partidos,boolean,YES,null
+generator_config_detallado,limite_turnos_partidos,text,YES,null
+generator_config_detallado,created_at,timestamp with time zone,YES,null
+generator_config_detallado,updated_at,timestamp with time zone,YES,null
+liquidaciones,id,bigint,NO,null
+liquidaciones,employee_id,uuid,NO,null
+liquidaciones,created_at,timestamp with time zone,YES,now()
+liquidaciones,liquidation_date,date,NO,null
+liquidaciones,liquidated_hours,numeric,NO,null
+liquidaciones,paid_amount,numeric,NO,null
+liquidaciones,covered_period_start,date,NO,null
+liquidaciones,covered_period_end,date,NO,null
+liquidaciones,manager_id,uuid,YES,null
+liquidaciones,notes,text,YES,null
+liquidaciones,balance_before,numeric,YES,null
+liquidaciones,balance_after,numeric,YES,null
+liquidaciones_con_empleado,id,bigint,YES,null
+liquidaciones_con_empleado,employee_id,uuid,YES,null
+liquidaciones_con_empleado,employee_name,text,YES,null
+liquidaciones_con_empleado,employee_emoji,text,YES,null
+liquidaciones_con_empleado,horas_contrato,integer,YES,null
+liquidaciones_con_empleado,liquidation_date,date,YES,null
+liquidaciones_con_empleado,liquidated_hours,numeric,YES,null
+liquidaciones_con_empleado,paid_amount,numeric,YES,null
+liquidaciones_con_empleado,covered_period_start,date,YES,null
+liquidaciones_con_empleado,covered_period_end,date,YES,null
+liquidaciones_con_empleado,balance_before,numeric,YES,null
+liquidaciones_con_empleado,balance_after,numeric,YES,null
+liquidaciones_con_empleado,manager_name,text,YES,null
+liquidaciones_con_empleado,notes,text,YES,null
+liquidaciones_con_empleado,created_at,timestamp with time zone,YES,null
+liquidaciones_config,id,uuid,NO,uuid_generate_v4()
+liquidaciones_config,location_id,uuid,NO,null
+liquidaciones_config,frecuencia,text,NO,null
+liquidaciones_config,dia_corte,text,YES,null
+liquidaciones_config,margen_seguridad_horas,numeric,YES,5
+liquidaciones_config,umbral_minimo_liquidar,numeric,YES,5
+liquidaciones_config,auto_detectar_cierre,boolean,YES,true
+liquidaciones_config,created_at,timestamp with time zone,YES,now()
+liquidaciones_config,updated_at,timestamp with time zone,YES,now()
+locations,id,uuid,NO,gen_random_uuid()
+locations,name,text,NO,null
+locations,address,text,YES,null
+locations,created_at,timestamp with time zone,YES,now()
+locations,slug,text,YES,null
+locations,agora_url,text,YES,null
+metricas_diarias,id,integer,NO,nextval('metricas_diarias_id_seq'::regclass)
+metricas_diarias,fecha,date,NO,null
+metricas_diarias,total_productos_vendidos,integer,YES,0
+metricas_diarias,total_facturacion_euros,numeric,YES,0.00
+metricas_diarias,eficiencia_porcentaje,numeric,YES,0.00
+metricas_diarias,mejor_tanda,character varying,YES,null
+metricas_diarias,peor_tanda,character varying,YES,null
+metricas_diarias,productos_mas_vendidos,ARRAY,YES,null
+metricas_diarias,observaciones,text,YES,null
+metricas_diarias,actualizado_en,timestamp with time zone,YES,now()
+offers,id,uuid,NO,gen_random_uuid()
+offers,title,text,NO,null
+offers,description,text,NO,null
+offers,category,text,NO,null
+offers,original_price,numeric,YES,null
+offers,offer_price,numeric,YES,null
+offers,start_date,date,NO,null
+offers,end_date,date,NO,null
+offers,is_active,boolean,YES,true
+offers,priority,integer,YES,1
+offers,terms,text,YES,null
+offers,created_at,timestamp with time zone,YES,now()
+offers,updated_at,timestamp with time zone,YES,now()
+offers,created_by,text,YES,'admin'::text
+offers,location_name_old,text,YES,null
+offers,location_id,uuid,YES,null
+schedule_detailed,id,uuid,YES,null
+schedule_detailed,week_start,date,YES,null
+schedule_detailed,day_of_week,text,YES,null
+schedule_detailed,start_time,time without time zone,YES,null
+schedule_detailed,end_time,time without time zone,YES,null
+schedule_detailed,hours,numeric,YES,null
+schedule_detailed,is_free_day,boolean,YES,null
+schedule_detailed,employee_id,uuid,YES,null
+schedule_detailed,employee_name,text,YES,null
+schedule_detailed,employee_emoji,text,YES,null
+schedules,id,uuid,NO,gen_random_uuid()
+schedules,employee_id,uuid,YES,null
+schedules,week_start,date,NO,null
+schedules,day_of_week,text,NO,null
+schedules,start_time,time without time zone,YES,null
+schedules,end_time,time without time zone,YES,null
+schedules,hours,numeric,YES,0
+schedules,colleagues,ARRAY,YES,null
+schedules,is_free_day,boolean,YES,false
+schedules,created_at,timestamp with time zone,YES,now()
+schedules,updated_at,timestamp with time zone,YES,now()
+schedules,shift_sequence,integer,YES,1
+schedules,shift_description,text,YES,null
+schedules,location_id,uuid,YES,null
+tasks_assignments,id,uuid,NO,gen_random_uuid()
+tasks_assignments,week_start,date,NO,null
+tasks_assignments,day_of_week,text,NO,null
+tasks_assignments,employee_id,uuid,NO,null
+tasks_assignments,task_key,text,NO,null
+tasks_assignments,created_at,timestamp with time zone,NO,now()
+tasks_backlog,week_start,date,NO,null
+tasks_backlog,task_key,text,NO,null
+tasks_backlog,carryover,integer,NO,null
+tasks_backlog,created_at,timestamp with time zone,NO,now()
+tasks_catalog,task_key,text,NO,null
+tasks_catalog,name,text,NO,null
+tasks_catalog,min_per_week,integer,NO,null
+tasks_catalog,active,boolean,NO,true
+tasks_catalog,weight,integer,NO,1
+tasks_catalog,created_at,timestamp with time zone,NO,now()
+tasks_catalog,updated_at,timestamp with time zone,NO,now()
+tasks_catalog,priority,integer,NO,100
+tasks_catalog,allow_carryover,boolean,NO,true
+ventas_por_horas,id,integer,NO,nextval('ventas_por_horas_id_seq'::regclass)
+ventas_por_horas,producto,character varying,NO,null
+ventas_por_horas,fecha,date,NO,null
+ventas_por_horas,dia_semana,integer,NO,null
+ventas_por_horas,hora,integer,NO,null
+ventas_por_horas,tanda,character varying,NO,null
+ventas_por_horas,cantidad_vendida,integer,YES,0
+ventas_por_horas,precio_unitario,numeric,YES,2.00
+ventas_por_horas,total_euros,numeric,YES,null
+ventas_por_horas,fuente,character varying,YES,'agora_api'::character varying
+ventas_por_horas,creado_en,timestamp with time zone,YES,now()

@@ -32,15 +32,22 @@ async function handleSugerirHorario() {
     suggestButton.disabled = true;
 
     try {
-        if (!window.controlAnualSimple || !window.ausenciasManager) {
-            throw new Error('Los módulos de convenio y ausencias no están listos.');
+        // ✨ Verificar que los módulos necesarios estén listos
+        const controlAnual = window.controlAnualController || window.controlAnualSimple;
+        
+        if (!controlAnual || !controlAnual.convenioAnual) {
+            throw new Error('El módulo de convenio no está listo. Por favor, espera a que la página cargue completamente.');
+        }
+        
+        if (!window.ausenciasManager) {
+            throw new Error('El módulo de ausencias no está listo. Por favor, espera a que la página cargue completamente.');
         }
 
         const generator = new HorarioGenerator(
             supabase,
             employees,
             window.ausenciasManager,
-            window.controlAnualSimple.convenioAnual
+            controlAnual.convenioAnual
         );
 
         const nuevoScheduleData = await generator.generate(currentWeekStart);

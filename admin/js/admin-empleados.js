@@ -36,10 +36,15 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const agoraApi = new window.AgoraApiService();
-            const fichajes = await agoraApi.obtenerFichajes('2025-01-01', new Date().toISOString().split('T')[0]);
+            const resultado = await agoraApi.obtenerFichajes('2025-01-01', new Date().toISOString().split('T')[0]);
+            
+            // ✨ El servicio devuelve { success, data, error }
+            if (!resultado.success || !Array.isArray(resultado.data)) {
+                throw new Error(resultado.error || 'No se obtuvieron datos de Ágora');
+            }
             
             // Extraer nombres únicos
-            const nombresUnicos = [...new Set(fichajes.map(f => f.Empleado))].sort();
+            const nombresUnicos = [...new Set(resultado.data.map(f => f.Empleado))].sort();
             
             select.innerHTML = '<option value="">Mismo nombre</option>' + 
                 nombresUnicos.map(nombre => `<option value="${nombre}">${nombre}</option>`).join('');

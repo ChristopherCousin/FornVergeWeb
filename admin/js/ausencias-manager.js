@@ -207,9 +207,12 @@ class AusenciasManager {
             this.actualizarListaAusencias();
 
             // Actualizar panel de control si está disponible
-            if (window.controlAnualSimple && window.controlAnualSimple.convenioAnual) {
-                await window.controlAnualSimple.convenioAnual.init();
-                window.controlAnualSimple.actualizarEstadoEmpleados();
+            const controlAnual = window.controlAnualController || window.controlAnualSimple;
+            if (controlAnual && controlAnual.convenioAnual) {
+                await controlAnual.convenioAnual.init();
+                if (typeof controlAnual.actualizarEstadoEmpleados === 'function') {
+                    controlAnual.actualizarEstadoEmpleados();
+                }
             }
 
         } catch (error) {

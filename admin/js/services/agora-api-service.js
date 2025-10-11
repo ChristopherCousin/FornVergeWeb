@@ -39,7 +39,7 @@ class AgoraApiService {
         
         if (!currentLocation) {
             console.warn('⚠️ No hay local seleccionado, usando URL por defecto');
-            return 'http://88.20.190.118:8984'; // Fallback a Son Oliva
+            return 'http://88.21.127.131:8984'; // Fallback a Son Oliva
         }
         
         // Usar agora_url del local si existe
@@ -50,7 +50,7 @@ class AgoraApiService {
         
         // Fallback basado en slug
         const urlMap = {
-            'son-oliva': 'http://88.20.190.118:8984',
+            'son-oliva': 'http://88.21.127.131:8984',
             'llevant': 'http://vergedelluch.ddns.net:8984'
         };
         

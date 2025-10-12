@@ -207,9 +207,11 @@ class ControlAnualUI {
         const stats = Object.values(window.stateManager.getConvenioStats());
         if (stats.length === 0) return;
         
-        // Verificar si las liquidaciones ya se cargaron completamente
+        // Solo esperar liquidaciones si el usuario tiene permisos para verlas
+        const tienePermisosLiquidaciones = window.hasPermission && window.hasPermission('liquidaciones', 'ver');
         const liquidacionesCargadas = window.liquidacionesPanel?.datosCompletos === true;
-        if (!liquidacionesCargadas) {
+        
+        if (tienePermisosLiquidaciones && !liquidacionesCargadas) {
             container.innerHTML = `
                 <div class="text-center py-8 text-gray-500">
                     <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
